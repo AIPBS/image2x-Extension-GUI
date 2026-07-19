@@ -2,7 +2,800 @@
 ---
 #### [📝中文版 更新日志](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/blob/master/Change_log_CN.md)
 
-#### [⭐Latest release](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/latest)
+#### [💾Latest stable release](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/latest)
+---
+## v3.139.01
+- NEW Image Batch Upscale Pipeline, Over 300% Performance Boost.(Optional BETA Feature)
+- Testing on an RTX 5060 Laptop, using Waifu2x-NCNN:
+- Dropped processing time for 326 mixed pictures from 3:50 down to just 1:10.
+- The NEW Pipeline currently supports all NCNN-Vulkan engines plus Anime4K.
+- Faster info reading for pictures and GIF.
+- Fix: Improved I/O robustness for [Replace original file] option.
+- Fix: Upscaling engine crash caused by MSI Afterburner and RTSS on some PCs.
+- (Thanks to @GT500 for reporting and assisting with testing)
+- Compare to v3.138.18-beta:
+- Further Expansion of the New Image Upscaling Pipeline.
+- Multiple bug fixs.
+---
+## v3.138.01
+- NEW: Spanish Language Pack. Auto-generated and refined via automated translation software.
+- Enable it at: Additional Settings > Language (bottom-right corner).
+- NEW Feature: [Log to file]. When enabled, auto saves all console output to log files.
+- [Log to file] is disabled by default. Location: Home Tab, bottom right.
+- NEW Feature: Improved Compatibility Test for HW Video Decoder & Encoder.
+- Waifu2x will now help you configure and enable HW video decoders & encoders directly, speeding up video processing.
+- You can re-run the compatibility test if you want waifu2x to automatically help you enable these options.
+- The Spanish Language Pack has been further refined compared to the BETA version.
+---
+## v3.137.01
+- NEW [RIFE-v4.26-Large] Frame Interpolation Model with Quality Improvements.
+- Feature upgrade: [Keep subtitle] is now updated to [Subtitle & Chapter]
+- Now waifu2x can include both Subtitle and Chapter in the final video.
+---
+## v3.136.01
+- NEW Model: v1.8 update for [AnimeVideo-Mini] model, with improved denosie and details reconstruction.
+- Improved support for high-DPI displays.
+- Fixed blurry appearance of the browser when opening local HTML help documentation.
+- Resolved issue where local help documentation failed to open properly on some PCs.
+- Fix bug: Engine crash when upscaling extremely small images.
+---
+## v3.135.01
+- Faster batch processing of images through further pipeline optimization.
+- Optimize code to improve the performance of [Frame Analysis].
+- NEW Feature: [NEVER convert to MP4], skip compatibility check and mp4 conversion entirely.(Location: Additional Settings Tab)
+- Improve UI and adjust some UI components.
+- Complete missing translations.
+---
+## v3.134.01
+- Updated Waifu2x-NCNN-Vulkan Engine, overall 22% faster than previous version.
+- Improved subtitle processing logic, now supports a wider range of subtitle formats.
+---
+## v3.133.01
+- HAPPY NEW YEAR 2026!
+- NEW Model: V1.5 update for Omni-Turbo-W2xEX, improved denoise and clarity through continue training.
+- Smarter handling of extreme high-res images, better adapted for different super-res engines and settings.
+- Faster compatibility test on RTX 50 series.
+- Update some console messages.
+---
+## v3.132.01
+- Improved [Speed Boost](Frame Analysis) for faster matching.
+- Improved [Scene Shift Detection](Frame Analysis) for faster detection.
+- Enhanced handling of high-resolution images:
+- Waifu2x now automatically downscales extremely high-resolution images before upscaling to prevent engine failures.
+- This feature auto-downscales only ultra-high-res images that would crash the engine, resizing them to the max supported size to minimize detail loss.
+- Improve code robustness by fixing potential issues that could cause memory leaks and crashes.
+---
+## v3.131.01
+- NEW Model: 1.7 update for AnimeVideo-Mini, sharper and better detail reconstruction.
+- Fix file I/O related issues.
+- Code optimization and cleanup.
+---
+## v3.130.01
+- NEW Feature: [After upscale] - Enable this option to have waifu2x perform video upscaling prior to frame interpolation.
+- Improved speed of adding large numbers of files to the file list
+- Updated method for reading available VRAM size to improve compatibility
+- Optimized code performance
+- Enhanced code reliability
+- Code cleanup and refactoring
+---
+## v3.129.01
+- NEW Model: Omni-Turbo-W2xEX, aims to preserve the quality of the Omni-Small model while boosting speed.
+- NEW Feature: Quick ESRGAN model switch at Home Tab.
+- NEW Model: v1.5 update for the AnimeVideo-Mini-W2xEX model, improved denoising ability.
+- Update ESRGAN models documentation to include AnimeVideo-Mini-W2xEX.
+- Streamline the software startup process.
+---
+## v3.128.01
+- NEW Model: AnimeVideo-Mini-W2xEX, a tiny ESRGAN model trained for fast anime video upscaling while preserving decent detail reconstruction and denoising ability.
+- The anime upscaling quality of this model is significantly better than Anime4K and RTX Super-Res, coming close to AnimeVideoV3.
+- The speed of this new model is similar to Omni-Mini-W2xEX.
+- NEW Feature: Add [Auto Apply] toggle for custom resolution presets. After enabled, while switching presets, the selected preset will be automatically applied to all files in the list.
+- NEW Feature: Add [Default] preset for custom resolution presets, make it easier to switch back to the default custom resolution settings.
+- NEW Feature: Add [Only Keep Failed Files] to the right click menu of [Remove Selected File] button.
+- Improved compatibility with RTX 50 GPUs
+---
+## v3.127.01
+- NEW Model: V2 update for Omni-Small-W2xEX video upscaling model, featuring better detail reconstruction and deblur capability compare to V1.
+- NEW Feature: Added [Presets] for [Custom Resolution] to allow for quick and easy resolution adjustment.
+- NEW Feature: Added a [View Output Folder] button for quick access to the output directory.
+- Improved compatibility with RTX 50 GPUs for users in certain region.
+- Fix bug: The video encoder quality setting did not take effect when [Process Video by Segment] was enabled.
+---
+## v3.126.01
+- NEW Frame Interpolation Model: [RIFE-v4.26], higher quality, Enhanced Stability for Drastic Movements.
+- NEW Feature: Now you can keep the transparent background of the GIF after frame interpolation by enable [Keep Alpha Channel] at image settings tab.
+- NEW Feature: Now GIF also supports [Target FPS] mode of frame interpolation.
+- Update settings presets.
+- Now waifu2x will automatically correct the FPS of the GIF output to improve compatibility with media players.
+- Improve synchronization between the interpolated GIF and the source GIF.
+- Improve code related to reading GIF duration to enhance compatibility with edge cases.
+---
+## v3.125.01
+- NEW Feature: GIF Frame Interpolation.
+- You can access GIF Frame Interpolation by enable [Frame Interpolation] option at the Home tab.
+- You can enable [Optimize Looped GIF] at the [Image settings] tab.
+- [Scene Shift Detection] also supports GIF Frame Interpolation, you can enable it at [Video Settings] tab.
+---
+## v3.124.01
+- NEW Model: Omni-Small-W2xEX, an ESRGAN model trained for Video upscaling, featuring better detail reconstruction and enhanced denoising capability compare to Omni-Mini.
+- [Override] toggle for [Presets] and [Custom] modes of the [Maintain consistent Video FPS] feature. When enabled, the specified FPS will always take precedence regardless of whether frame interpolation is active.
+- Auto model selection for Video upscaling when using ESRGAN engine.
+- Add a button for quickly adjusting the RAM drive size, which will be set to 85% of the available RAM.
+- Add right-click menus for [Video Color Management], making it easier to switch between commonly used values.
+- Update documentation.
+- Update settings presets.
+- Fix bug: RTX 50 series card might stuck at compatibility test.
+---
+## v3.123.01
+- NEW Model: V2 Update for Universal-Fast-W2xEX ESRGAN model, featuring better detail reconstruction, improved anime upscaling, and enhanced denoising capability.
+- Enhanced Video Color Fidelity: further improve the color accuracy of the default JPEG frame codec while still remaining fast and space-efficient.
+- Improvements and bug fixes for [Maintain consistent Video FPS].
+- Show a notification about slow processing speed when the highest quality presets are selected.
+- Updated documentation for Universal-FastV2-W2xEX.
+- Fixed bug: When using Vulkan engines with multiple GPUs, disabling the CPU (-1) could cause issues.
+- Fixed bug: Incorrect status when loading a [Files List] file.
+- Code optimization.
+- Fix UI issues.
+- Other bug fixes.
+---
+## v3.122.01
+- New Feature: Better FPS Control for Rendered Video, add [Presets] and [Custom] modes for [Maintain consistent Video FPS].
+- New Feature: Added support for 10-bit color depth settings in video encoder settings, improved video quality and more efficient video compression.
+- Fix bug: [Maintain consistent Video FPS] doesn't work when [Process video by segment] is enabled.
+- Fix bug: [Maintain consistent Video FPS] doesn't work when using RTX Super-res.
+- Fix bug: In some situations, video frame interpolation doesn't work when using RTX Super-res.
+- Fix bug: In some situations, the cache files are not automatically deleted after finished processing when using RTX Super-res.
+---
+## v3.121.01
+- New RIFE frame interpolation model: [v4.22-lite], provides higher quality than the previous models.
+- Add introduction document for Real-ESRGAN models.
+- Add a [Select folder] button for [Output Folder].
+- When switching the "Image Style" of the ESRGAN engine, the model's image style label in the engine settings tab will be highlighted.
+- Add a [Help] button for [Import ESRGAN models] settings.
+---
+## v3.120.01
+- NEW ESRGAN Model: [Photo-Small-W2xEX], fast photo upscaling model, achieved higher photo upscaling quality compared to [Universal-Fast-W2xEX] while maintained similar speed.
+- NEW Feature: AV1 Video Encoder support.
+- Add SVT-AV1 software encoder.
+- Add Nvidia, Intel, and AMD AV1 hardware encoder.
+- Update settings preset to utilize the new model.
+- Better compatibility with AV1 video codec.
+- Update RIFE engine.
+- Update GIF plugin.
+- Update other plugin.
+---
+## v3.119.01
+- NEW Feature: Better GIF quality, GIF now supports [Transparent image Clarity Enhancement].
+- V2 update for Omni-Mini Real-ESRGAN model, improving its image quality without compromising performance.
+- Improve the compatibility of [Video Color Management].
+---
+## v3.118.01
+- New RIFE model: [v4.17-lite], compared to the previous Lite model, it can generate more stable frames.
+- Additional options for quick Image resize and compress:
+- [Do not upscale]: If images resolution is lower then the Custom resolution, they will only be converted(compressed).
+- [Ignore scale ratio]: Always ignore scale ratio settings when using [Convert format ONLY (Static Images)].
+- [Skip if not smaller]: Converted image will be deleted if its file size is not smaller than the original. The original image will be copied to output folder instead.
+- [Skip low resolution images]: When [Convert format ONLY (Static Images)] and [Resize] is enabled, only process images when their resolution is higher then Custom resolution.
+- Fix bug: [keep aspect ratio by expanding] not working properly when upscaling images.
+---
+## v3.117.01
+#### Change log:
+- New Real-ESRGAN model: [Omni-Mini-W2xEX], a super fast tiny model designed to mimic the quality and speed of RTX Super-resolution, bring RTX Super-res capability to ALL platforms.
+- Upgrade Real-ESRGAN [Sequential decoding] to [Image decode threads]. Boost image upscaling performance by auto adjust decode threads based on PCs hardware, up to 87.94% faster during testing.
+- Fix bug: In some situations, number of frames does not meet expectation after frame interpolation.
+---
+## v3.116.01
+#### Change log:
+- New RIFE model: [rife-v4.15-lite], compared to the previous Lite model, it offers higher quality, faster speed, and reduced VRAM usage.
+- New feature: Added a [Resize] option for [Convert format ONLY(Static Image)], using fast scaling algorithm (not super-resolution), capable of instant and simultaneously scaling, compressing, and converting image formats.
+- Updated automatic thread allocation algorithm for RIFE frame interpolation engine, improving stability.
+- Added a [Reset] right-click menu option for [Static Image Quality], facilitating quick resetting of quality values to 100.
+- Optimized code performance.
+- Improved UI.
+- Fixed issue: [Transparent image Clarity Enhancement] may cause dark parts of some images to become semi-transparent.
+- Fixed potential UI option conflicts.
+- Removed some historical legacy UI errors.
+---
+## v3.115.01
+#### Change log:
+- NEW [Photo-HQ-W4xEX] Real-ESRGAN model, a high-quality photo upscale model. Compared to previous models, it better preserves details and generates cleaner images.
+- New Feature: [Automatic Video Deinterlacing], automatically detect interlaced videos and perform deinterlacing before upscaling (frame interpolation).
+- Optimize UI performance
+- Improved compatibility with some regional formats.
+---
+## v3.114.01
+#### Change log:
+- NEW RIFE frame interpolation model: [RIFE V4.17], which has higher quality and can generate more stable frames compared to the previous v4.14 model.
+- Significantly faster video encoding speed: When [Process video by segment] is enabled, a new method will be used to assemble video segments, reducing the time spent assembling segments from minutes to seconds in tests.
+- Improved the [Video Color Management] UI to support direct selection of all pixel formats supported by the current video encoder.
+- Switch default video container format to MKV.
+- Optimized UI performance.
+- Fixed an issue when [Process video by segment] is enabled, frame interpolation might cause the video stream and audio stream to be out of sync.
+- Fixed an issue where a small part of the content might be omitted at the end of the video when [Process video by segment] is enabled.
+- Fixed an issue where using [Optimize Looped video] might generate extra duplicate frames, resulting in unsmooth loop playback.
+- Fixed an issue where extra frames appeared at the end of the video after frame interpolation.
+- Fixed an issue where enabling both [Target FPS] and [Optimize Looped video] could cause errors.
+- Fixed an issue where using [Target FPS] to interpolate very short videos resulted in an actual frame rate lower than expected.
+- Fixed a conflict issue between [Speed Boost] and [Optimize Looped video].
+- Fixed a conflict issue between [Scene Shift Detection] and optimized looped videos.
+- Fixed compatibility issues with the latest version of ffmpeg and updated the built-in ffmpeg to the latest version, preparing for future support of more video encoders and decoders.
+- Fixed compatibility issues with the latest version of ffprobe and updated the built-in ffprobe to the latest version.
+- Fixed a rare issue where Real-ESRGAN might freeze when processing videos and animated images.
+- Updated the User Guide, adding jump links to the directory.
+- Updated daily tips.
+- Corrected typos.
+---
+## v3.113.01
+#### Change log:
+- NEW UI Design for [Video Encoder] settings.
+- NEW Feature: ProRes video decoding & encoding. (Location: Video settings tab, Video Encoder)
+- NEW Feature: [Sequential decoding] for Real-ESRGAN, reduce CPU usage during image decoding and increase performance.
+- Performance optimization for [Anime-HQ-W4xEX] Real-ESRGAN model.
+- Better multi-threaded performance when upscaling images using Real-ESRGAN.
+- [Encoding Quality] and [Hardware-accelerated encoding] are now merged with the new [Video Encoder] settings.
+- Fix bug: Some PCs will stuck at image decoding for a long time when using RealESRGAN to upscale static images.
+---
+## v3.112.01
+#### Change log:
+- NEW [Anime-HQ-W4xEX] Real-ESRGAN model for High Quality Anime upscaling, which retains detail better and can generate cleaner image compare to previous models.
+- NEW Feature: [Video Color Management], software now can automatically adjust color-related parameters to achieve better color accuracy, or you can adjust these parameters by yourself. (Location: Video settings tab)
+- Updated [Auto optimize engine settings] to boost the performance of Real-ESRGAN, up to 48% faster than the previous version.
+- Better RIFE Auto model selection, now you can tell Waifu2x to use v4.14 model instead of v4.13-lite when automatically selecting model.
+- Some UI improvements.
+---
+## v3.111.01
+#### Change log:
+- NEW [RIFE-v4.14] model for Higher quality video frame interpolation, which could generate more stable results compare to previous models.
+- NEW [RIFE-v4.13-lite] model for Fast and High quality frame interpolation, which is 30% faster than 4.14 model but could achieve similar quality.
+- NEW [Auto-Select] feature, automatically select rife model based on your PCs hardware and resolution of the video. (Enabled by default)
+- Built-in [User guide] to help new users quickly get started with the software. (Location: Home tab, big question mark icon in the lower right corner)
+- [Universal-Fast-W2xEX] RealESRGAN Model is now up to 30% faster by updating [Auto optimize engine settings].
+- Update [Settings presets] to utilize the new [Universal-Fast-W2xEX] RealESRGAN Model.
+- Fix some UI issues.
+- Fix bug: Pausing while processing frame folders may cause the software to crash.
+---
+## v3.110.01
+#### Change log:
+- NEW [Universal-Fast-W2xEX] Model for RealESRGAN engine, designed for fast photo upscaling, 30.5x faster than the RealESRGAN-x4plus model while retain decent image quality.
+- NEW Feature: Now you can select [Preset] for Nvidia and Intel hardware encoders, which will affect the quality of the result video. (Location: Video settings, Hardware-accelerated Encoding)
+- NEW Feature: [Stop then excute action], Stop right after the currently "Processing" files are finished, then execute an action. (Location: Home tab, in the "Do nothing(when finished)" options list)
+- Add [Copy] and [Paste] buttons for the right-click menu of [Output path folder].
+- Update several plugins.
+- Some UI improvements
+- [Optimize Looped video] setting will be saved like other settings.
+- Fix bug: In certain situations, NCNN-Vulkan engines will randomly get stuck.
+---
+## v3.109.01
+#### Change log:
+- NEW Feature: [Encoding Quality], adjust video encoding quality when using software and hardware encoders. (location: video settings tab)
+- NEW Feature: [Stop process new files], automatically stop after finished processing current tasks. (Location: Home tab, in the "Do nothing(when finished)" options list)
+- When output upscaled images, replace [_Compressed] with [_Q<Static Images Quality value>], like [_Q95], when [Static Images Quality] taken effect.
+- NEW video subtitle processing method, better video compatibility.
+- Automatically disable Dynamic RAM Cache after the RAM Disk is detached.
+- Fix bug: When there are multiple subtitles in one video, the output video might be broken.
+---
+## v3.108.01
+#### Change log:
+- NEW Feature: [Import frames folder], browse and add folders of Frames Images for frame interpolation.
+- NEW Feature: [Reduce Video FPS], reduce frame rate of the Video before frame interpolation and upscaling. (Additional settings tab, Tools section)
+- NEW Feature: [Copy Skipped files], when enabled, also Copy Skipped files to the output folder. (Home tab, output folder section)
+- NEW Feature: Now you can adjust how many threads [Convert format ONLY (Static Images)] will use by adjusting: [Engine settings, Number of threads (Super-resolution), Image].
+- Significantly improved UI performance, now the Files list UI can handle large amount of files much better than before.
+- Optimize code related to video processing.
+- Add m4v to the default video file extensions list.
+- Fix bug: Real-CUGAN might output incorrect color in certain situations.
+- Fix several bugs related to [Convert format ONLY (Static Images)].
+- NEW Feature: [Frame interpolation for frames folder] now supports [Delete original files], [Replace original fils] and [Output folder]
+- Fix bug: When using [Frame interpolation for frames folder], some original frames might be incorrectly deleted after frame interpolation.
+---
+## v3.107.01
+#### Change log:
+- NEW Feature: [Speed Boost 2.0], HUGE Speed boost for duplicated frames detection, faster & more accurate, which means [Speed Boost 2.0] can save way more time then previous version.
+- NEW Feature: More [Save as] formats for animated webp: apng, mp4 and webm.
+- NEW Feature: [Sync video aspect ratio], Synchronize sample aspect ratio with display aspect ratio.
+- Add warning pop-up for [Delete original files] and [Replace original file] options.
+- Improve image quality of APNG and WebP upscaling.
+- Improve UI, and fix incorrect description.
+- Complete translation.
+- Fix bug: Broken output when using some engines to upscale WebP and APNG.
+- Fix bug: When running on PCs with new(high-end) CPUs, occasionally waifu2x will stuck during frame interpolation.
+- Fix bug: When frame interpolation and RTX Super-res both enabled, Video sampling might stop working.
+---
+## v3.106.01
+#### Change log:
+- NEW Feature: [Scene Shift Detection 2.0], HUGE Speed boost for Scene Shift Detection, 65x faster than the previous version, which means Scene Shift Detection won't cost any extra time during frame interpolation.
+- NEW Feature: [Gif & APNG] option, when enabled, the Animated WebP quality value will also be used when saving APNG and GIF as WebP. (location: Image settings tab)
+- NEW Feature: Add [Sync with Home] option for Animated WebP, when enabled, the quality value of Animated WebP will be synced with [static images quality] value at the Home tab. (location: Image settings tab, enabled by default)
+- Improved video quality, especially when using hardware encoders.
+- When [Gif & APNG] option of Animated WebP is enabled, gif and apng will automatically be saved as WebP.
+- Fix bug: In some situations, [Speed boost] could not restore frames and will result in failure.
+- Fix bug: In some situations, the [put PC to sleep after finished] feature won't work.
+- Fix bug: When [Video sampling] enabled, RTX Super-resolution engine might unable to upscale the video.
+- Fix bug: Click the "Execute NOW" button of finish action might crash the software.
+- Fix bug: In some rare situations, might unable to encode the final video when process video by segment is enabled.
+---
+## v3.105.01
+#### Change log:
+- NEW Feature: Animated WebP support, ALL super-res engines can now upscale Animated WebP images.
+- NEW Feature: Now you can save Animated WebP as GIF. (location: Image settings tab)
+- NEW Feature: Now you can adjust the quality of upscaled Animated WebP. (location: Image settings tab)
+- Variable frame rate support for Animated WebP, other animated pics formats will also support this in the future updates.
+- Improved launcher, more issue detection and better pop-up message.
+- Fix bug: Always failed to upscale APNGs when their suffix are in upper cases.
+- Fix bug: When loading settings preset files from older version, some options will be reseted.
+- Fix bug: Messages may contain errors when processing Animated WebP.
+---
+## v3.104.01
+#### Change log:
+- NEW Feature: [Auto archive Files List]: Automatically saves Files List every 15 seconds after starting to process files.(Location: Additional settings tab, enabled by default)
+- NEW Feature: [Skip Failed files]: Always skip "Failed" files in the files list.(Location: Additional settings tab, disabled by default)
+- Improved [Auto Engine optimization] for Real-ESRGAN engine, better picture upscaling performance on most PCs.
+- Code optimization, imporve UI performance.
+- Add some necessary messages for Save(Read) settings presets.
+- Fix bug: The [Priority] setting of RTX Super-resolution engine was not working.
+- Fix bug: Always re-process finished files.
+- Fix bug: Thread blocking when using Real-ESRGAN engine with auto adjusted settings.
+- Fix bug: UI shrinks after loading settings preset file.
+- Update ImageMagick.
+- Better tooltips.
+---
+## v3.103.01
+#### Change log:
+- NEW Feature: [Save & Read settings presets files], Now you can save(and read) your settings as custom preset files.
+- NEW Feature: [Transparent image Clarity Enhancement] now supports multi-threading, significantly improves efficiency.
+- NEW Feature: Add a right click menu for the [Limiter] of [scene shift detection], now user can select how many threads will be running during [scene shift detection].
+- NEW Feature: Now software will automatically check the integrity of current installation, and will display a warning when files are missing.
+- Move the [Prioritize Image Quality] option of RTX Super-resolution to Home tab for easy access.
+- Upscaling APNG while enabled [Transparent image Clarity Enhancement] is now faster, up to 50% faster compare to the last version.
+- Faster APNG upscaling when using SRMD-CUDA and RTX Super-resolution.
+- Improve UI performance.
+- Add necessary status messages for [Transparent image Clarity Enhancement] to avoid confusion.
+- Other performance optimization.
+- Update ImageMagick.
+---
+## v3.102.01
+#### Change log:
+- NEW feature: RTX Super-resolution engine now supports APNG upscaling.
+- NEW Feature: ALL super-res engines now supports [Transparent image Clarity Enhancement] when upscaling APNG.
+- Improve SRMD-CUDAs compatibility with media that has alpha channel.
+- Improve SRMD-CUDAs compatibility with APNG.
+- Performance optimization.
+- Fix bug: UI error when using [Quick engine switch].
+- Fix bug: Progress display error when using some engines to upscale APNGs.
+- Complete translation.
+---
+## v3.101.01
+#### Change log:
+- New Feature: [Prioritize image quality] option for RTX Super resolution, improve image quality in most situations, especially when upscaling low resolution media.
+- New Feature: [Settings Presets] now supports RTX Super resolution engine.
+- Add [Always disable denoise] option for RTX Super resolution.
+- Improved device compatibility of RTX Super resolution.
+- Performance optimization.
+- Update ImageMagick.
+- Fix bug: Might unable to upscale video when using RTX Super resolution and HEVC encoding at the same time.
+- Fix bug: Auto-retry is not working when using RTX Super resolution to upscale videos.
+- Fix typo in the tooltips.
+---
+## v3.100.01
+#### Change log:
+- Significantly improved [Files List] UI performance, up to 35x faster files loading speed in the test(16K media files in 800 folders)
+- Improved code efficiency related to video, gif and apng processing.
+- Code optimization, improved UI and scheduler performance.
+- Improved video quality when using Nvidia video encoder
+- Better video compatibility when using RTX Super-res.
+- Improve mp4 conversion to avoid potential compatibility issue.
+- Improved audio quality when encoding mp4 video.
+- Improve stability of RTX Super Resolution engine.
+- Simplified video compatibility checker.
+- Add a "help" button next to the RTX Super-res on the compatibility test page.
+- The result of the compatibility test button at the engine settings of RTX Super-res is now connected to the [Compatibility test] tab.
+- Fix bug: Unable to upscale some videos when using RTX Super Resolution.
+- Fix bug: Audio and video might out of sync when using RTX Super Resolution to upscale some videos.
+- Fix bug: When using RTX Super Resolution, might unable to upscale video when frame interpolation is enabled.
+- Fix bug: Unable to detect and fix some video compatibility issue of RTX Super Resolution.
+- Fix bug: In some rare occasions, unable to detect duplicated files when loading files to [Files List].
+---
+## v3.99.01
+#### Change log:
+- NEW Super-resolution Engine: RTX Super Resolution, a fast and light-weight upscaler designed for Nvidia RTX GPUs.
+- Exclusive enhancements for RTX Super Resolution like Alpha channel support, various input/output formats and more.
+- New Feature: [Auto Apply] option for Custom resolution: When adding new files, the current [Custom resolution] setting will be automatically applied to ALL files.
+- When upscaling and interpolating videos, videos with frame rate higher than the specified frame rate are no longer simply skipped, but only upscaled.
+- Update FFmpeg
+- Update ImageMagick
+- Fix bug: Real-ESRGAN can not upscale media correctly when 2d and 3d models are different.
+- Fix bug: When using certain settings, unable to encode video after upscale and frame interpolation.
+- Fix bug: Incomplete closing process.
+- Fix typo.
+---
+## v3.98.01
+#### Change log:
+- NEW model for Real-ESRGAN engine: Photo-Conservative-x4
+- NEW Feature: [Pause after decoding] option, automatically pause after finished decoding the video, until the user clicks the [Continue] button. (Additional settings, disabled by default)
+- NEW Feature: Split the models list of Real-ESRGAN to 2 lists, [3D Real-life] and [2D Anime] for easier use.
+- Smarter [Limiter] for Scene Shift Detection, automatically adjusts the load according to the progress.
+- Optimize scene shift detection scheduler.
+- Improve GUI.
+- Improve the stability of [Limiter] for Scene Shift Detection.
+- Update ImageMagick.
+- Update ffmpeg.
+- Code optimization.
+- Fix bug: [Always pre-process images with Alpha Channel] not working properly when processing images with invalid alpha channel.
+- Fix bug: Some warning messages are outdated and incorrect.
+- Fix bug: [Keep Aspect Ratio By Expanding] not working as intended.
+---
+## v3.97.01
+#### Change log:
+- ★ NEW Real-ESRGAN models: RealESR-General-x4v3 and RealESR-General-WDN-x4v3
+- ★ NEW Feature: [Same as original image] option, save image as the same format of the original image.(only static images)
+- ★ NEW Feature: [Reserved VRAM], reserve part of VRAM to improve stability, you can adjust it at [Additional settings] tab.
+- NEW Feature: Add [Reset to default] buttons for Input file extensions.
+- NEW Feature: Now you can disable [Constant Rate Factor (CRF)] in the Custom video settings.
+- Improved Real-ESRGAN auto settings optimization.
+- Improve UI and default settings.
+- Code optimization.
+- Update ImageMagick.
+- Update ffmpeg.
+- Fix bug: [Bitrate(video)] setting in the [Custom video settings] often will not take effect.
+- Fix bug: Unable to save images to PNG when using [Convert format ONLY (Static Images)].
+- Fix bug: Some output images will be broken when using [pro] models of Real-CUGAN.
+- Fix bug: UI issues related to Real-ESRGAN engine.
+---
+## v3.96.01
+#### Change log:
+- New RIFE-v4.6 model, better frame interpolation quality.
+- New feature: [Auto-Create output folders], automatically create output folder when needed, including all parent folders.
+- New feature: Now RIFE v4 and v4.6 models supports TTA.
+- Better auto engine settings optimization algorithm.
+- Auto engine settings optimization now supports all Real-Cugan models.
+- Improve UI.
+- Update Rife-ncnn-vulkan.
+- Update ImageMagick.
+- Update ffmpeg.
+- Fix bug: Switch Real-Cugan models won't work properly when processing videos and GIFs.
+---
+## v3.95.23
+#### Change log:
+- NEW Feature: New aspect ratio strategy: [Specify Minimum resolution]
+- Performance optimization.
+- Better error report and tooltip.
+- Fix bug: When processing static images, upscale ratio with decimal digits may not work properly.
+- Fix bug: When processing static images, 1x scale ratio isn't working when using some engines.
+- Fix bug: When processing static images, [Specify Width(Height) ONLY & Keep Aspect Ratio] not working properly.
+- Fix translation error.
+- Update heif plugins.
+- Update ImageMagick.
+- Update ffmpeg.
+---
+## v3.95.01
+#### Change log:
+- NEW Feature: Display current progress when Finding scene shifts.
+- Newly redesigned internal image resizer, better compatibility and image quality.
+- Improved image quality.
+- Improved compatibility.
+- Performance optimization.
+- Reconstruct some codes to improve stability.
+- Update FFmpeg
+- Update ImageMagick
+- Remove some unnecessary warning messages.
+- Fix bug: In certain situations, failed to output final image when using Real-ESRGAN and [Transparent image Clarity Enhancement] at the same time.
+- Fix bug: In some situations, the final image is incompatible with some image viewers.
+- Fix bug: [Automatic file list scrolling] was not working.
+- Fix bug: UI logical error.
+- Fix bug: Unable to reach target frame rate after video frame interpolation.
+---
+## v3.94.01
+#### Change log:
+- NEW feature: Now [Scene Shift Detection] can running in parallel with video frame interpolation, will significantly improve performance and efficiency.
+- NEW feature: Add [Quick Engine Switch]. at [Home] tab for easy super-res engine switching.
+- NEW feature: ALL 6 IFRNet models now supports "Auto-Adjust" multithreading.
+- NEW feature: ALL 10 RIFE models now supports "Auto-Adjust" multithreading.
+- NEW feature: Thread [Limiter] option for [Scene Shift Detection], can improve PC responsivity during during [Scene Shift Detection].
+- Improve code efficiency and stability.
+- Update FFmpeg and ImageMagick
+- Bug fix.
+---
+## v3.93.01
+#### Change log:
+- NEW frame interpolation engine: IFRNet-ncnn-vulkan.
+- Add new "Pro" models for Real-CUGAN.
+- Faster Real-CUGAN super-resolution.
+- Update multiple Engines, reduce overall VRAM usage.
+- Real-CUGAN now supports model switching.
+- Update auto engine settings optimization strategy.
+- More accurate detection method for variable frame rate video.
+- Improve compatibility with variable frame rate video.
+- Improve user interface.
+- Update ALL frame interpolation engines.
+- Update Real-CUGAN, RealSR, SRMD(vulkan), Waifu2x(vulkan).
+- Fix multiple bugs, fix translation error.
+---
+## v3.92.01
+#### Change log:
+- NEW Feature: [Transparent image Clarity Enhancement]. Improve clarity when upscaling images with transparent background(Alpha channel).
+- ALL engines supports [Transparent image Clarity Enhancement] when processing Static Images and PSD.
+- NEW Feature: After the compatibility test, automatically switch to compatible engines for new users.
+- Improve Auto-optimize Engine settings.
+- Improve UI performance.
+- Fix bug: Unexpected frame rate change of the result video.
+- Other bug fix and improvements.
+---
+## v3.91.01
+#### Change log:
+- New Feature: Import and use 3rd party model for Real-ESRGAN engine.
+- New Feature: Bring back lossless PNG compression for static images.
+- New Feature: Bit depth adjustment and 16 bit image output for Waifu2x-caffe engine.
+- New Feature: Now you can adjust the size of status console.
+- Improve image quality when using custom resolution.
+- Better denoise levels support for Real-CUGAN native 4x upscale.
+- Smarter model picking for Real-CUGAN.
+- Improved automatic multithreading, better utilize the performance of high-end PCs.
+- [Constant Rate Factor (CRF)] in the [Custom video settings] now supports more encoders.
+- Improve VFR video detection.
+- Some UI improvements.
+- Improve network stability for checking new updates and update QR code.
+- Update several plugins.
+- Fix multiple bugs.
+---
+## v3.90.01
+#### Change log:
+- Faster Real-ESRGAN super-resolution, up to 240% faster than previous version.
+- Faster Waifu2x super-resolution, up to 320% faster than previous version.(Waifu2x-NCNN-Vulkan)
+- New AnimeVideo-v3 model for Real-ESRGAN engine, better and faster anime video upscale.
+- New Feature: Save GIF as APNG.
+- New Feature: [Auto empty Files List], Automatically empty Files List after finished processing.(Disabled by default, additional settings)
+- Improve the auto multi-threading performance of Real-ESRGAN and Waifu2x-NCNN-Vulkan.
+- Smarter auto multi-threading for Real-ESRGAN and Waifu2x-NCNN-Vulkan.
+- Faster image pre-processing.
+- Improve default settings.
+- Some internal structural improvements for GUI.
+- Fix bug: Unable to assemble PSD files.
+- Some other bug fix and improvements.
+---
+## v3.89.01
+#### Change log:
+- Faster Real-CUGAN super-resolution, up to 60% faster than previous version
+- Faster and more Efficient frame interpolationm when using RIFE.
+- New feature: Add new option for Real-CUGAN, [Always use 2x models], could improve image clarity in some situations.
+- New feature: Save images as JPEG XL format(.jxl)
+- New feature: Now you can adjust image quality when save images as AVIF format
+- Smarter auto model selection for Real-CUGAN
+- Reduce the VRAM usage of RIFE
+- Improve the auto multi-threading performance of RIFE
+- Improve auto engine settings optimization.
+- Fix multiple BUGs.
+---
+## v3.88.01
+#### Change log:
+- NEW Super-Resolution Engine: Real-CUGAN-NCNN-Vulkan, high quality 2D anime upscaler.
+- New Feature: New Rife-V4.0 model, Faster frame interpolation and less VRAM usage.
+- New Feature: Save images as Jfif and Jpeg.
+- New Feature: Add Real-CUGAN model for Waifu2x-Caffe.
+- Improve custom resolution mechanism, and performance optimization.
+- Improve Video, GIF and APNG compatibility.
+- Improve settings presets and UI.
+- Fix multiple bugs.
+---
+## v3.87.01
+#### Change log:
+- New Feature: Now you can choose the Container format of the video output.(At Video Settings tab)
+- New Feature: [Keep subtitles (MKV)]: Include subtitles in the final video output.(At Video Settings tab)
+- New Feature:[Convert format ONLY (Static Images)]: Only convert format of the images, no further processing.(Additional settings---Tools)
+- New Feature: Automatic chroma adjustment option for HEIF/HEIC images.
+- New Feature: [Save CFR MP4 to RAM]: Re-direct CFR Mp4 cache to Dynamic RAM Cache.(Optional,Not enabled by default,Additional settings)
+- Improve multi-threading performance.
+- Update UI and fix typo.
+---
+## v3.86.74
+#### Change log:
+- Happy New Year 2022!
+- New Audio processing method, better Compatibility, better Quality and Faster speed.
+- Improve Auto engine settings optimization.
+- Improve GUI, Update plugins.
+- Fix multiple bugs.
+---
+## v3.86.02
+#### Change log:
+```
+v3.86.02:
+- Fix bug: Real-ESRGAN Video & GIF upscale fix
+v3.86.01:
+- New Feature: Add support for RealESRGANv2-animevideo-xsx2(4) model.
+- NEW Feature: Save images as HEIC/HEIF format.
+- Faster 2D-Anime Video and GIF upscale speed when using RealESRGAN-NCNN-Vulkan engine.
+- Multiple GUI improvements to fully utilize the new RealESRGAN model.
+- Enhance the compatibility of RealESRGAN-NCNN-Vulkan engine.
+- Improve Performance and Compatibility of GIF processing.
+- Fix multiple bugs.
+```
+---
+## v3.85.01
+#### Change log:
+- NEW Feature: Save APNG as other formats, including gif, mp4, webp and webm. (At Image settings)
+- NEW Feature: Support GIF with variable frame rate.
+- Introduce [Auto I/O redirection] to greatly improve compatibility.(Enabled by default, Additional settings)
+- New way to Save and Read GIF, Faster and Better image quality.
+- Improve the [Save as other formats] function of GIF, better device compatibility and performance.
+- Improve UI.
+- Update several plugins, remove useless plugins.
+- Fix multiple bugs.
+---
+## v3.84.01
+#### Change log:
+- New Feature: Save GIF as other formats, including mp4, webp and webm. (At Image settings)
+- New Feature: [Optimize Looped video] option, improve the effcet of frame interpolation.when processing looped video.(At Additional settings)
+- Significantly improved the speed and space usage of [Pre-processing Boost].
+- Improve video quality, smarter video quality control.
+- New hardware decoders: OpenCL and Vulkan.
+- New aspect ratio strategy: Specify Width(or Height) ONLY.
+- Update FFmpeg and improve compatibility.
+- Fix multiple bugs.
+- Improve UI, compatibility test and daily tips.
+---
+## v3.83.21
+#### Change log:
+- NEW Feature: Save images as PSD.
+- Speed up the program startup speed.
+- Improve user experience.
+- More automation, improve default settings.
+- Improve video quality, improve video conversion speed, reduce space usage.
+- Update FFmpeg and ImageMagick.
+- Fix bug: In some situations, video stream will become shorter when [Pre-processing Boost] enabled.
+- Fix UI issues.
+---
+## [v3.83.01](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.83.01)
+#### Change log:
+- NEW Feature: [Pre-processing Boost]: Remove ALL unnecessary duplicate frames in the video before processing. Can improve both the processing speed and effcet of frame interpolation.
+- NEW Feature: [Remove dupduplicate frames ONLY (Video)]: ONLY remove all unnecessary dupduplicate frames in the video, no further processing.
+- NEW Feature: [Remember window size].
+- NEW Feature: [RAM Cache Validity Check] toggle, now you can use RAM Disk created by other software after disable this check.
+- NEW Feature: [Auto Scroll] toggle for console.
+- NEW Feature: Now GUI will be able to detect if the cache disk is full during frame interpolation and super-resolution.
+- Global optimization, improve code efficiency, reduce GUI's CPU usage.
+- Improve thread scheduling.
+- Improve video quality, especially when using hardware encoder.
+- Improve MP4 conversion.
+- Update FFmpeg, ImageMagick.
+- Many other improvements.
+- Fix multiple bugs.
+---
+## [v3.81.01](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.81.01)
+#### Change log:
+- 🌟NEW Super-Resolution Engine: RealESRGAN-NCNN-Vulkan.
+- 🌟Significantly improved the UI performance, especially the Files List UI.
+- 🌟NEW Feature: [Video sampling]: Only process part of the video from the start to the end of the time you set.(At [Additional settings] tab)
+- Improve internet connection speed.
+- Add more settings presets
+- Driver version detection for NVENC encoder.
+- Improve MP4 conversion.
+- Improve pop-up messages.
+- And many other improvements.
+- Fix multiple bugs.
+---
+## [v3.73.14](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.73.14)
+#### Change log:
+- New method for cut video, significantly reduced the extra time cost of processing video by segment.
+- Further improve the [Auto-adjust] for frame interpolation.
+- Further improve the [Optimize Settings] for super-res engines.
+- Reduce the time and resource cost when processing video with certain FPS values.
+- Faster Internet connection speed.
+- Fix several bugs.
+---
+## [v3.72.13](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.72.13)
+#### Change log:
+- NEW Feature: Upgrade [Auto-reduce] to [Auto-Adjust], now GUI can automatically adjust the number of threads for frame interpolation engine based the source video and PCs hardware.
+- All non-natively supported image formats will be pre-processed before being scaled.
+- AVIF and HEIC images support.
+- Improve [Optimize Settings] for super-resolution engine.
+- Fix bug: frame rate of the result gif is wrong.
+- Fix bug: Sometimes unable to open local html.
+---
+## [v3.71.01](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.71.01)
+#### Change log:
+- New feature: Add [Optimize Settings] button for helping user adjust engine settings based on PCs hardware,including [Block(Tile) size] and [Number of threads].(At [Engine settings] tab)
+- Now you can tell GUI to stop showing you warning when enable Hardware-accelerated Encoding & Decoding.
+- Resume progress when video frame cache in the RAM is lost.
+- Add [GeForce RTX ON] switch for SRMD-CUDA engine.
+- Update FFmpeg, ImageMagick, SRMD-CUDA.
+- Show a warning when enable [Speed Boost].
+- Fix 10 bugs.
+---
+## [v3.70.02](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.70.02)
+#### Change log:
+- NEW Feature: [Dynamic RAM Cache]: Now GUI can save & read video caches(frames) from the RAM, which is a lot faster and will protect the lifespan of your hard drive.
+- NEW Feature: [Target FPS]: Now you can specify the FPS of the result video(e.g. 120FPS).
+- NEW Feature: [Hardware-accelerated Decoding]: Now GUI can use GPU to accelerate video decoding.
+- NEW Feature: [Frame codec]: Now you can switch the codec of video frames to JPEG to reduce cache size.
+- NEW Feature: Now you can adjust the settings of GIF & APNG optimization, they are on the [Image settings] tab.
+- NEW Feature: PSD(Photoshop Document) support.
+- Improve GUI, Update Anime4K, and fix multiple bugs.
+- Fix bug: Unable to display frame interpolation progress correctly when [Multiple of FPS] is higher than [2].
+- Fix bug: All EMPTY parent folders will be deleted when delete a folder.
+- Fix bug: Unable to update processing progress if the processing speed is extremely fast.
+- Fix bug: GUI will becomes laggy when there are too many lines in the Console.
+- Fix bug: Sorting the files list by file name does not sort numbers logically.
+- Fix bug: Unable to adjust the window size correctly.
+---
+## [v3.52.11](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.52.11)
+#### Change log:
+```
+v3.52.11:
+- Fix typo.
+- Fix bug: Unable to detect scene shift correctly when processing Hight-res videos.
+- Fix bug: Unable to read images resolution in certain situations.
+- Fix bug: "FrameAnalyzeMB" was not deleted in certain situations.
+
+v3.52.10-beta:
+- New feature: "Reset [Frame Analysis] Settings" button.
+- Improve GUI.
+- Improve the default settings of [Frame Analysis].
+- Automatically switch to software encoder when hardware encoder unable to convert some videos to CFR MP4.
+- More detailed ERROR reports.
+- Fix bug: Unable to convert some videos to CFR MP4, caused by hardware encoder.
+- Fix bug: Unable to detect failures correctly when processing videos.
+- Fix bug: Pixel format parameter was ignored.
+```
+---
+## [v3.52.01](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.52.01)
+#### Change log:
+```
+v3.52.01:
+- New Feature: [Keep ALL parent folders]: Keep ALL the parent folders of the source file when output the result file to the output folder.
+- New Feature: Now you can change the extension(format) of the result video.
+- New Feature: Now you can choose which video Encoder to use when converting video to CFR MP4.
+- New Feature: [Hardware-accelerated Encoding]: Using GPU to accelerate video encoding.
+- New Feature: [Hyper-threading (SMT)] switch.
+- optimize multi-threading performance.
+- New Feature: Show available GPUs name when detecting GPU IDs for NCNN-Vulkan engines.
+- New Feature: New right-click menu option for [Settings Presets]:[Re-Apply Current Preset]
+- Show how many duplicate frames and scene shifts has been found.
+- Optimize the performance of [Speed Boost]&[Scene Shift Detection]
+- Better High DPI screen support.
+- Fix bug: compatibility test stuck at SRMD-CUDA.
+- Fix bug: even though PC passed DAIN-NCNN-Vulkan compatibility test, program will still tell the user that all frame interpolation engines are incompatible.
+- Fix bug: Unable to generate video when video stream is not the 0 stream.
+- Fix bug: Unable to assemble video when [Process video by segment]&[Custom video settings] are both enabled.
+
+v3.51.01-BETA:
+- New Feature: [Speed Boost]: Boost video processing speed by analyzing frames.
+- New Feature: [Scene Shift Detection]: Detect Scene Shift in the Video to improve the result of video frame interpolation.
+- New Feature: [Settings Presets]: Several settings presets provided by the developer.
+- New Feature: [Constant Rate Factor(CRF)] adjustment.
+- New Feature: [Daily Tip].
+- New RIFE-ncnn-Vulkan Model: rife-v3.0,rife-v3.1
+- Improve Video quality, Default settings, GUI and scale performance of Waifu2x-NCNN-Vulkan.
+- Update rife-ncnn-vulkan, Waifu2x-NCNN-Vulkan.
+- Fix bug: Unable to reset all custom video settings.
+```
+---
+## [v3.42.11](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.42.11)
+#### Change log:
+- Faster APNG processing.
+- New Faster methods for resize,assemble and optimize APNG.
+- Support for Videos with Multiple Audio Tracks.
+- Individual toggle for APNG optimization: [Optimize Gif&APNG].
+---
+## [v3.41.13](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.41.13)
+#### Change log:
+```
+v3.41.13:
+- New Feature: Automatically try to create output folder when the output folder does not exist.
+- New option for system tray menu.
+- Compatibility test for APNG plugins.
+- Chinese translation.
+- Fix bug: Unable to assemble APNG when there are "%" in the path.
+- Fix bug: Wrong message were displayed when all files lists are cleared.
+
+v3.41.01-beta:
+- New Feature: APNG(Animated PNG) support.
+- Improve GUI.
+- Some other improvements.
+
+v3.31.21-beta:
+- Performance optimization.
+- Update FFmpeg, ImageMagick.
+- Some other improvements.
+```
 ---
 ## [v3.31.13](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.31.13)
 #### Change log:

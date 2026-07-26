@@ -4,10 +4,14 @@
 
 ### Reconstructed by AIPEAC
 
-This is a cross-platform source code reconstruction of Waifu2x-Extension-GUI
-v3.139.01, derived from:
-- `SRC_v3.41.01-beta/` — the last published open-source code (2021)
-- `image-Extension-GUI-v3.139.01-Win64/` — the binary release bundle (2026)
+Based on analysis of the binary bundle `image-Extension-GUI-v3.139.01-Win64/`
+and the last published source `vendor/w2x-v3.41.01-beta/`.
+
+See `DIFF.md` for a complete line-by-line breakdown of every change.
+
+### Structure
+- `vendor/w2x-v3.41.01-beta/` — pristine original source (baseline)
+- `Waifu2x-Extension-QT/` — reconstructed project (27 files identical, 3 modified, 10 new)
 
 ### Added (Reconstructed)
 - **Real-ESRGAN NCNN engine**: `realesrgan_ncnn_vulkan.cpp` — full integration with 22 models
@@ -27,17 +31,13 @@ v3.139.01, derived from:
   enhancement, image format options
 - **Compatibility test entries**: Real-ESRGAN, Real-CUGAN, IFRNet, RTX Super-Res,
   NVIDIA Maxine, APNG Tools
+- **Cross-platform**: `platform_compat.h` + updated `.pro` (Linux/Windows/macOS)
+- **Model registry**: `engine_registry.h` — all 179+ model weights mapped
 
 ### Changed (Reconstructed)
-- **mainwindow.ui**: Added 3 new engine sub-tabs (Real-ESRGAN, Real-CUGAN,
-  RTX Super-Res), Image Settings tab, 6 new compat test entries
-- **Waifu2x-Extension-QT.pro**: Cross-platform build configuration (Linux + Windows + macOS),
-  new source files, C++17 standard
-- **platform_compat.h**: Cross-platform path resolution, engine executable detection,
-  platform-specific macros
-- **engine_registry.h**: Complete model registry mapping all 179+ model weights
-  to engine configurations
-- **mainwindow.h**: Updated version string to v3.139.01-reconstructed
+- `mainwindow.ui`: +337 lines (3 new engine sub-tabs, Image Settings tab, 6 compat entries)
+- `mainwindow.h`: +71 lines (40+ new method declarations)
+- `Waifu2x-Extension-QT.pro`: +27 lines (cross-platform, C++17, new sources)
 
 ### License
 - **Original files**: GNU AGPL v3 (Copyright Aaron Feng 2020-2021)
@@ -48,5 +48,5 @@ v3.139.01, derived from:
 ### Known Limitations
 - RTX Super-Res and NVIDIA Maxine are stubs (require proprietary NVIDIA SDK)
 - SRMD-CUDA is Windows-only
-- mainwindow.cpp needs wiring for new engine dispatch and UI signal/slot connections
+- `mainwindow.cpp` needs wiring for new engine dispatch and UI signal/slot connections
 - Model weight files (~1.3 GB) must be deployed separately from the binary bundle

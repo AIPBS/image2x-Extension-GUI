@@ -242,6 +242,52 @@ public:
     //SRMD放大视频线程:1.主线程,拆分,调度放大子线程,组装;2.放大子线程,负责放大所有帧以及调整大小
     int SRMD_CUDA_Video(int rowNum);
     int SRMD_CUDA_Video_BySegment(int rowNum);
+    //============= RECONSTRUCTED v3.139.01 ENGINES =============
+    // Real-ESRGAN-NCNN-Vulkan
+    int RealESRGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaChannel);
+    int RealESRGAN_NCNN_Vulkan_GIF(int rowNum);
+    int RealESRGAN_NCNN_Vulkan_Video(int rowNum);
+    int RealESRGAN_NCNN_Vulkan_Video_BySegment(int rowNum);
+    QString RealESRGAN_NCNN_Vulkan_ReadSettings();
+    QString RealESRGAN_NCNN_Vulkan_ReadSettings_Video_GIF(int ThreadNum);
+    QMap<QString,int> Calculate_ScaleRatio_RealESRGAN_NCNNVulkan(int ScaleRatio);
+    // Real-CUGAN-NCNN-Vulkan
+    int RealCUGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaChannel);
+    int RealCUGAN_NCNN_Vulkan_GIF(int rowNum);
+    int RealCUGAN_NCNN_Vulkan_Video(int rowNum);
+    int RealCUGAN_NCNN_Vulkan_Video_BySegment(int rowNum);
+    QString RealCUGAN_NCNN_Vulkan_ReadSettings();
+    QString RealCUGAN_NCNN_Vulkan_ReadSettings_Video_GIF(int ThreadNum);
+    QMap<QString,int> Calculate_ScaleRatio_RealCUGAN_NCNNVulkan(int ScaleRatio);
+    // RIFE v4.x frame interpolation
+    bool Rife_v4_FrameInterpolation(QString SourcePath, QString OutputPath);
+    QString Rife_v4_ReadConfig(bool isUhdInput,int NumOfFrames);
+    QString Rife_v4_SelectModel();
+    bool Rife_v4_FrameInterpolation_MultiGPU(QString SourcePath, QString OutputPath, QStringList GPU_IDs);
+    int Rife_v4_Video_BySegment(int rowNum);
+    // IFRNet-NCNN-Vulkan
+    int IFRNet_FrameInterpolation(int rowNum);
+    QString IFRNet_ReadConfig(bool isUhdInput,int NumOfFrames);
+    // CAIN-NCNN-Vulkan
+    int Cain_FrameInterpolation(int rowNum);
+    QString Cain_ReadConfig();
+    // DAIN-NCNN-Vulkan
+    int Dain_FrameInterpolation(int rowNum);
+    QString Dain_ReadConfig();
+    // RTX Super-Resolution
+    int RTXSuperRes_Image(int rowNum,bool ReProcess_MissingAlphaChannel);
+    int RTXSuperRes_GIF(int rowNum);
+    int RTXSuperRes_Video(int rowNum);
+    int RTXSuperRes_Video_BySegment(int rowNum);
+    QString RTXSuperRes_ReadSettings();
+    void RTXSuperRes_ShowRequirementsMessage();
+    // NVIDIA Maxine
+    int NvidiaMaxine_Image(int rowNum,bool ReProcess_MissingAlphaChannel);
+    int NvidiaMaxine_Video(int rowNum);
+    int NvidiaMaxine_Video_BySegment(int rowNum);
+    QString NvidiaMaxine_ReadSettings();
+    bool NvidiaMaxine_IsAvailable();
+    void NvidiaMaxine_ShowPlatformMessage();
     //====================================
 
     void Wait_waifu2x_stop();//等待waifu2x主线程完全停止所有子线程的看门狗线程
@@ -273,6 +319,19 @@ public:
 
     int FrameInterpolation_DetectGPU();//检测可用gpu(for vulkan)
     QStringList Available_GPUID_FrameInterpolation;//可用GPU ID列表
+    // Reconstructed engine GPU detection
+    int RealESRGAN_ncnn_vulkan_DetectGPU();
+    QStringList Available_GPUID_RealESRGAN_ncnn_vulkan;
+    int RealCUGAN_ncnn_vulkan_DetectGPU();
+    QStringList Available_GPUID_RealCUGAN_ncnn_vulkan;
+    int Rife_v4_DetectGPU();
+    int IFRNet_DetectGPU();
+    int Cain_DetectGPU();
+    int Dain_DetectGPU();
+    // Compatibility tests
+    bool Rife_v4_CompatibilityTest();
+    bool RTXSuperRes_CompatibilityTest();
+    bool NvidiaMaxine_CompatibilityTest();
     //======================== 图片处理 ================================
     bool Image_Gif_AutoSkip_CustRes(int rowNum,bool isGif);
     QMap<QString,int> Image_Gif_Read_Resolution(QString SourceFileFullPath);//获取图片&GIF分辨率
@@ -306,6 +365,12 @@ public:
     bool isCompatible_RifeNcnnVulkan=false;
     bool isCompatible_CainNcnnVulkan=false;
     bool isCompatible_DainNcnnVulkan=false;
+    bool isCompatible_RealESRGAN=false;
+    bool isCompatible_RealCUGAN=false;
+    bool isCompatible_IFRNetNcnnVulkan=false;
+    bool isCompatible_RTXSuperRes=false;
+    bool isCompatible_NvidiaMaxine=false;
+    bool isCompatible_APNG=false;
     //============================== 多显卡 ==========================================
     //waifu2x-ncnn-vulkan
     int GPU_ID_Waifu2x_NCNN_Vulkan_MultiGPU = 0;
@@ -569,6 +634,12 @@ public:
     //===
     QString Anime4k_PreLoad_Settings();
     QString Anime4k_PreLoad_Settings_Str = "";
+    QString RealESRGAN_NCNN_Vulkan_PreLoad_Settings();
+    QString RealESRGAN_NCNN_Vulkan_PreLoad_Settings_Str = "";
+    QString RealCUGAN_NCNN_Vulkan_PreLoad_Settings();
+    QString RealCUGAN_NCNN_Vulkan_PreLoad_Settings_Str = "";
+    QString Rife_v4_PreLoad_Settings();
+    QString Rife_v4_PreLoad_Settings_Str = "";
     QString HDNDenoiseLevel_image = "";
     QString HDNDenoiseLevel_gif = "";
     QString HDNDenoiseLevel_video = "";

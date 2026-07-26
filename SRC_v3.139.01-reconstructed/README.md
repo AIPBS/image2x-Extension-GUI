@@ -2,6 +2,47 @@
 
 Cross-platform source code reconstruction of Waifu2x-Extension-GUI by Aaron Feng.
 
+## Project Layout
+
+```
+SRC_v3.139.01-reconstructed/
+├── vendor/
+│   └── w2x-v3.41.01-beta/          ← PRISTINE original source (never modified)
+│       ├── main.cpp                    Use this as the diff baseline
+│       ├── mainwindow.h                to track what changed.
+│       ├── mainwindow.ui
+│       ├── ... (42 files, AGPLv3)
+│       └── Waifu2x-Extension-QT.pro
+├── Waifu2x-Extension-QT/           ← RECONSTRUCTED project (extends vendor)
+│   ├── Waifu2x-Extension-QT.pro        Cross-platform, references vendor
+│   ├── mainwindow.h                    Modified: +71 lines (new declarations)
+│   ├── mainwindow.ui                   Modified: +337 lines (new tabs)
+│   ├── realesrgan_ncnn_vulkan.cpp      NEW: 2,317 lines
+│   ├── realcugan_ncnn_vulkan.cpp       NEW: 2,252 lines
+│   ├── rife_v4_ncnn_vulkan.cpp         NEW: 1,102 lines
+│   ├── ... (27 original files identical to vendor)
+│   └── ... (10 new files total, 8,246 lines)
+├── DIFF.md                          ← Complete delta from original
+├── Change_log.md
+├── README.md
+└── LICENSE                          ← AGPLv3 + permissive exception
+```
+
+## Keeping in Sync with the Original
+
+The `vendor/` directory holds the **pristine v3.41.01-beta** source. To see what changed:
+
+```bash
+# What files differ from the original?
+diff -rq vendor/w2x-v3.41.01-beta/ Waifu2x-Extension-QT/
+
+# How much did each file change? (see DIFF.md for the full breakdown)
+wc -l vendor/w2x-v3.41.01-beta/*.cpp Waifu2x-Extension-QT/*.cpp
+```
+
+When the original author publishes new source code, replace `vendor/` with the
+new version and re-run the diff to see what needs updating in the reconstruction.
+
 ## Origin
 
 This project reconstructs the v3.139.01 source code from two sources:

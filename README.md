@@ -1,6 +1,8 @@
-# image2x — Reconstructed Waifu2x-Extension-GUI
+# image2x-Extension-GUI
 
 Cross-platform rebuild derived from Aaron Feng's Waifu2x-Extension-GUI.
+Renamed as image2x-Extension-GUI for distinguishing purpose, but also clearly stating that this a fork.
+Created because w2x does not work well on linux.
 
 ## Versions
 

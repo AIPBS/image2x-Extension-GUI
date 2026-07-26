@@ -3,6 +3,14 @@
 This file documents every model weight referenced by the reconstructed engine
 integrations, with explicit license status.
 
+## Version context
+
+| Source | Version |
+|--------|---------|
+| Aaron Feng original (vendor baseline) | v3.41.01-beta |
+| Aaron Feng latest binary (analyzed) | v3.139.01 |
+| This reconstructed project | v0.1.0 |
+
 ## ⚠️ PROPRIETARY — Do NOT distribute
 
 These models were custom-trained by Aaron Feng and are bundled only in the

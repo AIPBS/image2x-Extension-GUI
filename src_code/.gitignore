@@ -1,7 +1,8 @@
 # Waifu2x-Extension-GUI Reconstructed — .gitignore
 
-# Downloaded model weights (pulled separately via scripts/download_models.sh)
+# Downloaded model weights (pulled separately via scripts/)
 vendor/models-open-source/
+vendor/models-non-free/
 
 # Qt build artifacts
 *.o

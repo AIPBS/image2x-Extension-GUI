@@ -1,35 +1,42 @@
-Waifu2x-Extension-GUI is free for PERSONAL USE ONLY.
+                    GNU AFFERO GENERAL PUBLIC LICENSE
+                       Version 3, 19 November 2007
 
-If you wish to use Waifu2x-Extension-GUI commercially, please purchase
-the Premium version from:
-https://www.patreon.com/aaronfeng
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
 
-Limitation of Liability
-THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY 
-KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
-FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE 
-QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH THE LICENSEE. 
-SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST 
-OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION. IF ANY 
-ALGORITHM IS PATENTED IN YOUR COUNTRY, YOU SHOULD ACQUIRE 
-A LICENSE BEFORE USING THIS COMPONENT.
+[ Full AGPLv3 text applies to all files originally created by Aaron Feng. ]
 
-IN NO EVENT WILL THE AUTHOR OR ANY OTHER PARTY WHO MAY HAVE 
-DISTRIBUTED THE SOFTWARE AS PERMITTED ABOVE, BE LIABLE TO YOU 
-FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR 
-CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO 
-USE THE SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA 
-OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU 
-OR THIRD PARTIES OR A FAILURE OF THE SOFTWARE TO OPERATE WITH 
-ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS 
-BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. 
+ADDITIONAL PERMISSION — FILES CREATED BY AIPEAC (2026 Reconstruction)
 
-YOU ACKNOWLEDGE THAT YOU HAVE READ THIS AGREEMENT, 
-UNDERSTAND IT AND AGREE TO BE BOUND BY ITS TERMS 
-AND CONDITIONS.
+Under section 7 of the GNU AGPL version 3, the following additional
+permission is granted for files explicitly marked with the notice:
 
-Waifu2x-Extension-GUI
-Copyright (C) 2021 Aaron Feng
+    "ADDITIONAL PERMISSION under GNU AGPL version 3 section 7:
+     As a special exception, the copyright holder of this file gives you
+     permission to use, copy, modify, merge, publish, distribute, sublicense,
+     and/or sell this file without restriction, as though it were licensed
+     under a permissive license."
+
+Files bearing this notice are dual-licensed: AGPLv3+ with the above
+permissive exception. You may choose either:
+
+  (a) The terms of the GNU AGPL version 3 (or any later version), or
+  (b) The terms of the permissive exception above.
+
+Files NOT bearing this notice are licensed strictly under AGPLv3
+(original Aaron Feng files, all files under SRC_v3.41.01-beta/).
+
+--- Original AGPLv3 text follows ---
+
+[ See the full text at https://www.gnu.org/licenses/agpl-3.0.html ]
+
+The full AGPLv3 text was the original LICENSE of Waifu2x-Extension-GUI
+created by Aaron Feng on 2020-01-23 and is incorporated here by reference
+for all original source files.
+
+Waifu2x-Extension-GUI Reconstructed
+Copyright (C) 2026 AIPEAC (new files)
+Copyright (C) 2020-2021 Aaron Feng (original files)
 
 https://github.com/AaronFeng753/Waifu2x-Extension-GUI

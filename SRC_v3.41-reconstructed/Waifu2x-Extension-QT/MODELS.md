@@ -61,9 +61,16 @@ for the exact directory per model).
 
 ## Where the open-source models are
 
-**They're included.** `vendor/models-open-source/` contains 349 model files (~850 MB)
-across 16 engine directories. These are all MIT/BSD-licensed upstream models,
-safe to redistribute. Directory structure mirrors the binary bundle:
+They are NOT in this git repository (GitHub rejects 1.2 GB pushes).
+Instead, they're packaged as a GitHub Release asset and downloaded at build time.
+
+**One-time download:**
+```bash
+./scripts/download_models.sh
+```
+
+This extracts 349 open-source model files (~1.2 GB uncompressed) into
+`vendor/models-open-source/`. The directory layout mirrors the binary bundle:
 
 ```
 vendor/models-open-source/

@@ -59,25 +59,34 @@ To use open-source models, download them from the respective upstream repos
 and place them in the corresponding engine subdirectory (see `engine_registry.h`
 for the exact directory per model).
 
-## For the W2xEX models
+## Where the open-source models are
 
-These models are included in the official v3.139.01 binary release from Aaron Feng
-(available at https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases).
-
-If you have legally obtained that release, you can use the models with this
-reconstructed build by copying them into place:
+**They're included.** `vendor/models-open-source/` contains 349 model files (~850 MB)
+across 16 engine directories. These are all MIT/BSD-licensed upstream models,
+safe to redistribute. Directory structure mirrors the binary bundle:
 
 ```
-# From the official v3.139.01 binary bundle:
-cp -r waifu2x-extension-gui/realesrgan-ncnn-vulkan/models/*W2xEX* \
-     <your-build>/realesrgan-ncnn-vulkan/models/
-cp -r waifu2x-extension-gui/realesrgan-ncnn-vulkan/models/*W4xEX* \
-     <your-build>/realesrgan-ncnn-vulkan/models/
-cp -r waifu2x-extension-gui/realesrgan-ncnn-vulkan/models/Photo-Conservative* \
-     <your-build>/realesrgan-ncnn-vulkan/models/
+vendor/models-open-source/
+├── realesrgan-ncnn-vulkan/   (14 standard models, W2xEX excluded)
+├── realcugan-ncnn-vulkan/    (42 models: SE / Pro / Nose)
+├── rife-ncnn-vulkan/         (75 models: 19 model variants)
+├── ifrnet-ncnn-vulkan/       (12 models: 6 variants)
+├── cain-ncnn-vulkan/         (2 files: cain.bin + cain.param)
+├── dain-ncnn-vulkan/         (8 files: flownet, interpolation, etc.)
+├── waifu2x-ncnn-vulkan/      (34 models: cunet, upconv_7)
+├── waifu2x-ncnn-vulkan-old/  (34 models: legacy cunet, upconv_7)
+├── waifu2x-caffe/            (40+ models: anime_style_art, photo, cunet, upconv_7, upresnet10)
+├── waifu2x-converter/        (5 models: RGB noise0-3 + scale2.0x)
+├── srmd-ncnn-vulkan/         (12 models: srmd/srmdnf x2/x3/x4)
+├── srmd-cuda/                (6 models: sr/srnf x2/x3/x4)
+├── realsr-ncnn-vulkan/       (4 models: DF2K + DF2K_JPEG x4)
+├── Real-CUGAN-Caffe/         (2 models: standard + no-crop)
+├── Anime4K/                  (4 ONNX models + engine)
+└── models/                   (4 ONNX: ACNetHDNL0-3)
 ```
 
-This reconstructed project does NOT distribute these models. It only provides
-the engine code to use them if you already have them legally. Your use of the
-models is governed by the license terms of the official release you obtained
-them from.
+## Where the proprietary models are NOT
+
+The proprietary W2xEX models (16 files, ~166 MB) were **explicitly excluded**
+during the copy. They are NOT in this repository. The engine code references
+them by name but will skip them gracefully if absent.

@@ -1,23 +1,4 @@
 /*
-    Copyright (C) 2021  Aaron Feng
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-    My Github homepage: https://github.com/AaronFeng753
-*/
-
-/*
     Copyright (C) 2026  AIPEAC
 
     This file is part of Waifu2x-Extension-GUI Reconstructed.
@@ -45,8 +26,16 @@
     Based on the original Waifu2x-Extension-GUI by Aaron Feng:
     https://github.com/AaronFeng753/Waifu2x-Extension-GUI
 
+    ===================================================================
     Engine model registry header.
     Maps all 179+ model weights to engine configurations.
+
+    IMPORTANT — LICENSE BOUNDARIES (see MODELS.md for full details):
+      - Models marked PROPRIETARY below are custom-trained by Aaron Feng.
+        They are NOT open-source. Do NOT distribute them.
+      - Models marked OPEN-SOURCE are from upstream projects (MIT/BSD).
+        They can be freely redistributed.
+    ===================================================================
 */
 
 #ifndef ENGINE_REGISTRY_H
@@ -74,7 +63,11 @@ struct RealESRGANModel
 inline QList<RealESRGANModel> getRealESRGANModels()
 {
     return {
-        // ---- Custom W2xEX models ----
+        // ═══════════════════════════════════════════════════════════
+        // ⚠️  PROPRIETARY — Aaron Feng custom-trained models.
+        //     Do NOT distribute. See MODELS.md for details.
+        //     These are referenced but NOT included in this source tree.
+        // ═══════════════════════════════════════════════════════════
         {QStringLiteral("Anime-HQ-W4xEX"),
          QStringLiteral("Anime-HQ-W4xEX.param"),
          QStringLiteral("Anime-HQ-W4xEX.bin"),

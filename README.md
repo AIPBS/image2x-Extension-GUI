@@ -67,3 +67,4 @@ from Aaron Feng's repo and extracts only the model files.
 
 Files with `ADDITIONAL PERMISSION` in their header can be used freely.
 Files without it are strict AGPLv3.
+> Check out the last section of [LICENSE](LICENSE) for more information.

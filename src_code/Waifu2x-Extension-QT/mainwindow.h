@@ -263,7 +263,7 @@ public:
     QMap<QString,int> Calculate_ScaleRatio_RealCUGAN_NCNNVulkan(int ScaleRatio);
     // RIFE v4.x frame interpolation
     bool Rife_v4_FrameInterpolation(QString SourcePath, QString OutputPath);
-    QString Rife_v4_ReadConfig(bool isUhdInput,int NumOfFrames);
+    QString Rife_v4_ReadConfig(bool isUhdInput);
     QString Rife_v4_SelectModel();
     bool Rife_v4_FrameInterpolation_MultiGPU(QString SourcePath, QString OutputPath, QStringList GPU_IDs);
     int Rife_v4_Video_BySegment(int rowNum);

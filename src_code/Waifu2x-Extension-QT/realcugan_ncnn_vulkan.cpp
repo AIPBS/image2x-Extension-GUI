@@ -2250,3 +2250,11 @@ bool MainWindow::APNG_RealCUGAN_NCNNVulkan(QString splitFramesFolder,QString sca
     APNG_Frames2APNG(sourceFileFullPath, scaledFramesFolder, resultFileFullPath, isOverScaled);
     return true;
 }
+
+void MainWindow::on_checkBox_TTA_RealCUGAN_clicked()
+{
+}
+
+void MainWindow::on_checkBox_TTA_RealCUGAN_stateChanged(int arg1)
+{
+}

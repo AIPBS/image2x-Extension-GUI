@@ -1805,14 +1805,10 @@ void MainWindow::on_checkBox_MultiGPU_RealESRGAN_stateChanged(int arg1)
     if(ui->checkBox_TTA_RealESRGAN->isChecked())
     {
         ui->comboBox_GPUID_RealESRGAN->setEnabled(0);
-        ui->frame_TileSize_RealESRGAN->setEnabled(0);
-        ui->groupBox_GPUSettings_MultiGPU_RealESRGAN->setEnabled(1);
     }
     else
     {
         ui->comboBox_GPUID_RealESRGAN->setEnabled(1);
-        ui->frame_TileSize_RealESRGAN->setEnabled(1);
-        ui->groupBox_GPUSettings_MultiGPU_RealESRGAN->setEnabled(0);
     }
 }
 
@@ -1852,20 +1848,18 @@ void MainWindow::on_comboBox_GPUIDs_MultiGPU_RealESRGAN_currentIndexChanged(int 
         return;
     }
     QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUID_RealESRGAN->currentIndex());
-    ui->checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN->setChecked(GPUInfo["isEnabled"] == "true");
-    ui->spinBox_TileSize_CurrentGPU_MultiGPU_RealESRGAN->setValue(GPUInfo["TileSize"].toInt());
 }
 
 void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN_clicked()
 {
     QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUID_RealESRGAN->currentIndex());
-    if(ui->checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN->isChecked())
+    if(GPUInfo["isEnabled"] == "true")
     {
-        GPUInfo["isEnabled"] = "true";
+        GPUInfo["isEnabled"] = "false";
     }
     else
     {
-        GPUInfo["isEnabled"] = "false";
+        GPUInfo["isEnabled"] = "true";
     }
     GPUIDs_List_MultiGPU_RealESRGAN.replace(ui->comboBox_GPUID_RealESRGAN->currentIndex(),GPUInfo);
     int enabledGPUs = 0;
@@ -1882,7 +1876,6 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN_clicked()
         QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUID_RealESRGAN->currentIndex());
         GPUInfo["isEnabled"] = "true";
         GPUIDs_List_MultiGPU_RealESRGAN.replace(ui->comboBox_GPUID_RealESRGAN->currentIndex(),GPUInfo);
-        ui->checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN->setChecked(1);
         QMessageBox *MSG = new QMessageBox();
         MSG->setWindowTitle(tr("Warning"));
         MSG->setText(tr("At least 2 GPUs need to be enabled !!"));
@@ -1895,7 +1888,7 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN_clicked()
 void MainWindow::on_spinBox_TileSize_CurrentGPU_MultiGPU_RealESRGAN_valueChanged(int arg1)
 {
     QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUID_RealESRGAN->currentIndex());
-    GPUInfo["TileSize"] = QString::number(ui->spinBox_TileSize_CurrentGPU_MultiGPU_RealESRGAN->value(),10);
+    GPUInfo["TileSize"] = QString::number(arg1,10);
     GPUIDs_List_MultiGPU_RealESRGAN.replace(ui->comboBox_GPUID_RealESRGAN->currentIndex(),GPUInfo);
 }
 

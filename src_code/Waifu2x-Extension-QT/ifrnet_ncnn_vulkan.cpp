@@ -351,7 +351,7 @@ QString MainWindow::IFRNet_ReadConfig(bool isUhdInput,int NumOfFrames)
     }
     //Model
     QString engine_folder = Current_Path + "/ifrnet-ncnn-vulkan";
-    VFI_Config.append("-m \""+engine_folder+"/"+ui->comboBox_Model_IFRNet->currentText().trimmed()+"\" ");
+    VFI_Config.append("-m \""+engine_folder+"/"+ui->comboBox_Model_VFI->currentText().trimmed()+"\" ");
     //========================
     return VFI_Config;
 }

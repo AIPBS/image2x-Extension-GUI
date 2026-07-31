@@ -268,7 +268,7 @@ public:
     bool Rife_v4_FrameInterpolation_MultiGPU(QString SourcePath, QString OutputPath, QStringList GPU_IDs);
     int Rife_v4_Video_BySegment(int rowNum);
     // IFRNet-NCNN-Vulkan
-    int IFRNet_FrameInterpolation(int rowNum);
+    bool IFRNet_FrameInterpolation(QString SourcePath,QString OutputPath);
     QString IFRNet_ReadConfig(bool isUhdInput,int NumOfFrames);
     // CAIN-NCNN-Vulkan
     int Cain_FrameInterpolation(int rowNum);
@@ -328,6 +328,7 @@ public:
     QStringList Available_GPUID_RealCUGAN_ncnn_vulkan;
     int Rife_v4_DetectGPU();
     int IFRNet_DetectGPU();
+    QStringList Available_GPUID_IFRNet;
     int Cain_DetectGPU();
     int Dain_DetectGPU();
     // Compatibility tests
@@ -752,6 +753,8 @@ public slots:
 
     int RealCUGAN_ncnn_vulkan_DetectGPU_finished();
 
+    int IFRNet_DetectGPU_finished();
+
     int CheckUpadte_NewUpdate(QString update_str,QString Change_log);//检测到更新的弹窗代码
 
     void FinishedProcessing_DN();
@@ -1133,6 +1136,8 @@ private slots:
 
     void on_pushButton_DetectGPU_VFI_clicked();
 
+    void on_pushButton_DetectGPU_IFRNet_clicked();
+
     void on_lineEdit_MultiGPU_IDs_VFI_editingFinished();
 
     void on_checkBox_MultiGPU_VFI_stateChanged(int arg1);
@@ -1202,6 +1207,8 @@ signals:
     void Send_RealESRGAN_ncnn_vulkan_DetectGPU_finished();
 
     void Send_RealCUGAN_ncnn_vulkan_DetectGPU_finished();
+
+    void Send_IFRNet_DetectGPU_finished();
 
     void Send_CheckUpadte_NewUpdate(QString, QString);
 

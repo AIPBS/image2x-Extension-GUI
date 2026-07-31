@@ -64,6 +64,7 @@ bool MainWindow::SystemShutDown()
         stream << "Don't delete this file!!";
     }
     //================
+#ifdef PLATFORM_WINDOWS
     HANDLE hToken;
     TOKEN_PRIVILEGES tkp;
     //获取进程标志
@@ -94,6 +95,7 @@ bool MainWindow::SystemShutDown()
                 return true;
             }
     }
+#endif
     return false;
 }
 /*

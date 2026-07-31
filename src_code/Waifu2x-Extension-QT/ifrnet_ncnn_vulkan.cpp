@@ -364,12 +364,12 @@ QString MainWindow::IFRNet_ReadConfig(bool isUhdInput,int NumOfFrames)
 void MainWindow::on_pushButton_DetectGPU_IFRNet_clicked()
 {
     //====
-    ui->pushButton_DetectGPU_IFRNet->setText(tr("Detecting, please wait..."));
+    ui->pushButton_DetectGPU_VFI->setText(tr("Detecting, please wait..."));
     //====
     pushButton_Start_setEnabled_self(0);
     ui->comboBox_GPUID_VFI->setEnabled(0);
     ui->pushButton_DetectGPU_VFI->setEnabled(0);
-    ui->pushButton_DetectGPU_IFRNet->setEnabled(0);
+    ui->pushButton_DetectGPU_VFI->setEnabled(0);
     Available_GPUID_IFRNet.clear();
     QtConcurrent::run(this, &MainWindow::IFRNet_DetectGPU);
 }
@@ -430,7 +430,7 @@ int MainWindow::IFRNet_DetectGPU_finished()
 {
     pushButton_Start_setEnabled_self(1);
     ui->pushButton_DetectGPU_VFI->setEnabled(1);
-    ui->pushButton_DetectGPU_IFRNet->setEnabled(1);
+    ui->pushButton_DetectGPU_VFI->setEnabled(1);
     if(ui->checkBox_MultiGPU_VFI->isChecked()==false)ui->comboBox_GPUID_VFI->setEnabled(1);
     //====
     ui->comboBox_GPUID_VFI->clear();
@@ -454,7 +454,7 @@ int MainWindow::IFRNet_DetectGPU_finished()
         emit Send_TextBrowser_NewMessage(AvaIDs_Str);
     }
     //====
-    ui->pushButton_DetectGPU_IFRNet->setText(tr("Detect available GPU ID (IFRNet)"));
+    ui->pushButton_DetectGPU_VFI->setText(tr("Detect available GPU ID (IFRNet)"));
     //====
     return 0;
 }

@@ -1138,6 +1138,8 @@ private slots:
 
     void on_pushButton_DetectGPU_IFRNet_clicked();
 
+    void on_checkBox_isCompatible_IFRNetNcnnVulkan_clicked();
+
     void on_lineEdit_MultiGPU_IDs_VFI_editingFinished();
 
     void on_checkBox_MultiGPU_VFI_stateChanged(int arg1);

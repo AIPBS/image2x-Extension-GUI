@@ -1484,11 +1484,11 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video_BySegment(int rowNum)
     QString video_mp4_scaled_fullpath = "";
     if(CustRes_isEnabled)
     {
-        video_mp4_scaled_fullpath = SourceFile_fullPath_FolderPath+"/"+SourceFile_fullPath_BaseName+"_waifu2x_"+QString::number(CustRes_width,10)+"x"+QString::number(CustRes_height,10)+"_"+QString::number(DenoiseLevel,10)+"n"+"_"+SourceFile_fullPath_suffix+".mp4";
+        video_mp4_scaled_fullpath = file_path+"/"+file_name+"_waifu2x_"+QString::number(CustRes_width,10)+"x"+QString::number(CustRes_height,10)+"_"+QString::number(DenoiseLevel,10)+"n"+"_"+file_ext+".mp4";
     }
     else
     {
-        video_mp4_scaled_fullpath = SourceFile_fullPath_FolderPath+"/"+SourceFile_fullPath_BaseName+"_waifu2x_"+QString::number(ScaleRatio,10)+"x_"+QString::number(DenoiseLevel,10)+"n"+"_"+SourceFile_fullPath_suffix+".mp4";
+        video_mp4_scaled_fullpath = file_path+"/"+file_name+"_waifu2x_"+QString::number(ScaleRatio,10)+"x_"+QString::number(DenoiseLevel,10)+"n"+"_"+file_ext+".mp4";
     }
     QFile::remove(video_mp4_scaled_fullpath);
     video_AssembleVideoClips(VideoClipsFolderPath,VideoClipsFolderName,video_mp4_scaled_fullpath,AudioPath);
@@ -1555,7 +1555,7 @@ RealESRGAN_NCNN_Vulkan
 QString MainWindow::RealESRGAN_NCNN_Vulkan_PreLoad_Settings()
 {
     QString RealESRGAN_NCNN_Vulkan_Settings_str = " ";
-    if(ui->checkBox_MultiGPU_RealESRGAN->isChecked()==false)
+    if(ui->checkBox_TTA_RealESRGAN->isChecked()==false)
     {
         //==========单显卡==========
         //GPU ID
@@ -1585,7 +1585,7 @@ QString MainWindow::RealESRGAN_NCNN_Vulkan_ReadSettings()
 {
     QString RealESRGAN_NCNN_Vulkan_Settings_str = "";
     RealESRGAN_NCNN_Vulkan_Settings_str.append(RealESRGAN_NCNN_Vulkan_PreLoad_Settings_Str);
-    if(ui->checkBox_MultiGPU_RealESRGAN->isChecked())
+    if(ui->checkBox_TTA_RealESRGAN->isChecked())
     {
         //==========多显卡==========
         QMap<QString,QString> GPUInfo = RealESRGAN_NCNN_Vulkan_MultiGPU();
@@ -1645,7 +1645,7 @@ QString MainWindow::RealESRGAN_NCNN_Vulkan_ReadSettings()
 void MainWindow::on_pushButton_DetectGPU_RealESRGAN_clicked()
 {
     //====
-    ui->pushButton_DetectGPU_RealESRGAN->setText(tr("Detecting, please wait..."));
+    ui->pushButton_DetectGPUID_srmd->setText(tr("Detecting, please wait..."));
     //====
     pushButton_Start_setEnabled_self(0);
     ui->pushButton_DetectGPU->setEnabled(0);
@@ -1654,7 +1654,7 @@ void MainWindow::on_pushButton_DetectGPU_RealESRGAN_clicked()
     ui->pushButton_ListGPUs_Anime4k->setEnabled(0);
     ui->pushButton_compatibilityTest->setEnabled(0);
     ui->pushButton_DetectGPU_RealsrNCNNVulkan->setEnabled(0);
-    ui->pushButton_DetectGPU_RealESRGAN->setEnabled(0);
+    ui->pushButton_DetectGPUID_srmd->setEnabled(0);
     Available_GPUID_RealESRGAN_ncnn_vulkan.clear();
     QtConcurrent::run(this, &MainWindow::RealESRGAN_ncnn_vulkan_DetectGPU);
 }
@@ -1723,10 +1723,10 @@ int MainWindow::RealESRGAN_ncnn_vulkan_DetectGPU_finished()
     ui->pushButton_DumpProcessorList_converter->setEnabled(1);
     on_checkBox_SpecifyGPU_Anime4k_stateChanged(1);
     ui->pushButton_DetectGPU_RealsrNCNNVulkan->setEnabled(1);
-    ui->pushButton_DetectGPU_RealESRGAN->setEnabled(1);
+    ui->pushButton_DetectGPUID_srmd->setEnabled(1);
     //====
     GPUIDs_List_MultiGPU_RealESRGAN.clear();
-    ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->clear();
+    ui->comboBox_GPUID_RealESRGAN->clear();
     //===
     ui->comboBox_GPUID_RealESRGAN->clear();
     ui->comboBox_GPUID_RealESRGAN->addItem("auto");
@@ -1739,7 +1739,7 @@ int MainWindow::RealESRGAN_ncnn_vulkan_DetectGPU_finished()
         }
     }
     //====
-    ui->pushButton_DetectGPU_RealESRGAN->setText(tr("Detect available GPU ID"));
+    ui->pushButton_DetectGPUID_srmd->setText(tr("Detect available GPU ID"));
     //====
     return 0;
 }
@@ -1750,24 +1750,24 @@ RealESRGAN_NCNN_Vulkan_MultiGPU
 */
 QMap<QString,QString> MainWindow::RealESRGAN_NCNN_Vulkan_MultiGPU()
 {
-    MultiGPU_QMutex_RealESRGAN.lock();
+    MultiGPU_QMutex_RealESRGAN_NCNN_Vulkan.lock();
     //====
     int MAX_GPU_ID_RealESRGAN = GPUIDs_List_MultiGPU_RealESRGAN.size()-1;
-    if(GPU_ID_RealESRGAN_MultiGPU>MAX_GPU_ID_RealESRGAN)
+    if(GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU>MAX_GPU_ID_RealESRGAN)
     {
-        GPU_ID_RealESRGAN_MultiGPU=0;
+        GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU=0;
     }
     //======
     QMap<QString,QString> GPUInfo;
     do
     {
-        GPUInfo = GPUIDs_List_MultiGPU_RealESRGAN.at(GPU_ID_RealESRGAN_MultiGPU);
+        GPUInfo = GPUIDs_List_MultiGPU_RealESRGAN.at(GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU);
         if(GPUInfo["isEnabled"] != "true")
         {
-            GPU_ID_RealESRGAN_MultiGPU++;
-            if(GPU_ID_RealESRGAN_MultiGPU>MAX_GPU_ID_RealESRGAN)
+            GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU++;
+            if(GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU>MAX_GPU_ID_RealESRGAN)
             {
-                GPU_ID_RealESRGAN_MultiGPU=0;
+                GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU=0;
             }
         }
         else
@@ -1777,13 +1777,13 @@ QMap<QString,QString> MainWindow::RealESRGAN_NCNN_Vulkan_MultiGPU()
     }
     while(true);
     //======
-    GPU_ID_RealESRGAN_MultiGPU++;
-    if(GPU_ID_RealESRGAN_MultiGPU>MAX_GPU_ID_RealESRGAN)
+    GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU++;
+    if(GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU>MAX_GPU_ID_RealESRGAN)
     {
-        GPU_ID_RealESRGAN_MultiGPU=0;
+        GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU=0;
     }
     //======
-    MultiGPU_QMutex_RealESRGAN.unlock();
+    MultiGPU_QMutex_RealESRGAN_NCNN_Vulkan.unlock();
     return GPUInfo;
 }
 /*
@@ -1796,13 +1796,13 @@ void MainWindow::AddGPU_MultiGPU_RealESRGAN(QString GPUID)
     GPUInfo["isEnabled"] = "true";
     GPUInfo["TileSize"] = "100";
     GPUIDs_List_MultiGPU_RealESRGAN.append(GPUInfo);
-    ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->addItem(GPUID);
-    ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->setCurrentIndex(0);
+    ui->comboBox_GPUID_RealESRGAN->addItem(GPUID);
+    ui->comboBox_GPUID_RealESRGAN->setCurrentIndex(0);
 }
 
 void MainWindow::on_checkBox_MultiGPU_RealESRGAN_stateChanged(int arg1)
 {
-    if(ui->checkBox_MultiGPU_RealESRGAN->isChecked())
+    if(ui->checkBox_TTA_RealESRGAN->isChecked())
     {
         ui->comboBox_GPUID_RealESRGAN->setEnabled(0);
         ui->frame_TileSize_RealESRGAN->setEnabled(0);
@@ -1818,7 +1818,7 @@ void MainWindow::on_checkBox_MultiGPU_RealESRGAN_stateChanged(int arg1)
 
 void MainWindow::on_checkBox_MultiGPU_RealESRGAN_clicked()
 {
-    if(ui->checkBox_MultiGPU_RealESRGAN->isChecked())
+    if(ui->checkBox_TTA_RealESRGAN->isChecked())
     {
         if(GPUIDs_List_MultiGPU_RealESRGAN.size()==0)
         {
@@ -1828,7 +1828,7 @@ void MainWindow::on_checkBox_MultiGPU_RealESRGAN_clicked()
             MSG->setIcon(QMessageBox::Information);
             MSG->setModal(true);
             MSG->show();
-            ui->checkBox_MultiGPU_RealESRGAN->setChecked(0);
+            ui->checkBox_TTA_RealESRGAN->setChecked(0);
             return;
         }
         if(GPUIDs_List_MultiGPU_RealESRGAN.size()<2)
@@ -1839,7 +1839,7 @@ void MainWindow::on_checkBox_MultiGPU_RealESRGAN_clicked()
             MSG->setIcon(QMessageBox::Warning);
             MSG->setModal(true);
             MSG->show();
-            ui->checkBox_MultiGPU_RealESRGAN->setChecked(0);
+            ui->checkBox_TTA_RealESRGAN->setChecked(0);
             return;
         }
     }
@@ -1847,18 +1847,18 @@ void MainWindow::on_checkBox_MultiGPU_RealESRGAN_clicked()
 
 void MainWindow::on_comboBox_GPUIDs_MultiGPU_RealESRGAN_currentIndexChanged(int index)
 {
-    if(ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->count()==0)
+    if(ui->comboBox_GPUID_RealESRGAN->count()==0)
     {
         return;
     }
-    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->currentIndex());
+    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUID_RealESRGAN->currentIndex());
     ui->checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN->setChecked(GPUInfo["isEnabled"] == "true");
     ui->spinBox_TileSize_CurrentGPU_MultiGPU_RealESRGAN->setValue(GPUInfo["TileSize"].toInt());
 }
 
 void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN_clicked()
 {
-    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->currentIndex());
+    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUID_RealESRGAN->currentIndex());
     if(ui->checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN->isChecked())
     {
         GPUInfo["isEnabled"] = "true";
@@ -1867,7 +1867,7 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN_clicked()
     {
         GPUInfo["isEnabled"] = "false";
     }
-    GPUIDs_List_MultiGPU_RealESRGAN.replace(ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->currentIndex(),GPUInfo);
+    GPUIDs_List_MultiGPU_RealESRGAN.replace(ui->comboBox_GPUID_RealESRGAN->currentIndex(),GPUInfo);
     int enabledGPUs = 0;
     for (int i=0; i<GPUIDs_List_MultiGPU_RealESRGAN.size(); i++)
     {
@@ -1879,9 +1879,9 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN_clicked()
     }
     if(enabledGPUs<2)
     {
-        QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->currentIndex());
+        QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUID_RealESRGAN->currentIndex());
         GPUInfo["isEnabled"] = "true";
-        GPUIDs_List_MultiGPU_RealESRGAN.replace(ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->currentIndex(),GPUInfo);
+        GPUIDs_List_MultiGPU_RealESRGAN.replace(ui->comboBox_GPUID_RealESRGAN->currentIndex(),GPUInfo);
         ui->checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN->setChecked(1);
         QMessageBox *MSG = new QMessageBox();
         MSG->setWindowTitle(tr("Warning"));
@@ -1894,9 +1894,9 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN_clicked()
 
 void MainWindow::on_spinBox_TileSize_CurrentGPU_MultiGPU_RealESRGAN_valueChanged(int arg1)
 {
-    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->currentIndex());
+    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealESRGAN.at(ui->comboBox_GPUID_RealESRGAN->currentIndex());
     GPUInfo["TileSize"] = QString::number(ui->spinBox_TileSize_CurrentGPU_MultiGPU_RealESRGAN->value(),10);
-    GPUIDs_List_MultiGPU_RealESRGAN.replace(ui->comboBox_GPUIDs_MultiGPU_RealESRGAN->currentIndex(),GPUInfo);
+    GPUIDs_List_MultiGPU_RealESRGAN.replace(ui->comboBox_GPUID_RealESRGAN->currentIndex(),GPUInfo);
 }
 
 void MainWindow::on_pushButton_ShowMultiGPUSettings_RealESRGAN_clicked()
@@ -2084,7 +2084,7 @@ RealESRGAN_NCNN_Vulkan
 QString MainWindow::RealESRGAN_NCNN_Vulkan_ReadSettings_Video_GIF(int ThreadNum)
 {
     QString RealESRGAN_NCNN_Vulkan_Settings_str = " ";
-    if(ui->checkBox_MultiGPU_RealESRGAN->isChecked()==false)
+    if(ui->checkBox_TTA_RealESRGAN->isChecked()==false)
     {
         //==========单显卡==========
         //GPU ID

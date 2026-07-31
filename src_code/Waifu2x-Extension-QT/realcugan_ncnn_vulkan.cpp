@@ -1713,24 +1713,24 @@ int MainWindow::RealCUGAN_ncnn_vulkan_DetectGPU_finished()
 
 QMap<QString,QString> MainWindow::RealCUGAN_NCNN_Vulkan_MultiGPU()
 {
-    MultiGPU_QMutex_RealCUGAN.lock();
+    MultiGPU_QMutex_RealCUGAN_NCNN_Vulkan.lock();
     //====
     int MAX_GPU_ID_RealCUGAN = GPUIDs_List_MultiGPU_RealCUGAN.size()-1;
-    if(GPU_ID_RealCUGAN_MultiGPU>MAX_GPU_ID_RealCUGAN)
+    if(GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU>MAX_GPU_ID_RealCUGAN)
     {
-        GPU_ID_RealCUGAN_MultiGPU=0;
+        GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU=0;
     }
     //======
     QMap<QString,QString> GPUInfo;
     do
     {
-        GPUInfo = GPUIDs_List_MultiGPU_RealCUGAN.at(GPU_ID_RealCUGAN_MultiGPU);
+        GPUInfo = GPUIDs_List_MultiGPU_RealCUGAN.at(GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU);
         if(GPUInfo["isEnabled"] != "true")
         {
-            GPU_ID_RealCUGAN_MultiGPU++;
-            if(GPU_ID_RealCUGAN_MultiGPU>MAX_GPU_ID_RealCUGAN)
+            GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU++;
+            if(GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU>MAX_GPU_ID_RealCUGAN)
             {
-                GPU_ID_RealCUGAN_MultiGPU=0;
+                GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU=0;
             }
         }
         else
@@ -1740,13 +1740,13 @@ QMap<QString,QString> MainWindow::RealCUGAN_NCNN_Vulkan_MultiGPU()
     }
     while(true);
     //======
-    GPU_ID_RealCUGAN_MultiGPU++;
-    if(GPU_ID_RealCUGAN_MultiGPU>MAX_GPU_ID_RealCUGAN)
+    GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU++;
+    if(GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU>MAX_GPU_ID_RealCUGAN)
     {
-        GPU_ID_RealCUGAN_MultiGPU=0;
+        GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU=0;
     }
     //======
-    MultiGPU_QMutex_RealCUGAN.unlock();
+    MultiGPU_QMutex_RealCUGAN_NCNN_Vulkan.unlock();
     return GPUInfo;
 }
 

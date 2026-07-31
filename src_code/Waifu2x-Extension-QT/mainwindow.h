@@ -35,7 +35,9 @@
 #include <QImageWriter>
 #include <QFile>
 #include <QVariant>
+#ifdef PLATFORM_WINDOWS
 #include <windows.h>
+#endif
 #include <QTime>
 #include <QMediaPlayer>
 #include <QDesktopServices>

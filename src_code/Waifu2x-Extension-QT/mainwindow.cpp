@@ -1823,7 +1823,11 @@ void MainWindow::ExecuteCMD_batFile(QString cmd_str,bool requestAdmin)
     OpenFile_cmdFile.close();
     if(requestAdmin)
     {
+#ifdef PLATFORM_WINDOWS
         ShellExecuteW(NULL, QString("runas").toStdWString().c_str(), QString(Bat_path).toStdWString().c_str(), QString(Bat_path).toStdWString().c_str(), NULL, 1);
+#else
+        QDesktopServices::openUrl(QUrl("file:"+QUrl::toPercentEncoding(Bat_path)));
+#endif
     }
     else
     {

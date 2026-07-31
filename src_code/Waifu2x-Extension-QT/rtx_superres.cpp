@@ -683,3 +683,15 @@ void MainWindow::on_checkBox_isCompatible_RTXSuperRes_clicked()
     MSG->setModal(true);
     MSG->show();
 }
+
+void MainWindow::on_checkBox_PrioritizeQuality_RTXSuperRes_clicked()
+{
+}
+
+void MainWindow::on_checkBox_DisableDenoise_RTXSuperRes_clicked()
+{
+}
+
+void MainWindow::on_pushButton_DetectGPU_RTXSuperRes_clicked()
+{
+}

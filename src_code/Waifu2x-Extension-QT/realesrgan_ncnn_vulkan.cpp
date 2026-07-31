@@ -2308,3 +2308,11 @@ bool MainWindow::APNG_RealESRGAN_NCNNVulkan(QString splitFramesFolder,QString sc
     APNG_Frames2APNG(sourceFileFullPath, scaledFramesFolder, resultFileFullPath, isOverScaled);
     return true;
 }
+
+void MainWindow::on_checkBox_TTA_RealESRGAN_clicked()
+{
+}
+
+void MainWindow::on_checkBox_TTA_RealESRGAN_stateChanged(int arg1)
+{
+}

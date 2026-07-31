@@ -458,6 +458,7 @@ void MainWindow::file_MoveToTrash( QString file )
     QFileInfo fileinfo( file );
     if( !fileinfo.exists() )
         return;
+#ifdef PLATFORM_WINDOWS
     WCHAR from[ MAX_PATH ];
     memset( from, 0, sizeof( from ));
     int l = fileinfo.absoluteFilePath().toWCharArray( from );
@@ -468,11 +469,10 @@ void MainWindow::file_MoveToTrash( QString file )
     fileop.wFunc = FO_DELETE;
     fileop.pFrom = from;
     fileop.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
-    int rv = SHFileOperation( &fileop );
-    if( 0 != rv )
-    {
-        return;
-    }
+    SHFileOperation( &fileop );
+#else
+    QProcess::execute("gio", QStringList() << "trash" << file);
+#endif
 }
 
 /*

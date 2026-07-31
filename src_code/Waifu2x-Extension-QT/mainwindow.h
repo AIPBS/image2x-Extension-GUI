@@ -1089,6 +1089,8 @@ private slots:
 
     void on_checkBox_isCompatible_RTXSuperRes_clicked();
 
+    void on_pushButton_InstallMaxineSDK_RTXSuperRes_clicked();
+
     void on_checkBox_HDNMode_Anime4k_stateChanged(int arg1);
 
     void on_tableView_image_pressed(const QModelIndex &index);

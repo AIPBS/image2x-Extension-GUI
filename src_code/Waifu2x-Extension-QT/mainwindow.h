@@ -402,6 +402,20 @@ public:
     QList<QMap<QString, QString>> GPUIDs_List_MultiGPU_Waifu2xConverter;
     void AddGPU_MultiGPU_Waifu2xConverter(QString GPUID);
 
+    //RealESRGAN
+    int GPU_ID_RealESRGAN_NCNN_Vulkan_MultiGPU = 0;
+    QMap<QString,QString> RealESRGAN_NCNN_Vulkan_MultiGPU();
+    QMutex MultiGPU_QMutex_RealESRGAN_NCNN_Vulkan;
+    QList<QMap<QString, QString>> GPUIDs_List_MultiGPU_RealESRGAN;
+    void AddGPU_MultiGPU_RealESRGAN(QString GPUID);
+
+    //RealCUGAN
+    int GPU_ID_RealCUGAN_NCNN_Vulkan_MultiGPU = 0;
+    QMap<QString,QString> RealCUGAN_NCNN_Vulkan_MultiGPU();
+    QMutex MultiGPU_QMutex_RealCUGAN_NCNN_Vulkan;
+    QList<QMap<QString, QString>> GPUIDs_List_MultiGPU_RealCUGAN;
+    void AddGPU_MultiGPU_RealCUGAN(QString GPUID);
+
     //Anime4k
     int GPU_ID_Anime4k_GetGPUInfo = 0;
     QString Anime4k_GetGPUInfo();
@@ -675,6 +689,10 @@ public:
     int Waifu2x_Caffe_APNG_scale(QMap<QString, QString> Sub_Thread_info,int *Sub_gif_ThreadNumRunning,bool *Frame_failed);
     //Realsr-NCNN-Vulkan
     bool APNG_RealsrNCNNVulkan(QString splitFramesFolder,QString scaledFramesFolder,QString sourceFileFullPath,QStringList framesFileName_qStrList,QString resultFileFullPath);
+    //RealESRGAN
+    bool APNG_RealESRGAN_NCNNVulkan(QString splitFramesFolder,QString scaledFramesFolder,QString sourceFileFullPath,QStringList framesFileName_qStrList,QString resultFileFullPath);
+    //RealCUGAN
+    bool APNG_RealCUGAN_NCNNVulkan(QString splitFramesFolder,QString scaledFramesFolder,QString sourceFileFullPath,QStringList framesFileName_qStrList,QString resultFileFullPath);
     //=============
     ~MainWindow();
 
@@ -729,6 +747,10 @@ public slots:
     int Realsr_ncnn_vulkan_DetectGPU_finished();//检测可用gpu结束后的执行的槽函数
 
     int FrameInterpolation_DetectGPU_finished();
+
+    int RealESRGAN_ncnn_vulkan_DetectGPU_finished();
+
+    int RealCUGAN_ncnn_vulkan_DetectGPU_finished();
 
     int CheckUpadte_NewUpdate(QString update_str,QString Change_log);//检测到更新的弹窗代码
 
@@ -1011,6 +1033,58 @@ private slots:
 
     void on_pushButton_ShowMultiGPUSettings_RealsrNcnnVulkan_clicked();
 
+    void on_pushButton_ShowMultiGPUSettings_RealESRGAN_clicked();
+
+    void on_pushButton_Add_TileSize_RealESRGAN_clicked();
+
+    void on_pushButton_Minus_TileSize_RealESRGAN_clicked();
+
+    void on_checkBox_MultiGPU_RealESRGAN_clicked();
+
+    void on_checkBox_MultiGPU_RealESRGAN_stateChanged(int arg1);
+
+    void on_comboBox_GPUIDs_MultiGPU_RealESRGAN_currentIndexChanged(int index);
+
+    void on_checkBox_isEnable_CurrentGPU_MultiGPU_RealESRGAN_clicked();
+
+    void on_spinBox_TileSize_CurrentGPU_MultiGPU_RealESRGAN_valueChanged(int arg1);
+
+    void on_pushButton_DetectGPU_RealESRGAN_clicked();
+
+    void on_checkBox_TTA_RealESRGAN_clicked();
+
+    void on_checkBox_TTA_RealESRGAN_stateChanged(int arg1);
+
+    void on_pushButton_ShowMultiGPUSettings_RealCUGAN_clicked();
+
+    void on_checkBox_MultiGPU_RealCUGAN_clicked();
+
+    void on_checkBox_MultiGPU_RealCUGAN_stateChanged(int arg1);
+
+    void on_comboBox_GPUIDs_MultiGPU_RealCUGAN_currentIndexChanged(int index);
+
+    void on_checkBox_isEnable_CurrentGPU_MultiGPU_RealCUGAN_clicked();
+
+    void on_spinBox_TileSize_CurrentGPU_MultiGPU_RealCUGAN_valueChanged(int arg1);
+
+    void on_pushButton_DetectGPU_RealCUGAN_clicked();
+
+    void on_checkBox_TTA_RealCUGAN_clicked();
+
+    void on_checkBox_TTA_RealCUGAN_stateChanged(int arg1);
+
+    void on_pushButton_DetectGPU_RTXSuperRes_clicked();
+
+    void on_checkBox_DisableDenoise_RTXSuperRes_clicked();
+
+    void on_checkBox_DisableDenoise_RTXSuperRes_stateChanged(int arg1);
+
+    void on_checkBox_PrioritizeQuality_RTXSuperRes_clicked();
+
+    void on_checkBox_PrioritizeQuality_RTXSuperRes_stateChanged(int arg1);
+
+    void on_checkBox_isCompatible_RTXSuperRes_clicked();
+
     void on_checkBox_HDNMode_Anime4k_stateChanged(int arg1);
 
     void on_tableView_image_pressed(const QModelIndex &index);
@@ -1118,6 +1192,10 @@ signals:
 
     void Send_Realsr_ncnn_vulkan_DetectGPU_finished();
     void Send_FrameInterpolation_DetectGPU_finished();
+
+    void Send_RealESRGAN_ncnn_vulkan_DetectGPU_finished();
+
+    void Send_RealCUGAN_ncnn_vulkan_DetectGPU_finished();
 
     void Send_CheckUpadte_NewUpdate(QString, QString);
 

@@ -1555,7 +1555,7 @@ RealCUGAN_NCNN_Vulkan
 QString MainWindow::RealCUGAN_NCNN_Vulkan_PreLoad_Settings()
 {
     QString RealCUGAN_NCNN_Vulkan_Settings_str = " ";
-    if(ui->checkBox_MultiGPU_RealCUGAN->isChecked()==false)
+    if(ui->checkBox_OutPath_isEnabled->isChecked()==false)
     {
         //==========单显卡==========
         //GPU ID
@@ -1564,10 +1564,10 @@ QString MainWindow::RealCUGAN_NCNN_Vulkan_PreLoad_Settings()
             RealCUGAN_NCNN_Vulkan_Settings_str.append("-g "+ui->comboBox_GPUID_RealCUGAN->currentText()+" ");
         }
         //Tile Size
-        RealCUGAN_NCNN_Vulkan_Settings_str.append("-t "+QString::number(ui->spinBox_TileSize_RealCUGAN->value(),10)+" ");
+        RealCUGAN_NCNN_Vulkan_Settings_str.append("-t "+QString::number(ui->spinBox_retry->value(),10)+" ");
     }
     //TTA
-    if(ui->checkBox_TTA_RealCUGAN->isChecked())
+    if(ui->checkBox_OutPath_isEnabled->isChecked())
     {
         RealCUGAN_NCNN_Vulkan_Settings_str.append("-x ");
     }
@@ -1583,7 +1583,7 @@ QString MainWindow::RealCUGAN_NCNN_Vulkan_ReadSettings()
 {
     QString RealCUGAN_NCNN_Vulkan_Settings_str = "";
     RealCUGAN_NCNN_Vulkan_Settings_str.append(RealCUGAN_NCNN_Vulkan_PreLoad_Settings_Str);
-    if(ui->checkBox_MultiGPU_RealCUGAN->isChecked())
+    if(ui->checkBox_OutPath_isEnabled->isChecked())
     {
         //==========多显卡==========
         QMap<QString,QString> GPUInfo = RealCUGAN_NCNN_Vulkan_MultiGPU();
@@ -1614,7 +1614,7 @@ QString MainWindow::RealCUGAN_NCNN_Vulkan_ReadSettings()
 void MainWindow::on_pushButton_DetectGPU_RealCUGAN_clicked()
 {
     //====
-    ui->pushButton_DetectGPU_RealCUGAN->setText(tr("Detecting, please wait..."));
+    ui->pushButton_DetectGPUID_srmd->setText(tr("Detecting, please wait..."));
     //====
     pushButton_Start_setEnabled_self(0);
     ui->pushButton_DetectGPU->setEnabled(0);
@@ -1623,8 +1623,8 @@ void MainWindow::on_pushButton_DetectGPU_RealCUGAN_clicked()
     ui->pushButton_ListGPUs_Anime4k->setEnabled(0);
     ui->pushButton_compatibilityTest->setEnabled(0);
     ui->pushButton_DetectGPU_RealsrNCNNVulkan->setEnabled(0);
-    ui->pushButton_DetectGPU_RealESRGAN->setEnabled(0);
-    ui->pushButton_DetectGPU_RealCUGAN->setEnabled(0);
+    ui->pushButton_DetectGPUID_srmd->setEnabled(0);
+    ui->pushButton_DetectGPUID_srmd->setEnabled(0);
     Available_GPUID_RealCUGAN_ncnn_vulkan.clear();
     QtConcurrent::run(this, &MainWindow::RealCUGAN_ncnn_vulkan_DetectGPU);
 }
@@ -1689,11 +1689,11 @@ int MainWindow::RealCUGAN_ncnn_vulkan_DetectGPU_finished()
     ui->pushButton_DumpProcessorList_converter->setEnabled(1);
     on_checkBox_SpecifyGPU_Anime4k_stateChanged(1);
     ui->pushButton_DetectGPU_RealsrNCNNVulkan->setEnabled(1);
-    ui->pushButton_DetectGPU_RealESRGAN->setEnabled(1);
-    ui->pushButton_DetectGPU_RealCUGAN->setEnabled(1);
+    ui->pushButton_DetectGPUID_srmd->setEnabled(1);
+    ui->pushButton_DetectGPUID_srmd->setEnabled(1);
     //====
     GPUIDs_List_MultiGPU_RealCUGAN.clear();
-    ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->clear();
+    ui->comboBox_GPUID_RealCUGAN->clear();
     //===
     ui->comboBox_GPUID_RealCUGAN->clear();
     ui->comboBox_GPUID_RealCUGAN->addItem("auto");
@@ -1706,7 +1706,7 @@ int MainWindow::RealCUGAN_ncnn_vulkan_DetectGPU_finished()
         }
     }
     //====
-    ui->pushButton_DetectGPU_RealCUGAN->setText(tr("Detect available GPU ID"));
+    ui->pushButton_DetectGPUID_srmd->setText(tr("Detect available GPU ID"));
     //====
     return 0;
 }
@@ -1757,29 +1757,29 @@ void MainWindow::AddGPU_MultiGPU_RealCUGAN(QString GPUID)
     GPUInfo["isEnabled"] = "true";
     GPUInfo["TileSize"] = "100";
     GPUIDs_List_MultiGPU_RealCUGAN.append(GPUInfo);
-    ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->addItem(GPUID);
-    ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->setCurrentIndex(0);
+    ui->comboBox_GPUID_RealCUGAN->addItem(GPUID);
+    ui->comboBox_GPUID_RealCUGAN->setCurrentIndex(0);
 }
 
 void MainWindow::on_checkBox_MultiGPU_RealCUGAN_stateChanged(int arg1)
 {
-    if(ui->checkBox_MultiGPU_RealCUGAN->isChecked())
+    if(ui->checkBox_OutPath_isEnabled->isChecked())
     {
         ui->comboBox_GPUID_RealCUGAN->setEnabled(0);
-        ui->frame_TileSize_RealCUGAN->setEnabled(0);
-        ui->groupBox_GPUSettings_MultiGPU_RealCUGAN->setEnabled(1);
+        ui->spinBox_retry->setEnabled(0);
+        ui->groupBox_FrameInterpolation->setEnabled(1);
     }
     else
     {
         ui->comboBox_GPUID_RealCUGAN->setEnabled(1);
-        ui->frame_TileSize_RealCUGAN->setEnabled(1);
-        ui->groupBox_GPUSettings_MultiGPU_RealCUGAN->setEnabled(0);
+        ui->spinBox_retry->setEnabled(1);
+        ui->groupBox_FrameInterpolation->setEnabled(0);
     }
 }
 
 void MainWindow::on_checkBox_MultiGPU_RealCUGAN_clicked()
 {
-    if(ui->checkBox_MultiGPU_RealCUGAN->isChecked())
+    if(ui->checkBox_OutPath_isEnabled->isChecked())
     {
         if(GPUIDs_List_MultiGPU_RealCUGAN.size()==0)
         {
@@ -1789,7 +1789,7 @@ void MainWindow::on_checkBox_MultiGPU_RealCUGAN_clicked()
             MSG->setIcon(QMessageBox::Information);
             MSG->setModal(true);
             MSG->show();
-            ui->checkBox_MultiGPU_RealCUGAN->setChecked(0);
+            ui->checkBox_OutPath_isEnabled->setChecked(0);
             return;
         }
         if(GPUIDs_List_MultiGPU_RealCUGAN.size()<2)
@@ -1800,7 +1800,7 @@ void MainWindow::on_checkBox_MultiGPU_RealCUGAN_clicked()
             MSG->setIcon(QMessageBox::Warning);
             MSG->setModal(true);
             MSG->show();
-            ui->checkBox_MultiGPU_RealCUGAN->setChecked(0);
+            ui->checkBox_OutPath_isEnabled->setChecked(0);
             return;
         }
     }
@@ -1808,19 +1808,19 @@ void MainWindow::on_checkBox_MultiGPU_RealCUGAN_clicked()
 
 void MainWindow::on_comboBox_GPUIDs_MultiGPU_RealCUGAN_currentIndexChanged(int index)
 {
-    if(ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->count()==0)
+    if(ui->comboBox_GPUID_RealCUGAN->count()==0)
     {
         return;
     }
-    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealCUGAN.at(ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->currentIndex());
-    ui->checkBox_isEnable_CurrentGPU_MultiGPU_RealCUGAN->setChecked(GPUInfo["isEnabled"] == "true");
-    ui->spinBox_TileSize_CurrentGPU_MultiGPU_RealCUGAN->setValue(GPUInfo["TileSize"].toInt());
+    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealCUGAN.at(ui->comboBox_GPUID_RealCUGAN->currentIndex());
+    ui->checkBox_OutPath_isEnabled->setChecked(GPUInfo["isEnabled"] == "true");
+    ui->spinBox_retry->setValue(GPUInfo["TileSize"].toInt());
 }
 
 void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealCUGAN_clicked()
 {
-    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealCUGAN.at(ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->currentIndex());
-    if(ui->checkBox_isEnable_CurrentGPU_MultiGPU_RealCUGAN->isChecked())
+    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealCUGAN.at(ui->comboBox_GPUID_RealCUGAN->currentIndex());
+    if(ui->checkBox_OutPath_isEnabled->isChecked())
     {
         GPUInfo["isEnabled"] = "true";
     }
@@ -1828,7 +1828,7 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealCUGAN_clicked()
     {
         GPUInfo["isEnabled"] = "false";
     }
-    GPUIDs_List_MultiGPU_RealCUGAN.replace(ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->currentIndex(),GPUInfo);
+    GPUIDs_List_MultiGPU_RealCUGAN.replace(ui->comboBox_GPUID_RealCUGAN->currentIndex(),GPUInfo);
     int enabledGPUs = 0;
     for (int i=0; i<GPUIDs_List_MultiGPU_RealCUGAN.size(); i++)
     {
@@ -1840,10 +1840,10 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealCUGAN_clicked()
     }
     if(enabledGPUs<2)
     {
-        QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealCUGAN.at(ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->currentIndex());
+        QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealCUGAN.at(ui->comboBox_GPUID_RealCUGAN->currentIndex());
         GPUInfo["isEnabled"] = "true";
-        GPUIDs_List_MultiGPU_RealCUGAN.replace(ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->currentIndex(),GPUInfo);
-        ui->checkBox_isEnable_CurrentGPU_MultiGPU_RealCUGAN->setChecked(1);
+        GPUIDs_List_MultiGPU_RealCUGAN.replace(ui->comboBox_GPUID_RealCUGAN->currentIndex(),GPUInfo);
+        ui->checkBox_OutPath_isEnabled->setChecked(1);
         QMessageBox *MSG = new QMessageBox();
         MSG->setWindowTitle(tr("Warning"));
         MSG->setText(tr("At least 2 GPUs need to be enabled !!"));
@@ -1855,9 +1855,9 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_RealCUGAN_clicked()
 
 void MainWindow::on_spinBox_TileSize_CurrentGPU_MultiGPU_RealCUGAN_valueChanged(int arg1)
 {
-    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealCUGAN.at(ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->currentIndex());
-    GPUInfo["TileSize"] = QString::number(ui->spinBox_TileSize_CurrentGPU_MultiGPU_RealCUGAN->value(),10);
-    GPUIDs_List_MultiGPU_RealCUGAN.replace(ui->comboBox_GPUIDs_MultiGPU_RealCUGAN->currentIndex(),GPUInfo);
+    QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_RealCUGAN.at(ui->comboBox_GPUID_RealCUGAN->currentIndex());
+    GPUInfo["TileSize"] = QString::number(ui->spinBox_retry->value(),10);
+    GPUIDs_List_MultiGPU_RealCUGAN.replace(ui->comboBox_GPUID_RealCUGAN->currentIndex(),GPUInfo);
 }
 
 void MainWindow::on_pushButton_ShowMultiGPUSettings_RealCUGAN_clicked()
@@ -1887,12 +1887,12 @@ void MainWindow::on_pushButton_ShowMultiGPUSettings_RealCUGAN_clicked()
 
 void MainWindow::on_pushButton_Add_TileSize_RealCUGAN_clicked()
 {
-    ui->spinBox_TileSize_RealCUGAN->setValue(AddTileSize_NCNNVulkan_Converter(ui->spinBox_TileSize_RealCUGAN->value()));
+    ui->spinBox_retry->setValue(AddTileSize_NCNNVulkan_Converter(ui->spinBox_retry->value()));
 }
 
 void MainWindow::on_pushButton_Minus_TileSize_RealCUGAN_clicked()
 {
-    ui->spinBox_TileSize_RealCUGAN->setValue(MinusTileSize_NCNNVulkan_Converter(ui->spinBox_TileSize_RealCUGAN->value()));
+    ui->spinBox_retry->setValue(MinusTileSize_NCNNVulkan_Converter(ui->spinBox_retry->value()));
 }
 
 /*
@@ -2065,14 +2065,14 @@ RealCUGAN_NCNN_Vulkan
 QString MainWindow::RealCUGAN_NCNN_Vulkan_ReadSettings_Video_GIF(int ThreadNum)
 {
     QString RealCUGAN_NCNN_Vulkan_Settings_str = " ";
-    if(ui->checkBox_MultiGPU_RealCUGAN->isChecked()==false)
+    if(ui->checkBox_OutPath_isEnabled->isChecked()==false)
     {
         //==========单显卡==========
         if(ui->comboBox_GPUID_RealCUGAN->currentText()!="auto")
         {
             RealCUGAN_NCNN_Vulkan_Settings_str.append("-g "+ui->comboBox_GPUID_RealCUGAN->currentText()+" ");
         }
-        RealCUGAN_NCNN_Vulkan_Settings_str.append("-t "+QString::number(ui->spinBox_TileSize_RealCUGAN->value(),10)+" ");
+        RealCUGAN_NCNN_Vulkan_Settings_str.append("-t "+QString::number(ui->spinBox_retry->value(),10)+" ");
         QString jobs_num_str = QString("%1").arg(ThreadNum);
         RealCUGAN_NCNN_Vulkan_Settings_str.append("-j "+jobs_num_str+":"+jobs_num_str+":"+jobs_num_str+" ");
     }
@@ -2118,7 +2118,7 @@ QString MainWindow::RealCUGAN_NCNN_Vulkan_ReadSettings_Video_GIF(int ThreadNum)
         RealCUGAN_NCNN_Vulkan_Settings_str.append(QString("-j %1:").arg(LoadAndWrite_tnum)+Jobs_cmd+QString(":%1 ").arg(LoadAndWrite_tnum));
     }
     //TTA
-    if(ui->checkBox_TTA_RealCUGAN->isChecked())
+    if(ui->checkBox_OutPath_isEnabled->isChecked())
     {
         RealCUGAN_NCNN_Vulkan_Settings_str.append("-x ");
     }

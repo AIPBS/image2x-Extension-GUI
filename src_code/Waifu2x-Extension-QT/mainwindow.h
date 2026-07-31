@@ -1073,6 +1073,10 @@ private slots:
 
     void on_checkBox_TTA_RealCUGAN_stateChanged(int arg1);
 
+    void on_pushButton_Add_TileSize_RealCUGAN_clicked();
+
+    void on_pushButton_Minus_TileSize_RealCUGAN_clicked();
+
     void on_pushButton_DetectGPU_RTXSuperRes_clicked();
 
     void on_checkBox_DisableDenoise_RTXSuperRes_clicked();

@@ -234,6 +234,9 @@ int MainWindow::Auto_Save_Settings_Watchdog(bool isWaitForSave)
     //=====
     Force_close();
     //====
+    // 确保关闭窗口后应用真正退出(而非卡在无按钮的Closing对话框)。
+    // 本函数运行在QtConcurrent线程池线程中,quit()必须在GUI线程调用。
+    QMetaObject::invokeMethod(qApp, "quit", Qt::QueuedConnection);
     return 0;
 }
 

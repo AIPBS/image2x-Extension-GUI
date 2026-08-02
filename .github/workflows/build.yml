@@ -73,11 +73,17 @@ jobs:
             'exec "$DIR/Waifu2x-Extension-GUI" "$@"' > bundle/launch.sh
           chmod +x bundle/launch.sh
 
-      - name: Upload bundle
+      - name: Package bundle as tar.gz
+        working-directory: src_code/Waifu2x-Extension-QT
+        run: |
+          tar czf Waifu2x-Extension-GUI-linux.tar.gz -C bundle .
+          ls -lh Waifu2x-Extension-GUI-linux.tar.gz
+
+      - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: Waifu2x-Extension-GUI-linux
-          path: src_code/Waifu2x-Extension-QT/bundle/
+          path: src_code/Waifu2x-Extension-QT/Waifu2x-Extension-GUI-linux.tar.gz
 
       - name: Smoke test (offscreen launch)
         working-directory: src_code/Waifu2x-Extension-QT
@@ -104,25 +110,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Waifu2x-Extension-GUI-linux
-          path: bundle/
-
-      - name: Package release archive
-        run: |
-          set -euo pipefail
-          echo "Workspace contents:"
-          find "$GITHUB_WORKSPACE" -maxdepth 3 -type f | head -30
-          cd "$GITHUB_WORKSPACE/bundle"
-          echo "Bundle contents:"
-          find . -maxdepth 2 | head -30
-          tar czf Waifu2x-Extension-GUI-linux.tar.gz .
-          ls -lh Waifu2x-Extension-GUI-linux.tar.gz
+          path: dist/
 
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'nightly' }}
         run: |
-          gh release create "$TAG" bundle/Waifu2x-Extension-GUI-linux.tar.gz \
+          ls -lh dist/
+          gh release create "$TAG" dist/Waifu2x-Extension-GUI-linux.tar.gz \
             --repo "$GITHUB_REPOSITORY" \
             --title "Waifu2x-Extension-GUI $TAG" \
             --notes "Linux bundle (Qt5). Models NOT included — download via src_code/scripts/download_models.sh" \

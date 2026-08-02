@@ -108,7 +108,12 @@ jobs:
 
       - name: Package release archive
         run: |
-          cd bundle
+          set -euo pipefail
+          echo "Workspace contents:"
+          find "$GITHUB_WORKSPACE" -maxdepth 3 -type f | head -30
+          cd "$GITHUB_WORKSPACE/bundle"
+          echo "Bundle contents:"
+          find . -maxdepth 2 | head -30
           tar czf Waifu2x-Extension-GUI-linux.tar.gz .
           ls -lh Waifu2x-Extension-GUI-linux.tar.gz
 

@@ -24,6 +24,12 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);//高分辨率屏幕支持
+#ifdef PLATFORM_LINUX
+    // 强制使用 xcb 平台:Wayland 下自带的 Qt5 wayland 插件与系统 mesa/wayland
+    // 版本不匹配会启动失败(无 xdg-shell / 符号缺失)。通过 XWayland 的 xcb
+    // 路径在大多数桌面环境(包括 GNOME Wayland)都能稳定工作。
+    qputenv("QT_QPA_PLATFORM", "xcb");
+#endif
     QApplication a(argc,argv);
     a.setQuitOnLastWindowClosed(false);//隐藏无窗口时保持运行
     MainWindow *w = new MainWindow;

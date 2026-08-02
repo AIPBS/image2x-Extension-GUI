@@ -31,7 +31,8 @@ jobs:
             qtmultimedia5-dev \
             libgl1-mesa-dev \
             libx11-dev \
-            pkg-config
+            pkg-config \
+            patchelf
 
       - name: Build
         working-directory: src_code/Waifu2x-Extension-QT
@@ -95,6 +96,17 @@ jobs:
             'exec "$DIR/Waifu2x-Extension-GUI" "$@"' > bundle/launch.sh
           chmod +x bundle/launch.sh
 
+          # Make the binary and plugins self-contained via RPATH=$ORIGIN
+          # so ./Waifu2x-Extension-GUI works WITHOUT the wrapper script
+          patchelf --set-rpath '$ORIGIN/lib' bundle/Waifu2x-Extension-GUI
+          for p in bundle/plugins/platforms/*.so bundle/plugins/imageformats/*.so; do
+            patchelf --set-rpath '$ORIGIN/../../lib' "$p" 2>/dev/null || true
+          done
+          # Also fix Qt platform integration libs' plugin dir so Qt finds them
+          for p in bundle/plugins/platforms/*.so; do
+            [ -f "$p" ] && patchelf --set-rpath '$ORIGIN/../../lib' "$p" 2>/dev/null || true
+          done
+
       - name: Package bundle as tar.gz
         working-directory: src_code/Waifu2x-Extension-QT
         run: |
@@ -107,11 +119,12 @@ jobs:
           name: Waifu2x-Extension-GUI-linux
           path: src_code/Waifu2x-Extension-QT/Waifu2x-Extension-GUI-linux.tar.gz
 
-      - name: Smoke test (offscreen launch)
+      - name: Smoke test (offscreen launch, no env vars)
         working-directory: src_code/Waifu2x-Extension-QT
         run: |
           set +e
-          QT_QPA_PLATFORM=offscreen timeout 8 ./bundle/launch.sh >/tmp/app.log 2>&1
+          # No LD_LIBRARY_PATH / no plugin path — tests the RPATH self-containment
+          QT_QPA_PLATFORM=offscreen timeout 8 ./bundle/Waifu2x-Extension-GUI >/tmp/app.log 2>&1
           CODE=$?
           if [ "$CODE" = "124" ]; then
             echo "PASS: app launched and stayed running until timeout (expected for GUI app)"

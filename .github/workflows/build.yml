@@ -126,9 +126,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'nightly' }}
         run: |
+          set -euo pipefail
           ls -lh dist/
+          # Re-publishing the same tag? Remove the old release so the asset is replaced.
+          gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
           gh release create "$TAG" dist/Waifu2x-Extension-GUI-linux.tar.gz \
             --repo "$GITHUB_REPOSITORY" \
             --title "Waifu2x-Extension-GUI $TAG" \
-            --notes "Linux bundle (Qt5). Models NOT included — download via src_code/scripts/download_models.sh" \
-            || echo "Release already exists — skipping"
+            --notes "Linux bundle (Qt5). Models NOT included — download via src_code/scripts/download_models.sh"

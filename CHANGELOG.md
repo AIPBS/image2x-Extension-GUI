@@ -4,6 +4,7 @@
 
 ### Added
 - **GitHub Actions CI** (`.github/workflows/build.yml`) — compiles the Linux bundle on `ubuntu-latest` (Qt5), bundles Qt runtime libs + plugins so the artifact runs on machines without Qt dev packages, uploads the binary as an artifact, and runs an offscreen smoke test.
+- **Self-contained bundle** — RPATH + `qt.conf` set on the binary and all bundled libs/plugins, so `./Waifu2x-Extension-GUI` runs directly without a wrapper script or `LD_LIBRARY_PATH`.
 - **GitHub Release publishing** — push a `v*` tag (or run the workflow manually with `publish_release`) to create a Release with the Linux bundle attached. Models are not bundled; download them via `src_code/scripts/download_models.sh`.
 
 ## v0.1.0 (2026-07-27) — Initial reconstruction

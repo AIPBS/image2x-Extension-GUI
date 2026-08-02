@@ -55,8 +55,8 @@ jobs:
             ldd "$target" 2>/dev/null | awk '/=> \//{print $3}' | sort -u
           }
           LIBS="$(copy_libs Waifu2x-Extension-GUI)"
-          # Also resolve deps of Qt platform plugins
-          for p in plugins/platforms/*.so plugins/imageformats/*.so; do
+          # Also resolve deps of all Qt plugins (incl. wayland integration)
+          for p in $(find plugins -name '*.so'); do
             [ -f "$p" ] && LIBS="$LIBS $(copy_libs "$p")"
           done
           for lib in $(echo "$LIBS" | sort -u); do
@@ -77,14 +77,11 @@ jobs:
             done
           done
 
-          # Qt plugins (platforms, imageformats, etc.)
-          QT_PLUGINS=$(pkg-config --variable=plugindir Qt5Widgets 2>/dev/null || \
-                        find /usr/lib/x86_64-linux-gnu/qt5/plugins -maxdepth 1 -type d | sed 's|.*/||')
+          # Qt plugins — copy ALL plugin dirs (platforms, wayland integration,
+          # imageformats, etc.) so the app works under both X11 and Wayland
           mkdir -p bundle/plugins
-          for d in platforms imageformats multimedia; do
-            if [ -d "/usr/lib/x86_64-linux-gnu/qt5/plugins/$d" ]; then
-              cp -r "/usr/lib/x86_64-linux-gnu/qt5/plugins/$d" bundle/plugins/
-            fi
+          for d in /usr/lib/x86_64-linux-gnu/qt5/plugins/*/; do
+            [ -d "$d" ] && cp -r "$d" bundle/plugins/
           done
 
           # qt.conf tells Qt where its libs and plugins are (relative to binary)
@@ -100,7 +97,7 @@ jobs:
           #  apply to libs resolving their own dependencies)
           patchelf --set-rpath '$ORIGIN' bundle/lib/*.so* 2>/dev/null || true
           patchelf --set-rpath '$ORIGIN/lib' bundle/Waifu2x-Extension-GUI
-          for p in bundle/plugins/platforms/*.so bundle/plugins/imageformats/*.so; do
+          for p in $(find bundle/plugins -name '*.so'); do
             patchelf --set-rpath '$ORIGIN/../../lib' "$p" 2>/dev/null || true
           done
 

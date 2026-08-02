@@ -56,13 +56,12 @@ jobs:
           done
 
           # Launcher script that sets LD_LIBRARY_PATH + plugin path
-          cat > bundle/launch.sh << 'EOF'
-#!/bin/bash
-DIR="$(cd "$(dirname "$0")" && pwd)"
-export LD_LIBRARY_PATH="$DIR/lib:${LD_LIBRARY_PATH:-}"
-export QT_QPA_PLATFORM_PLUGIN_PATH="$DIR/plugins"
-exec "$DIR/Waifu2x-Extension-GUI" "$@"
-EOF
+          printf '%s\n' \
+            '#!/bin/bash' \
+            'DIR="$(cd "$(dirname "$0")" && pwd)"' \
+            'export LD_LIBRARY_PATH="$DIR/lib:${LD_LIBRARY_PATH:-}"' \
+            'export QT_QPA_PLATFORM_PLUGIN_PATH="$DIR/plugins"' \
+            'exec "$DIR/Waifu2x-Extension-GUI" "$@"' > bundle/launch.sh
           chmod +x bundle/launch.sh
 
       - name: Upload bundle

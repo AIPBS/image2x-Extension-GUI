@@ -107,7 +107,7 @@ TRANSLATIONS += language_English.ts \
                language_Chinese.ts \
                language_TraditionalChinese.ts
 
-TARGET = Waifu2x-Extension-GUI
+TARGET = image2x-Extension-GUI
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

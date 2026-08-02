@@ -1,5 +1,10 @@
 # Change log
 
+## [Unreleased]
+
+### Added
+- **GitHub Actions CI** (`.github/workflows/build.yml`) — compiles the Linux bundle on `ubuntu-latest` (Qt5), uploads the binary as an artifact, and runs an offscreen smoke test. Models are not bundled; download them separately via `src_code/scripts/download_models.sh`.
+
 ## v0.1.0 (2026-07-27) — Initial reconstruction
 
 ### Baseline

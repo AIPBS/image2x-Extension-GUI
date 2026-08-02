@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt5 and build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qtbase5-dev \
+            qtmultimedia5-dev \
+            libgl1-mesa-dev \
+            libx11-dev \
+            pkg-config
+
+      - name: Build
+        working-directory: src_code/Waifu2x-Extension-QT
+        run: |
+          qmake
+          make -j"$(nproc)"
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: Waifu2x-Extension-GUI-linux
+          path: src_code/Waifu2x-Extension-QT/Waifu2x-Extension-GUI
+
+      - name: Smoke test (offscreen launch)
+        working-directory: src_code/Waifu2x-Extension-QT
+        run: |
+          set +e
+          QT_QPA_PLATFORM=offscreen timeout 8 ./Waifu2x-Extension-GUI >/tmp/app.log 2>&1
+          CODE=$?
+          if [ "$CODE" = "124" ]; then
+            echo "PASS: app launched and stayed running until timeout (expected for GUI app)"
+            exit 0
+          fi
+          echo "FAIL: app exited early with code $CODE"
+          cat /tmp/app.log
+          exit 1

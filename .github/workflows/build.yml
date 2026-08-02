@@ -49,7 +49,7 @@ jobs:
 
           # Resolve ALL dynamic dependencies transitively and copy into bundle/lib
           # (first pass: the binary; then keep resolving deps of newly added libs)
-          EXCLUDE='^(libc\.so\.6|libm\.so\.6|libpthread\.so\.0|libdl\.so\.2|libresolv\.so\.2|libnsl\.so\.1|libstdc\+\+\.so\.6|libgcc_s\.so\.1|libcap\.so\.2|libcom_err\.so\.2|libmd4c\.so\.0|libmd\.so\.0|libmp3lame\.so\.0|libmpg123\.so\.0|linux-vdso\.so\.1|ld-linux.*\.so\.2)$'
+          EXCLUDE='^(libc\.so\.6|libm\.so\.6|libpthread\.so\.0|libdl\.so\.2|libresolv\.so\.2|libnsl\.so\.1|libstdc\+\+\.so\.6|libgcc_s\.so\.1|libcap\.so\.2|libcom_err\.so\.2|libmd4c\.so\.0|libmd\.so\.0|libmp3lame\.so\.0|libmpg123\.so\.0|libwayland-client\.so\.0|libwayland-cursor\.so\.0|libwayland-server\.so\.0|linux-vdso\.so\.1|ld-linux.*\.so\.2)$'
           copy_libs() {
             local target="$1"
             ldd "$target" 2>/dev/null | awk '/=> \//{print $3}' | sort -u

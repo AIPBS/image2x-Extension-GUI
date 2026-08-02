@@ -250,10 +250,12 @@ int MainWindow::Force_close()
                  <<"srmd-cuda_waifu2xEX.exe"<<"apngdis_waifu2xEX.exe"<<"apngasm_waifu2xEX.exe";
     KILL_TASK_QStringList(TaskNameList,true);
     //===========
+#ifdef PLATFORM_WINDOWS
     QProcess Close;
     Close.start("taskkill /f /t /fi \"imagename eq Waifu2x-Extension-GUI.exe\"");
     Close.waitForStarted(10000);
     Close.waitForFinished(10000);
+#endif
     return 0;
 }
 /*

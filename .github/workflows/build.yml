@@ -29,6 +29,7 @@ jobs:
           sudo apt-get install -y \
             qtbase5-dev \
             qtmultimedia5-dev \
+            qttools5-dev-tools \
             libgl1-mesa-dev \
             libx11-dev \
             pkg-config \
@@ -40,12 +41,21 @@ jobs:
           qmake
           make -j"$(nproc)"
 
+      - name: Compile language files (.ts -> .qm)
+        working-directory: src_code/Waifu2x-Extension-QT
+        run: |
+          for ts in language_*.ts; do
+            lrelease "$ts" -qm "${ts%.ts}.qm"
+          done
+          ls -la language_*.qm
+
       - name: Bundle Qt libraries into lib/
         working-directory: src_code/Waifu2x-Extension-QT
         run: |
           set -euo pipefail
           mkdir -p bundle/lib
-          cp Waifu2x-Extension-GUI bundle/
+          cp image2x-Extension-GUI bundle/
+          cp language_*.qm bundle/ 2>/dev/null || true
 
           # Resolve ALL dynamic dependencies transitively and copy into bundle/lib
           # (first pass: the binary; then keep resolving deps of newly added libs)
@@ -54,7 +64,7 @@ jobs:
             local target="$1"
             ldd "$target" 2>/dev/null | awk '/=> \//{print $3}' | sort -u
           }
-          LIBS="$(copy_libs Waifu2x-Extension-GUI)"
+          LIBS="$(copy_libs image2x-Extension-GUI)"
           # Also resolve deps of all Qt plugins (incl. wayland integration)
           for p in $(find plugins -name '*.so'); do
             [ -f "$p" ] && LIBS="$LIBS $(copy_libs "$p")"
@@ -92,11 +102,11 @@ jobs:
             'Plugins = plugins' > bundle/qt.conf
 
           # Make the binary and ALL bundled libs self-contained via RPATH=$ORIGIN
-          # so ./Waifu2x-Extension-GUI works WITHOUT the wrapper script
+          # so ./image2x-Extension-GUI works WITHOUT the wrapper script
           # (transitive deps need their own RPATH — the binary's RUNPATH doesn't
           #  apply to libs resolving their own dependencies)
           patchelf --set-rpath '$ORIGIN' bundle/lib/*.so* 2>/dev/null || true
-          patchelf --set-rpath '$ORIGIN/lib' bundle/Waifu2x-Extension-GUI
+          patchelf --set-rpath '$ORIGIN/lib' bundle/image2x-Extension-GUI
           for p in $(find bundle/plugins -name '*.so'); do
             patchelf --set-rpath '$ORIGIN/../../lib' "$p" 2>/dev/null || true
           done
@@ -104,21 +114,21 @@ jobs:
       - name: Package bundle as tar.gz
         working-directory: src_code/Waifu2x-Extension-QT
         run: |
-          tar czf Waifu2x-Extension-GUI-linux.tar.gz -C bundle .
-          ls -lh Waifu2x-Extension-GUI-linux.tar.gz
+          tar czf image2x-Extension-GUI-linux.tar.gz -C bundle .
+          ls -lh image2x-Extension-GUI-linux.tar.gz
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Waifu2x-Extension-GUI-linux
-          path: src_code/Waifu2x-Extension-QT/Waifu2x-Extension-GUI-linux.tar.gz
+          name: image2x-Extension-GUI-linux
+          path: src_code/Waifu2x-Extension-QT/image2x-Extension-GUI-linux.tar.gz
 
       - name: Smoke test (offscreen launch, no env vars)
         working-directory: src_code/Waifu2x-Extension-QT
         run: |
           set +e
           # No LD_LIBRARY_PATH / no plugin path — tests the RPATH self-containment
-          QT_QPA_PLATFORM=offscreen timeout 8 ./bundle/Waifu2x-Extension-GUI >/tmp/app.log 2>&1
+          QT_QPA_PLATFORM=offscreen timeout 8 ./bundle/image2x-Extension-GUI >/tmp/app.log 2>&1
           CODE=$?
           if [ "$CODE" = "124" ]; then
             echo "PASS: app launched and stayed running until timeout (expected for GUI app)"
@@ -138,7 +148,7 @@ jobs:
       - name: Download bundle artifact
         uses: actions/download-artifact@v4
         with:
-          name: Waifu2x-Extension-GUI-linux
+          name: image2x-Extension-GUI-linux
           path: dist/
 
       - name: Create GitHub Release
@@ -150,7 +160,7 @@ jobs:
           ls -lh dist/
           # Re-publishing the same tag? Remove the old release so the asset is replaced.
           gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
-          gh release create "$TAG" dist/Waifu2x-Extension-GUI-linux.tar.gz \
+          gh release create "$TAG" dist/image2x-Extension-GUI-linux.tar.gz \
             --repo "$GITHUB_REPOSITORY" \
-            --title "Waifu2x-Extension-GUI $TAG" \
+            --title "image2x-Extension-GUI $TAG" \
             --notes "Linux bundle (Qt5). Models NOT included — download via src_code/scripts/download_models.sh"

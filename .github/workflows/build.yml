@@ -30,17 +30,52 @@ jobs:
           qmake
           make -j"$(nproc)"
 
-      - name: Upload binary
+      - name: Bundle Qt libraries into lib/
+        working-directory: src_code/Waifu2x-Extension-QT
+        run: |
+          set -euo pipefail
+          mkdir -p bundle/lib
+          cp Waifu2x-Extension-GUI bundle/
+
+          # Resolve all dynamic dependencies and copy them into bundle/lib
+          LIBS=$(ldd Waifu2x-Extension-GUI | awk '/=> \//{print $3} /\/lib/{print $1}' | sort -u)
+          for lib in $LIBS; do
+            case "$lib" in
+              *.so*) cp -L "$lib" bundle/lib/ 2>/dev/null || true ;;
+            esac
+          done
+
+          # Qt plugins (platforms, imageformats, etc.)
+          QT_PLUGINS=$(pkg-config --variable=plugindir Qt5Widgets 2>/dev/null || \
+                        find /usr/lib/x86_64-linux-gnu/qt5/plugins -maxdepth 1 -type d | sed 's|.*/||')
+          mkdir -p bundle/plugins
+          for d in platforms imageformats multimedia; do
+            if [ -d "/usr/lib/x86_64-linux-gnu/qt5/plugins/$d" ]; then
+              cp -r "/usr/lib/x86_64-linux-gnu/qt5/plugins/$d" bundle/plugins/
+            fi
+          done
+
+          # Launcher script that sets LD_LIBRARY_PATH + plugin path
+          cat > bundle/launch.sh << 'EOF'
+#!/bin/bash
+DIR="$(cd "$(dirname "$0")" && pwd)"
+export LD_LIBRARY_PATH="$DIR/lib:${LD_LIBRARY_PATH:-}"
+export QT_QPA_PLATFORM_PLUGIN_PATH="$DIR/plugins"
+exec "$DIR/Waifu2x-Extension-GUI" "$@"
+EOF
+          chmod +x bundle/launch.sh
+
+      - name: Upload bundle
         uses: actions/upload-artifact@v4
         with:
           name: Waifu2x-Extension-GUI-linux
-          path: src_code/Waifu2x-Extension-QT/Waifu2x-Extension-GUI
+          path: src_code/Waifu2x-Extension-QT/bundle/
 
       - name: Smoke test (offscreen launch)
         working-directory: src_code/Waifu2x-Extension-QT
         run: |
           set +e
-          QT_QPA_PLATFORM=offscreen timeout 8 ./Waifu2x-Extension-GUI >/tmp/app.log 2>&1
+          QT_QPA_PLATFORM=offscreen timeout 8 ./bundle/launch.sh >/tmp/app.log 2>&1
           CODE=$?
           if [ "$CODE" = "124" ]; then
             echo "PASS: app launched and stayed running until timeout (expected for GUI app)"

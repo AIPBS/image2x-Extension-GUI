@@ -1,6 +1,6 @@
 # Change log
 
-## v0.2.0 (2026-08-02)
+## v0.1.1 (2026-08-02)
 
 ### Added
 - **GitHub Actions CI** (`.github/workflows/build.yml`) — compiles the Linux bundle on `ubuntu-latest` (Qt5), bundles Qt runtime libs + plugins so the artifact runs on machines without Qt dev packages, uploads the binary as an artifact, and runs an offscreen smoke test.

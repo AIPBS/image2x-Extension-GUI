@@ -1,9 +1,10 @@
 # Change log
 
-## [Unreleased]
+## v0.2.0 (2026-08-02)
 
 ### Added
-- **GitHub Actions CI** (`.github/workflows/build.yml`) — compiles the Linux bundle on `ubuntu-latest` (Qt5), uploads the binary as an artifact, and runs an offscreen smoke test. Models are not bundled; download them separately via `src_code/scripts/download_models.sh`.
+- **GitHub Actions CI** (`.github/workflows/build.yml`) — compiles the Linux bundle on `ubuntu-latest` (Qt5), bundles Qt runtime libs + plugins so the artifact runs on machines without Qt dev packages, uploads the binary as an artifact, and runs an offscreen smoke test.
+- **GitHub Release publishing** — push a `v*` tag (or run the workflow manually with `publish_release`) to create a Release with the Linux bundle attached. Models are not bundled; download them via `src_code/scripts/download_models.sh`.
 
 ## v0.1.0 (2026-07-27) — Initial reconstruction
 

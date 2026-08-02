@@ -94,15 +94,14 @@ jobs:
             'Libraries = lib' \
             'Plugins = plugins' > bundle/qt.conf
 
-          # Make the binary and plugins self-contained via RPATH=$ORIGIN
+          # Make the binary and ALL bundled libs self-contained via RPATH=$ORIGIN
           # so ./Waifu2x-Extension-GUI works WITHOUT the wrapper script
+          # (transitive deps need their own RPATH — the binary's RUNPATH doesn't
+          #  apply to libs resolving their own dependencies)
+          patchelf --set-rpath '$ORIGIN' bundle/lib/*.so* 2>/dev/null || true
           patchelf --set-rpath '$ORIGIN/lib' bundle/Waifu2x-Extension-GUI
           for p in bundle/plugins/platforms/*.so bundle/plugins/imageformats/*.so; do
             patchelf --set-rpath '$ORIGIN/../../lib' "$p" 2>/dev/null || true
-          done
-          # Also fix Qt platform integration libs' plugin dir so Qt finds them
-          for p in bundle/plugins/platforms/*.so; do
-            [ -f "$p" ] && patchelf --set-rpath '$ORIGIN/../../lib' "$p" 2>/dev/null || true
           done
 
       - name: Package bundle as tar.gz

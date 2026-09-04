@@ -91,13 +91,15 @@ SOURCES += \
     cain_ncnn_vulkan.cpp \
     dain_ncnn_vulkan.cpp \
     rife_v4_ncnn_vulkan.cpp \
-    nvidia_maxine.cpp
+    nvidia_maxine.cpp \
+    runtime_dependencies.cpp
 
 HEADERS += \
     mainwindow.h \
     topsupporterslist.h \
     platform_compat.h \
-    engine_registry.h
+    engine_registry.h \
+    runtime_dependencies.h
 
 FORMS += \
     mainwindow.ui \

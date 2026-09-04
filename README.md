@@ -45,6 +45,22 @@ qmake ../Waifu2x-Extension-QT/Waifu2x-Extension-QT.pro
 make -j$(nproc)
 ```
 
+## Linux runtime
+
+The Qt executable needs an inference runtime in addition to Qt libraries.
+The first supported Linux workload is still-image upscaling with the
+open-source `waifu2x-ncnn-vulkan` engine. Install its pinned, checksum-verified
+runtime beside the executable after building or extracting a bundle:
+
+```bash
+./scripts/install_linux_runtime.sh /path/to/application-directory
+```
+
+This creates `dependencies/engines/waifu2x-ncnn-vulkan/` beside the executable.
+The application detects that layout on Linux before a job starts and reports a
+repair command if it is missing. GIF, video, and other engines remain unavailable
+on Linux until their runtime dependencies are packaged and tested.
+
 ## Models
 
 **Open-source models** (349 files, MIT/BSD) — pulled from our GitHub Releases:

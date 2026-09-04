@@ -2,8 +2,20 @@
 
 ## Unreleased
 
+### Added
+- Linux runtime dependency layer for the supported waifu2x-ncnn-vulkan still-image workflow.
+- Checksum-verified installer for the pinned upstream Linux waifu2x-ncnn-vulkan runtime and models.
+
 ### Fixed
 - Prevent an infinite startup recursion when the application cannot create or replace `settings.ini`.
+- Store settings in the per-user application configuration directory so read-only installations start normally.
+- Remove stale Qt auto-connect warnings while preserving the visible Real-ESRGAN tile-size controls.
+- Linux jobs now fail before processing with a repair command when their supported runtime is missing, rather than waiting indefinitely for a missing engine executable.
+- Center application message dialogs on the main window, and make the language prompt dismissible.
+- Remove the obsolete Japanese instruction from the English, Simplified Chinese, and Traditional Chinese language picker.
+- Skip the unsupported automatic full compatibility suite on Linux so startup and shutdown do not remain stuck on its 70% progress step.
+- Make the manual Linux compatibility test exercise the installed still-image runtime and always finish instead of running the unavailable Windows engine checks.
+- Prevent the Compatibility Test tab's Plugins label from overlapping the RTX Super-Res result.
 
 ## v0.1.1 (2026-08-02)
 

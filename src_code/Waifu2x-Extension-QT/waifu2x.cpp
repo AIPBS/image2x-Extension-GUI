@@ -84,6 +84,10 @@ void MainWindow::on_pushButton_Start_clicked()
         MSG->show();
         return;
     }
+    if(!ValidateRuntimeDependencies())
+    {
+        return;
+    }
     //======================================
     //      判断文件列表是否全部处理完成
     //======================================

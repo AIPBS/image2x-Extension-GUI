@@ -47,6 +47,7 @@
 #include <QTextCursor>
 #include <QMessageBox>
 #include <QSettings>
+#include <QStandardPaths>
 #include <QTranslator>
 #include <QScreen>
 #include <QCloseEvent>
@@ -165,6 +166,7 @@ public:
     void ShowFileProcessSummary();//展示文件处理总结报告
     QString OutPutFolder_main="";//总输出文件夹
     int Waifu2xMainThread();//waifu2x总线程,负责读取文件列表,调度waifu2x放大线程
+    bool ValidateRuntimeDependencies();
     QStringList WaitForEngineIO(QStringList OutPutFilesFullPathList);
     QStringList WaitForEngineIO_NcnnVulkan(QString OutputFolderFullPath);
     void Restore_SplitFramesFolderPath(QString SplitFramesFolderPath, QStringList GPU_SplitFramesFolderPath_List);
@@ -788,6 +790,8 @@ public slots:
     void video_write_VideoConfiguration(QString VideoConfiguration_fullPath,int ScaleRatio,int DenoiseLevel,bool CustRes_isEnabled,int CustRes_height,int CustRes_width,QString EngineName,bool isProcessBySegment,QString VideoClipsFolderPath,QString VideoClipsFolderName,bool isVideoFrameInterpolationEnabled,int MultipleOfFPS);
 
     int Settings_Save();//保存设置
+    QString Settings_FilePath() const;
+    QString Settings_OldFilePath() const;
 
     //存储进度
     void video_write_Progress_ProcessBySegment(QString VideoConfiguration_fullPath,int StartTime,bool isSplitComplete,bool isScaleComplete,int OLDSegmentDuration,int LastVideoClipNo);
@@ -1036,6 +1040,7 @@ private slots:
 
     void on_pushButton_ShowMultiGPUSettings_RealsrNcnnVulkan_clicked();
 
+private:
     void on_pushButton_ShowMultiGPUSettings_RealESRGAN_clicked();
 
     void on_pushButton_Add_TileSize_RealESRGAN_clicked();
@@ -1081,6 +1086,10 @@ private slots:
     void on_pushButton_Minus_TileSize_RealCUGAN_clicked();
 
     void on_pushButton_DetectGPU_RTXSuperRes_clicked();
+
+    void on_pushButton_DetectGPU_IFRNet_clicked();
+
+private slots:
 
     void on_checkBox_DisableDenoise_RTXSuperRes_clicked();
 
@@ -1135,8 +1144,6 @@ private slots:
     void on_groupBox_video_settings_clicked();
 
     void on_pushButton_DetectGPU_VFI_clicked();
-
-    void on_pushButton_DetectGPU_IFRNet_clicked();
 
     void on_checkBox_isCompatible_IFRNetNcnnVulkan_clicked();
 
@@ -1258,4 +1265,3 @@ private:
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
-

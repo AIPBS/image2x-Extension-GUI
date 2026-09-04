@@ -243,7 +243,10 @@ int MainWindow::Settings_Save()
     configIniWrite->setValue("/settings/spinBox_MultipleOfFPS_VFI", ui->spinBox_MultipleOfFPS_VFI->value());
     configIniWrite->setValue("/settings/spinBox_TileSize_VFI", ui->spinBox_TileSize_VFI->value());
     //========
-    return 0;
+    configIniWrite->sync();
+    const QSettings::Status settingsStatus = configIniWrite->status();
+    delete configIniWrite;
+    return settingsStatus == QSettings::NoError ? 0 : 1;
 }
 /*
 读取&应用设置
@@ -257,9 +260,12 @@ int MainWindow::Settings_Read_Apply()
         QAction_checkBox_MoveToRecycleBin_checkBox_ReplaceOriginalFile->setChecked(1);
         QAction_checkBox_MoveToRecycleBin_checkBox_DelOriginal->setChecked(1);
         if(isBetaVer)comboBox_UpdateChannel_setCurrentIndex_self(1);
-        Settings_Save();
-        Settings_Read_Apply();
-        return 0;
+        if (Settings_Save() != 0 || !QFile::exists(settings_ini))
+        {
+            qWarning() << "Unable to create settings file:" << settings_ini;
+            return 1;
+        }
+        return Settings_Read_Apply();
     }
     else
     {
@@ -271,9 +277,12 @@ int MainWindow::Settings_Read_Apply()
             isReadOldSettings=true;
             QFile::rename(settings_ini,Current_Path+"/settings_old.ini");
             if(isBetaVer)comboBox_UpdateChannel_setCurrentIndex_self(1);
-            Settings_Save();
-            Settings_Read_Apply();
-            return 0;
+            if (Settings_Save() != 0 || !QFile::exists(settings_ini))
+            {
+                qWarning() << "Unable to replace settings file:" << settings_ini;
+                return 1;
+            }
+            return Settings_Read_Apply();
         }
     }
     //=================

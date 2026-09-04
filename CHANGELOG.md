@@ -1,5 +1,10 @@
 # Change log
 
+## Unreleased
+
+### Fixed
+- Prevent an infinite startup recursion when the application cannot create or replace `settings.ini`.
+
 ## v0.1.1 (2026-08-02)
 
 ### Added

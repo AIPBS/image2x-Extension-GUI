@@ -18,6 +18,7 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "runtime_dependencies.h"
 
 void MainWindow::on_pushButton_compatibilityTest_clicked()
 {
@@ -35,6 +36,68 @@ void MainWindow::on_pushButton_compatibilityTest_clicked()
 
 int MainWindow::Waifu2x_Compatibility_Test()
 {
+#ifdef PLATFORM_LINUX
+    emit Send_TextBrowser_NewMessage(tr("Compatibility test is ongoing, please wait."));
+
+    isCompatible_Waifu2x_NCNN_Vulkan_NEW = false;
+    RuntimeDependencies dependencies(Current_Path);
+    const QString testDirectory = Current_Path + "/Compatibility_Test";
+    const QString inputPath = testDirectory + "/Compatibility_Test.png";
+    const QString outputPath = testDirectory + "/res.png";
+
+    QDir().mkpath(testDirectory);
+    QFile::remove(outputPath);
+
+    if (!dependencies.isAvailable(RuntimeEngine::Waifu2xNcnnVulkan))
+    {
+        emit Send_TextBrowser_NewMessage(tr("Compatible with waifu2x-ncnn-vulkan: No. The Linux runtime is not installed."));
+    }
+    else
+    {
+        QImage inputImage(1, 1, QImage::Format_RGB32);
+        inputImage.fill(Qt::white);
+
+        if (!inputImage.save(inputPath))
+        {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with waifu2x-ncnn-vulkan: No. Unable to create the test image."));
+        }
+        else
+        {
+            QProcess process;
+            process.start(
+                dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan),
+                QStringList()
+                    << "-i" << inputPath
+                    << "-o" << outputPath
+                    << "-s" << "2"
+                    << "-n" << "0"
+                    << "-t" << "32"
+                    << "-m" << dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan) + "/models-cunet"
+                    << "-j" << "1:1:1");
+
+            const bool completed = process.waitForStarted(30000)
+                && process.waitForFinished(120000)
+                && process.exitStatus() == QProcess::NormalExit
+                && process.exitCode() == 0
+                && QFile::exists(outputPath);
+            isCompatible_Waifu2x_NCNN_Vulkan_NEW = completed;
+
+            emit Send_TextBrowser_NewMessage(
+                completed
+                    ? tr("Compatible with waifu2x-ncnn-vulkan: Yes.")
+                    : tr("Compatible with waifu2x-ncnn-vulkan: No. Check the Vulkan runtime and graphics driver."));
+        }
+    }
+
+    QFile::remove(inputPath);
+    QFile::remove(outputPath);
+    emit Send_Add_progressBar_CompatibilityTest();
+    emit Send_TextBrowser_NewMessage(tr("Compatibility test is complete!"));
+    emit Send_SystemTray_NewMessage(tr("Compatibility test is complete!"));
+    emit Send_Waifu2x_Compatibility_Test_finished();
+    return 0;
+#else
+
     emit Send_TextBrowser_NewMessage(tr("Compatibility test is ongoing, please wait."));
     //===============
     QString InputPath = Current_Path + "/Compatibility_Test/Compatibility_Test.jpg";
@@ -692,6 +755,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     emit Send_SystemTray_NewMessage(tr("Compatibility test is complete!"));
     emit Send_Waifu2x_Compatibility_Test_finished();
     return 0;
+#endif
 }
 
 int MainWindow::Waifu2x_Compatibility_Test_finished()
@@ -727,6 +791,16 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     ui->pushButton_compatibilityTest->setEnabled(1);
     ui->pushButton_compatibilityTest->setText(tr("Start compatibility test"));
     ui->tabWidget->setCurrentIndex(5);
+#ifdef PLATFORM_LINUX
+    if (isCompatible_Waifu2x_NCNN_Vulkan_NEW)
+    {
+        ui->comboBox_Engine_Image->setCurrentIndex(0);
+        on_comboBox_Engine_Image_currentIndexChanged(0);
+        ui->comboBox_version_Waifu2xNCNNVulkan->setCurrentIndex(0);
+        on_comboBox_version_Waifu2xNCNNVulkan_currentIndexChanged(0);
+    }
+    return 0;
+#endif
     QtConcurrent::run(this, &MainWindow::Play_NFSound);//兼容性测试完成,播放提示音
     /*
     判断是否有必要部件不兼容,如果有则弹出提示

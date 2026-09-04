@@ -20,13 +20,28 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+QString MainWindow::Settings_FilePath() const
+{
+    const QString settingsDirectory = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    if (!settingsDirectory.isEmpty() && QDir().mkpath(settingsDirectory))
+    {
+        return settingsDirectory + "/settings.ini";
+    }
+    return Current_Path + "/settings.ini";
+}
+
+QString MainWindow::Settings_OldFilePath() const
+{
+    return QFileInfo(Settings_FilePath()).dir().filePath("settings_old.ini");
+}
+
 /*
 保存设置
 删除原设置文件,保存设置
 */
 int MainWindow::Settings_Save()
 {
-    QString settings_ini = Current_Path+"/settings.ini";
+    const QString settings_ini = Settings_FilePath();
     QFile::remove(settings_ini);
     //=================
     QSettings *configIniWrite = new QSettings(settings_ini, QSettings::IniFormat);
@@ -254,7 +269,12 @@ int MainWindow::Settings_Save()
 */
 int MainWindow::Settings_Read_Apply()
 {
-    QString settings_ini = Current_Path+"/settings.ini";
+    const QString settings_ini = Settings_FilePath();
+    const QString legacySettingsPath = Current_Path+"/settings.ini";
+    if (!QFile::exists(settings_ini) && settings_ini != legacySettingsPath && QFile::exists(legacySettingsPath))
+    {
+        QFile::copy(legacySettingsPath, settings_ini);
+    }
     if(!QFile::exists(settings_ini))
     {
         QAction_checkBox_MoveToRecycleBin_checkBox_ReplaceOriginalFile->setChecked(1);
@@ -275,7 +295,7 @@ int MainWindow::Settings_Read_Apply()
         if(Settings_VERSION!=VERSION)
         {
             isReadOldSettings=true;
-            QFile::rename(settings_ini,Current_Path+"/settings_old.ini");
+            QFile::rename(settings_ini, Settings_OldFilePath());
             if(isBetaVer)comboBox_UpdateChannel_setCurrentIndex_self(1);
             if (Settings_Save() != 0 || !QFile::exists(settings_ini))
             {
@@ -591,7 +611,7 @@ int MainWindow::Settings_Read_Apply()
     on_checkBox_MultiThread_VFI_stateChanged(1);
     //==================================
     isReadOldSettings=false;
-    QFile::remove(Current_Path+"/settings_old.ini");
+    QFile::remove(Settings_OldFilePath());
     Settings_Save();
     //==================================
     return 0;
@@ -599,8 +619,8 @@ int MainWindow::Settings_Read_Apply()
 
 QVariant MainWindow::Settings_Read_value(QString Key)
 {
-    QString settings_ini_old = Current_Path+"/settings_old.ini";
-    QString settings_ini_new = Current_Path+"/settings.ini";
+    const QString settings_ini_old = Settings_OldFilePath();
+    const QString settings_ini_new = Settings_FilePath();
     QSettings *configIniRead_new = new QSettings(settings_ini_new, QSettings::IniFormat);
     configIniRead_new->setIniCodec(QTextCodec::codecForName("UTF-8"));
     //====
@@ -649,7 +669,7 @@ void MainWindow::on_pushButton_ResetSettings_clicked()
     Msg.exec();
     if (Msg.clickedButton() == pNoBtn)return;
     //============
-    QString settings_ini = Current_Path+"/settings.ini";
+    const QString settings_ini = Settings_FilePath();
     QFile::remove(settings_ini);
     Settings_isReseted = true;
     //============

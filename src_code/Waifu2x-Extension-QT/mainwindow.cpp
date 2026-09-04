@@ -19,12 +19,17 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "runtime_dependencies.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    connect(ui->pushButton_TileSize_Add_RealESRGAN, &QPushButton::clicked, this, &MainWindow::on_pushButton_Add_TileSize_RealESRGAN_clicked);
+    connect(ui->pushButton_TileSize_Minus_RealESRGAN, &QPushButton::clicked, this, &MainWindow::on_pushButton_Minus_TileSize_RealESRGAN_clicked);
+    connect(ui->checkBox_TTA_RealESRGAN, &QCheckBox::clicked, this, &MainWindow::on_checkBox_TTA_RealESRGAN_clicked);
+    connect(ui->checkBox_TTA_RealESRGAN, &QCheckBox::stateChanged, this, &MainWindow::on_checkBox_TTA_RealESRGAN_stateChanged);
     qRegisterMetaTypeStreamOperators<QList_QMap_QStrQStr >("QList_QMap_QStrQStr");
     QThreadPool::globalInstance()->setMaxThreadCount(60);//解除全局线程池的最大线程数量限制
     //==============
@@ -54,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableView_image->installEventFilter(this);
     ui->tableView_gif->installEventFilter(this);
     ui->tableView_video->installEventFilter(this);
+    qApp->installEventFilter(this);
     //===========================================
     connect(this, SIGNAL(Send_Set_checkBox_DisableResize_gif_Checked()), this, SLOT(Set_checkBox_DisableResize_gif_Checked()));
     connect(this, SIGNAL(Send_Table_EnableSorting(bool)), this, SLOT(Table_EnableSorting(bool)));
@@ -116,19 +122,6 @@ MainWindow::MainWindow(QWidget *parent)
     Tip_FirstTimeStart();//首次启动
     file_mkDir(Current_Path+"/FilesList_W2xEX");//生成保存文件列表的文件夹
     //==============
-    /*
-    校验软件是否对所在目录有写权限
-    */
-    if(file_isDirWritable(Current_Path)==false)
-    {
-        QMessageBox Msg(QMessageBox::Question, QString(tr("Error")), QString(tr("It is detected that this software lacks the necessary permissions to run."
-                        "\n\nPlease close this software and start this software again after giving this software administrator permission. "
-                        "Or reinstall the software into a directory that can run normally without administrator rights.\n\nOtherwise, this software may not work properly.")));
-        Msg.setIcon(QMessageBox::Warning);
-        Msg.addButton(QString("OK"), QMessageBox::NoRole);
-        Msg.exec();
-    }
-    //==============
     Init_SystemTrayIcon();//初始化托盘图标
     Init_ActionsMenu_lineEdit_outputPath();//初始化 输出路径 lineEDIT的右键菜单
     Init_ActionsMenu_FilesList();
@@ -157,7 +150,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     //=============== 询问是否退出 =======================
     if(ui->checkBox_PromptWhenExit->isChecked())
     {
-        QMessageBox Msg(QMessageBox::Question, QString(tr("Notification")), QString(tr("Do you really wanna exit Waifu2x-Extension-GUI ?")));
+        QMessageBox Msg(QMessageBox::Question, QString(tr("Notification")), QString(tr("Do you really wanna exit Waifu2x-Extension-GUI ?")), QMessageBox::NoButton, this);
         Msg.setIcon(QMessageBox::Question);
         QAbstractButton *pYesBtn = Msg.addButton(QString(tr("YES")), QMessageBox::YesRole);
         QAbstractButton *pNoBtn = Msg.addButton(QString(tr("NO")), QMessageBox::NoRole);
@@ -170,10 +163,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
         if (Msg.clickedButton() == pYesBtn)isAlreadyClosed=true;
     }
     //=============================
+    isAlreadyClosed=true;
     systemTray->hide();
     this->hide();
     QApplication::setQuitOnLastWindowClosed(true);//無窗口時不再保持運行
-    QApplication::closeAllWindows();
     //====
     if(Waifu2xMain.isRunning() == true)
     {
@@ -181,26 +174,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
         pushButton_Stop_setEnabled_self(0);//隐藏stop button
         waifu2x_STOP = true;
         emit TextBrowser_NewMessage(tr("Trying to stop, please wait..."));
-        //======
-        QMessageBox *MSG_2 = new QMessageBox();
-        MSG_2->setWindowTitle(tr("Notification")+" @Waifu2x-Extension-GUI");
-        MSG_2->setText(tr("Waiting for the files processing thread to pause"));
-        MSG_2->setIcon(QMessageBox::Information);
-        MSG_2->setModal(true);
-        MSG_2->setStandardButtons(NULL);
-        MSG_2->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-        MSG_2->show();
-    }
-    else
-    {
-        QMessageBox *MSG_2 = new QMessageBox();
-        MSG_2->setWindowTitle(tr("Notification")+" @Waifu2x-Extension-GUI");
-        MSG_2->setText(tr("Closing...\n\nPlease wait"));
-        MSG_2->setIcon(QMessageBox::Information);
-        MSG_2->setModal(true);
-        MSG_2->setStandardButtons(NULL);
-        MSG_2->setWindowFlags(Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-        MSG_2->show();
     }
     AutoUpdate.cancel();
     DownloadOnlineQRCode.cancel();
@@ -217,20 +190,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 }
 
-int MainWindow::Auto_Save_Settings_Watchdog(bool isWaitForSave)
+int MainWindow::Auto_Save_Settings_Watchdog(bool)
 {
     Waifu2xMain.waitForFinished();
-    //======
-    if(isWaitForSave == true)
-    {
-        Delay_msec_sleep(1000);
-        QString settings_ini = Current_Path+"/settings.ini";
-        while(!QFile::exists(settings_ini))
-        {
-            Delay_msec_sleep(250);
-        }
-        Delay_msec_sleep(3000);
-    }
     //=====
     Force_close();
     //====
@@ -918,7 +880,7 @@ void MainWindow::on_Ext_video_editingFinished()
 
 void MainWindow::on_checkBox_AutoSaveSettings_clicked()
 {
-    QString settings_ini = Current_Path+"/settings.ini";
+    const QString settings_ini = Settings_FilePath();
     if(QFile::exists(settings_ini))
     {
         QSettings *configIniWrite = new QSettings(settings_ini, QSettings::IniFormat);
@@ -982,7 +944,7 @@ void MainWindow::on_checkBox_AlwaysHideSettings_stateChanged(int arg1)
 
 void MainWindow::on_pushButton_Save_GlobalFontSize_clicked()
 {
-    QString settings_ini = Current_Path+"/settings.ini";
+    const QString settings_ini = Settings_FilePath();
     QSettings *configIniWrite = new QSettings(settings_ini, QSettings::IniFormat);
     configIniWrite->setValue("/settings/GlobalFontSize", ui->spinBox_GlobalFontSize->value());
     //=========
@@ -1255,28 +1217,32 @@ void MainWindow::Tip_FirstTimeStart()
         /*
           弹出语言选择对话框
         */
-        QMessageBox Msg(QMessageBox::Question, QString("Choose your language"), QString("Choose your language.\n\n选择您的语言。\n\n言語を選んでください。"));
+        // 言語を選んでください。 is intentionally omitted because Japanese is not a selectable language.
+        QMessageBox Msg(QMessageBox::Question, QString("Choose your language"), QString("Choose your language.\n\n选择您的语言。"), QMessageBox::NoButton, this);
         Msg.setIcon(QMessageBox::Information);
         QAbstractButton *pYesBtn_English = Msg.addButton(QString("English"), QMessageBox::YesRole);
         QAbstractButton *pYesBtn_Chinese = Msg.addButton(QString("简体中文"), QMessageBox::YesRole);
         QAbstractButton *pYesBtn_TraditionalChinese = Msg.addButton(QString("繁體中文(由uimee翻譯)"), QMessageBox::YesRole);
+        Msg.setStandardButtons(QMessageBox::Close);
+        Msg.setEscapeButton(Msg.button(QMessageBox::Close));
         Msg.exec();
         if (Msg.clickedButton() == pYesBtn_English)ui->comboBox_language->setCurrentIndex(0);
         if (Msg.clickedButton() == pYesBtn_Chinese)ui->comboBox_language->setCurrentIndex(1);
         if (Msg.clickedButton() == pYesBtn_TraditionalChinese)ui->comboBox_language->setCurrentIndex(2);
+        if (Msg.clickedButton() == Msg.button(QMessageBox::Close))ui->comboBox_language->setCurrentIndex(0);
         on_comboBox_language_currentIndexChanged(0);
         //======
-        QMessageBox *MSG_2 = new QMessageBox();
+        file_generateMarkFile(FirstTimeStart,"");
+        on_pushButton_clear_textbrowser_clicked();
+#ifndef PLATFORM_LINUX
+        QMessageBox *MSG_2 = new QMessageBox(this);
         MSG_2->setWindowTitle(tr("Notification"));
         MSG_2->setText(tr("It is detected that this is the first time you have started the software, so the compatibility test will be performed automatically. Please wait for a while, then check the test result."));
         MSG_2->setIcon(QMessageBox::Information);
         MSG_2->setModal(true);
         MSG_2->show();
-        //=======
-        file_generateMarkFile(FirstTimeStart,"");
-        //=======
-        on_pushButton_clear_textbrowser_clicked();
         on_pushButton_compatibilityTest_clicked();
+#endif
     }
 }
 
@@ -1583,6 +1549,14 @@ void MainWindow::on_checkBox_ProcessVideoBySegment_stateChanged(int arg1)
 }
 void MainWindow::on_comboBox_version_Waifu2xNCNNVulkan_currentIndexChanged(int index)
 {
+#ifdef PLATFORM_LINUX
+    RuntimeDependencies dependencies(Current_Path);
+    Waifu2x_ncnn_vulkan_FolderPath = dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan);
+    Waifu2x_ncnn_vulkan_ProgramPath = dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan);
+    ui->checkBox_TTA_vulkan->setEnabled(true);
+    Q_UNUSED(index);
+    return;
+#else
     switch (ui->comboBox_version_Waifu2xNCNNVulkan->currentIndex())
     {
         case 0:
@@ -1608,6 +1582,47 @@ void MainWindow::on_comboBox_version_Waifu2xNCNNVulkan_currentIndexChanged(int i
                 return;
             }
     }
+#endif
+}
+
+bool MainWindow::ValidateRuntimeDependencies()
+{
+#ifdef PLATFORM_LINUX
+    if (Table_model_gif->rowCount() > 0 || Table_model_video->rowCount() > 0)
+    {
+        const QString message = tr(
+            "The Linux runtime currently supports still-image upscaling only. "
+            "GIF and video processing are unavailable until their media dependencies are packaged.");
+        emit Send_TextBrowser_NewMessage(message);
+        QMessageBox::warning(this, tr("Unsupported Linux workload"), message);
+        return false;
+    }
+
+    if (ui->comboBox_Engine_Image->currentIndex() != 0)
+    {
+        const QString message = tr(
+            "The selected image engine is not packaged for Linux yet. "
+            "Select waifu2x-ncnn-vulkan to process still images.");
+        emit Send_TextBrowser_NewMessage(message);
+        QMessageBox::warning(this, tr("Unavailable Linux engine"), message);
+        return false;
+    }
+
+    RuntimeDependencies dependencies(Current_Path);
+    const QStringList missing = dependencies.missingFiles(RuntimeEngine::Waifu2xNcnnVulkan);
+    if (!missing.isEmpty())
+    {
+        const QString message = tr(
+            "The Linux waifu2x runtime is not installed. Run:\n%1\n\nMissing:\n%2")
+            .arg(dependencies.installCommand(RuntimeEngine::Waifu2xNcnnVulkan),
+                 missing.join(QStringLiteral("\n")));
+        emit Send_TextBrowser_NewMessage(message);
+        QMessageBox::warning(this, tr("Linux runtime missing"), message);
+        return false;
+    }
+#endif
+
+    return true;
 }
 void MainWindow::on_checkBox_EnablePreProcessing_Anime4k_stateChanged(int arg1)
 {
@@ -1942,6 +1957,14 @@ void MainWindow::OutputSettingsArea_setEnabled(bool isEnabled)
 //事件过滤器
 bool MainWindow::eventFilter(QObject *target, QEvent *event)
 {
+    if (event->type() == QEvent::Show)
+    {
+        QMessageBox *messageBox = qobject_cast<QMessageBox *>(target);
+        if (messageBox != nullptr && messageBox->parentWidget() == nullptr && isVisible())
+        {
+            messageBox->move(frameGeometry().center() - messageBox->rect().center());
+        }
+    }
     //=============================
     //按下 Delete 移除文件列表里的文件
     //=============================

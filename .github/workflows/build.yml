@@ -36,13 +36,13 @@ jobs:
             patchelf
 
       - name: Build
-        working-directory: src_code/Waifu2x-Extension-QT
+        working-directory: src_code/image2x-Extension-QT
         run: |
           qmake
           make -j"$(nproc)"
 
       - name: Compile language files (.ts -> .qm)
-        working-directory: src_code/Waifu2x-Extension-QT
+        working-directory: src_code/image2x-Extension-QT
         run: |
           for ts in language_*.ts; do
             lrelease "$ts" -qm "${ts%.ts}.qm"
@@ -50,7 +50,7 @@ jobs:
           ls -la language_*.qm
 
       - name: Bundle Qt libraries into lib/
-        working-directory: src_code/Waifu2x-Extension-QT
+        working-directory: src_code/image2x-Extension-QT
         run: |
           set -euo pipefail
           mkdir -p bundle/lib
@@ -114,7 +114,7 @@ jobs:
           done
 
       - name: Package bundle as tar.gz
-        working-directory: src_code/Waifu2x-Extension-QT
+        working-directory: src_code/image2x-Extension-QT
         run: |
           tar czf image2x-Extension-GUI-linux.tar.gz -C bundle .
           ls -lh image2x-Extension-GUI-linux.tar.gz
@@ -123,10 +123,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: image2x-Extension-GUI-linux
-          path: src_code/Waifu2x-Extension-QT/image2x-Extension-GUI-linux.tar.gz
+          path: src_code/image2x-Extension-QT/image2x-Extension-GUI-linux.tar.gz
 
       - name: Smoke test (offscreen launch, no env vars)
-        working-directory: src_code/Waifu2x-Extension-QT
+        working-directory: src_code/image2x-Extension-QT
         run: |
           set +e
           # No LD_LIBRARY_PATH / no plugin path — tests the RPATH self-containment

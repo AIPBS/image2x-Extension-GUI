@@ -37,9 +37,17 @@ MainWindow::MainWindow(QWidget *parent)
     //==============
     translator = new QTranslator(this);
     //==============
-    ui->tabWidget->setCurrentIndex(1);//显示home tab
-    ui->tabWidget->tabBar()->setTabTextColor(0,Qt::red);
-    on_tabWidget_currentChanged(1);
+    QWidget *linksTab = ui->tabWidget->widget(0);
+    ui->tabWidget->removeTab(0);
+    ui->tabWidget->addTab(linksTab, QIcon(":/new/prefix1/icon/github_black.svg"), tr("Links"));
+    connect(ui->pushButton_CodeRepo, &QPushButton::clicked, this, [] {
+        QDesktopServices::openUrl(QUrl("https://github.com/AIPBS/image2x-Extension-GUI"));
+    });
+    connect(ui->pushButton_UpstreamRepo, &QPushButton::clicked, this, [] {
+        QDesktopServices::openUrl(QUrl("https://github.com/AaronFeng753/Waifu2x-Extension-GUI"));
+    });
+    ui->tabWidget->setCurrentIndex(0);//显示home tab
+    on_tabWidget_currentChanged(0);
     ui->tabWidget_Engines->setCurrentIndex(0);
     this->setAcceptDrops(true);//mainwindow接收drop
     Init_Table();//初始化table
@@ -91,13 +99,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(Send_SystemShutDown()), this, SLOT(SystemShutDown()));
     connect(this, SIGNAL(Send_Waifu2x_DumpProcessorList_converter_finished()), this, SLOT(Waifu2x_DumpProcessorList_converter_finished()));
     connect(this, SIGNAL(Send_Read_urls_finfished()), this, SLOT(Read_urls_finfished()));
-    connect(this, SIGNAL(Send_FinishedProcessing_DN()), this, SLOT(FinishedProcessing_DN()));
     connect(this, SIGNAL(Send_SRMD_DetectGPU_finished()), this, SLOT(SRMD_DetectGPU_finished()));
     connect(this, SIGNAL(Send_FrameInterpolation_DetectGPU_finished()), this, SLOT(FrameInterpolation_DetectGPU_finished()));
     connect(this, SIGNAL(Send_video_write_VideoConfiguration(QString,int,int,bool,int,int,QString,bool,QString,QString,bool,int)), this, SLOT(video_write_VideoConfiguration(QString,int,int,bool,int,int,QString,bool,QString,QString,bool,int)));
     connect(this, SIGNAL(Send_Settings_Save()), this, SLOT(Settings_Save()));
     connect(this, SIGNAL(Send_video_write_Progress_ProcessBySegment(QString,int,bool,bool,int,int)), this, SLOT(video_write_Progress_ProcessBySegment(QString,int,bool,bool,int,int)));
-    connect(this, SIGNAL(Send_Donate_ReplaceQRCode(QString)), this, SLOT(Donate_ReplaceQRCode(QString)));
     connect(this, SIGNAL(Send_CurrentFileProgress_Start(QString,int)), this, SLOT(CurrentFileProgress_Start(QString,int)));
     connect(this, SIGNAL(Send_CurrentFileProgress_Stop()), this, SLOT(CurrentFileProgress_Stop()));
     connect(this, SIGNAL(Send_CurrentFileProgress_progressbar_Add()), this, SLOT(CurrentFileProgress_progressbar_Add()));
@@ -114,7 +120,6 @@ MainWindow::MainWindow(QWidget *parent)
     QtConcurrent::run(this, &MainWindow::DeleteErrorLog_Waifu2xCaffe);//删除Waifu2xCaffe生成的错误日志
     QtConcurrent::run(this, &MainWindow::Del_TempBatFile);//删除bat文件缓存
     AutoUpdate = QtConcurrent::run(this, &MainWindow::CheckUpadte_Auto);//自动检查更新线程
-    DownloadOnlineQRCode = QtConcurrent::run(this, &MainWindow::Donate_DownloadOnlineQRCode);//在线更新捐赠二维码
     SystemShutDown_isAutoShutDown();//上次是否自动关机
     //====================================
     TextBrowser_StartMes();//显示启动msg
@@ -1364,7 +1369,7 @@ void MainWindow::on_checkBox_AudioDenoise_stateChanged(int arg1)
 }
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
-    switch(ui->tabWidget->currentIndex())
+    switch(ui->tabWidget->currentIndex() + 1)
     {
         case 0:
             {
@@ -1557,6 +1562,10 @@ void MainWindow::on_tabWidget_currentChanged(int index)
                 //tab 6
                 ui->groupBox_CompatibilityTestRes->setVisible(1);
                 ui->pushButton_compatibilityTest->setVisible(1);
+                break;
+            }
+        case 7:
+            {
                 break;
             }
     }

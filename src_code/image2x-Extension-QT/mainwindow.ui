@@ -32,7 +32,7 @@
    <enum>Qt::StrongFocus</enum>
   </property>
   <property name="windowTitle">
-   <string notr="true">Waifu2x-Extension-GUI by Aaron Feng</string>
+   <string notr="true">image2x-Extension-GUI</string>
   </property>
   <property name="windowIcon">
    <iconset resource="icon.qrc">
@@ -123,7 +123,7 @@ height:35
        <property name="tabBarAutoHide">
         <bool>false</bool>
        </property>
-       <widget class="QWidget" name="tab_Donate">
+        <widget class="QWidget" name="tab_Links">
         <property name="enabled">
          <bool>true</bool>
         </property>
@@ -132,10 +132,10 @@ height:35
         </property>
         <attribute name="icon">
          <iconset resource="icon.qrc">
-          <normaloff>:/new/prefix1/icon/donateTabIcon_1.png</normaloff>:/new/prefix1/icon/donateTabIcon_1.png</iconset>
+           <normaloff>:/new/prefix1/icon/github_black.svg</normaloff>:/new/prefix1/icon/github_black.svg</iconset>
         </attribute>
         <attribute name="title">
-         <string>Donate</string>
+          <string>Links</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_22">
          <item row="0" column="0">
@@ -10926,7 +10926,7 @@ https://github.com/nihui/realsr-ncnn-vulkan</string>
               </property>
              </widget>
             </item>
-            <item row="8" column="0">
+            <item row="10" column="0">
              <widget class="QCheckBox" name="checkBox_isCompatible_FFprobe">
               <property name="toolTip">
                <string notr="true">https://www.ffmpeg.org/</string>
@@ -11024,14 +11024,14 @@ https://github.com/nihui/srmd-ncnn-vulkan</string>
               </property>
              </widget>
             </item>
-            <item row="5" column="0" colspan="4">
+            <item row="7" column="0" colspan="4">
              <widget class="Line" name="line_16">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
             </item>
-            <item row="7" column="1">
+            <item row="9" column="1">
              <widget class="QCheckBox" name="checkBox_isCompatible_ImageMagick">
               <property name="toolTip">
                <string notr="true">https://imagemagick.org/</string>
@@ -11041,7 +11041,7 @@ https://github.com/nihui/srmd-ncnn-vulkan</string>
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
+            <item row="9" column="0">
              <widget class="QCheckBox" name="checkBox_isCompatible_SoX">
               <property name="toolTip">
                <string notr="true">http://sox.sourceforge.net/</string>
@@ -11086,7 +11086,7 @@ https://github.com/lltcggie/waifu2x-caffe</string>
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
+            <item row="8" column="0">
              <widget class="QLabel" name="label_59">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -11136,7 +11136,7 @@ https://github.com/lltcggie/waifu2x-caffe</string>
               </property>
              </widget>
             </item>
-            <item row="8" column="1">
+            <item row="10" column="1">
              <widget class="QCheckBox" name="checkBox_isCompatible_FFmpeg">
               <property name="toolTip">
                <string notr="true">https://www.ffmpeg.org/</string>
@@ -11181,14 +11181,14 @@ https://github.com/lltcggie/waifu2x-caffe</string>
               </property>
              </widget>
             </item>
-            <item row="9" column="0" colspan="4">
+            <item row="11" column="0" colspan="4">
              <widget class="Line" name="line_19">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
             </item>
-            <item row="10" column="0">
+            <item row="12" column="0">
              <widget class="QLabel" name="label_36">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -11201,7 +11201,7 @@ https://github.com/lltcggie/waifu2x-caffe</string>
               </property>
              </widget>
             </item>
-            <item row="11" column="0">
+            <item row="13" column="0">
              <widget class="QCheckBox" name="checkBox_isCompatible_RifeNcnnVulkan">
               <property name="toolTip">
                <string notr="true">By @nihui(https://github.com/nihui)
@@ -11213,7 +11213,7 @@ https://github.com/nihui/rife-ncnn-vulkan</string>
               </property>
              </widget>
             </item>
-            <item row="11" column="1">
+            <item row="13" column="1">
              <widget class="QCheckBox" name="checkBox_isCompatible_CainNcnnVulkan">
               <property name="toolTip">
                <string notr="true">By @nihui(https://github.com/nihui)
@@ -11225,7 +11225,7 @@ https://github.com/nihui/cain-ncnn-vulkan</string>
               </property>
              </widget>
             </item>
-            <item row="11" column="2">
+            <item row="13" column="2">
              <widget class="QCheckBox" name="checkBox_isCompatible_DainNcnnVulkan">
               <property name="toolTip">
                <string notr="true">By @nihui(https://github.com/nihui)
@@ -11237,7 +11237,7 @@ https://github.com/nihui/dain-ncnn-vulkan</string>
               </property>
              </widget>
             </item>
-            <item row="12" column="0" colspan="4">
+            <item row="14" column="0" colspan="4">
              <widget class="QLabel" name="label_2">
               <property name="minimumSize">
                <size>

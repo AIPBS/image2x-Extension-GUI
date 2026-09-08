@@ -50,5 +50,7 @@
         <file>icon/patreon.png</file>
         <file>icon/patreon_sysTray.png</file>
         <file>icon/donateTabIcon.png</file>
+        <file>icon/github_black.svg</file>
+        <file>icon/github_blue.svg</file>
     </qresource>
 </RCC>

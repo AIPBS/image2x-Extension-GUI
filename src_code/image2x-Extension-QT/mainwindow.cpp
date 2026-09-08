@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     qRegisterMetaTypeStreamOperators<QList_QMap_QStrQStr >("QList_QMap_QStrQStr");
     QThreadPool::globalInstance()->setMaxThreadCount(60);//解除全局线程池的最大线程数量限制
     //==============
-    this->setWindowTitle("Waifu2x-Extension-GUI "+VERSION+" by Aaron Feng");
+    this->setWindowTitle("image2x-Extension-GUI "+VERSION);
     //==============
     translator = new QTranslator(this);
     //==============
@@ -119,7 +119,6 @@ MainWindow::MainWindow(QWidget *parent)
     //====================================
     TextBrowser_StartMes();//显示启动msg
     //===================================
-    Tip_FirstTimeStart();//首次启动
     file_mkDir(Current_Path+"/FilesList_W2xEX");//生成保存文件列表的文件夹
     //==============
     Init_SystemTrayIcon();//初始化托盘图标
@@ -133,6 +132,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->activateWindow();
     this->setWindowState((this->windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
     this->adjustSize();
+    QTimer::singleShot(0, this, &MainWindow::Tip_FirstTimeStart);//主窗口显示后再处理首次启动提示
 }
 
 MainWindow::~MainWindow()
@@ -1527,7 +1527,34 @@ void MainWindow::on_tabWidget_currentChanged(int index)
                 ui->groupBox_8->setVisible(0);
                 ui->groupBox_InputExt->setVisible(0);
                 ui->groupBox_other_1->setVisible(0);
-                //tab 5
+                //tab 6
+                ui->groupBox_CompatibilityTestRes->setVisible(0);
+                ui->pushButton_compatibilityTest->setVisible(0);
+                break;
+            }
+        case 6:
+            {
+                //tab 0
+                ui->label_DonateQRCode->setVisible(0);
+                ui->pushButton_PayPal->setVisible(0);
+                ui->pushButton_Patreon->setVisible(0);
+                ui->label_DonateText->setVisible(0);
+                //tab 1
+                ui->groupBox_Progress->setVisible(0);
+                ui->splitter_2->setVisible(0);
+                //tab 2
+                ui->groupBox_Engine->setVisible(0);
+                ui->groupBox_NumOfThreads->setVisible(0);
+                //tab 3
+                ui->groupBox_AudioDenoise->setVisible(0);
+                ui->groupBox_video_settings->setVisible(0);
+                ui->groupBox_FrameInterpolation->setVisible(0);
+                //tab 4
+                ui->groupBox_3->setVisible(0);
+                ui->groupBox_8->setVisible(0);
+                ui->groupBox_InputExt->setVisible(0);
+                ui->groupBox_other_1->setVisible(0);
+                //tab 6
                 ui->groupBox_CompatibilityTestRes->setVisible(1);
                 ui->pushButton_compatibilityTest->setVisible(1);
                 break;

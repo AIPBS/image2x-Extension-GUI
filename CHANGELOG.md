@@ -12,10 +12,14 @@
 - Remove stale Qt auto-connect warnings while preserving the visible Real-ESRGAN tile-size controls.
 - Linux jobs now fail before processing with a repair command when their supported runtime is missing, rather than waiting indefinitely for a missing engine executable.
 - Center application message dialogs on the main window, and make the language prompt dismissible.
+- Show the first-run language dialog after the main window is mapped so startup does not stall on Wayland.
 - Remove the obsolete Japanese instruction from the English, Simplified Chinese, and Traditional Chinese language picker.
 - Skip the unsupported automatic full compatibility suite on Linux so startup and shutdown do not remain stuck on its 70% progress step.
 - Make the manual Linux compatibility test exercise the installed still-image runtime and always finish instead of running the unavailable Windows engine checks.
-- Prevent the Compatibility Test tab's Plugins label from overlapping the RTX Super-Res result.
+- Show the Compatibility Test controls on the correct tab after the Image Settings tab was added.
+- Keep Compatibility Test separators, section headings, and results in distinct layout rows.
+- Use image2x-Extension-GUI branding in the main window title and startup log.
+- Replace the inherited Donate page with a final Links page for the code and upstream repositories, and remove donation prompts.
 
 ## v0.1.1 (2026-08-02)
 

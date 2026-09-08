@@ -139,7 +139,10 @@ height:35
         </attribute>
         <layout class="QGridLayout" name="gridLayout_22">
          <item row="0" column="0">
-          <widget class="QLabel" name="label_DonateText">
+           <widget class="QLabel" name="label_DonateText">
+            <property name="visible">
+             <bool>false</bool>
+            </property>
            <property name="maximumSize">
             <size>
              <width>16777215</width>
@@ -166,7 +169,10 @@ height:35
          <item row="1" column="0">
           <layout class="QHBoxLayout" name="horizontalLayout_60" stretch="10,33">
            <item>
-            <widget class="QPushButton" name="pushButton_PayPal">
+             <widget class="QPushButton" name="pushButton_PayPal">
+              <property name="visible">
+               <bool>false</bool>
+              </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -238,7 +244,10 @@ padding:10px;
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_Patreon">
+             <widget class="QPushButton" name="pushButton_Patreon">
+              <property name="visible">
+               <bool>false</bool>
+              </property>
              <property name="minimumSize">
               <size>
                <width>0</width>
@@ -303,7 +312,10 @@ padding:10px;
           </layout>
          </item>
          <item row="2" column="0">
-          <widget class="QLabel" name="label_DonateQRCode">
+           <widget class="QLabel" name="label_DonateQRCode">
+            <property name="visible">
+             <bool>false</bool>
+            </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -347,9 +359,116 @@ padding:10px;
            </property>
           </widget>
          </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="tab_Home">
+           <item row="3" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_Links">
+            <property name="spacing">
+             <number>80</number>
+            </property>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_CodeRepo">
+              <item>
+               <widget class="QPushButton" name="pushButton_CodeRepo">
+                <property name="minimumSize">
+                 <size>
+                  <width>150</width>
+                  <height>150</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Open the code repository.</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">QPushButton { border: none; background: transparent; }</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="icon.qrc">
+                  <normaloff>:/new/prefix1/icon/github_black.svg</normaloff>:/new/prefix1/icon/github_black.svg</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>110</width>
+                  <height>110</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_CodeRepo">
+                <property name="text">
+                 <string>Code repo</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_CodeRepoUrl">
+                <property name="text">
+                 <string>github.com/AIPBS/image2x-Extension-GUI</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_UpstreamRepo">
+              <item>
+               <widget class="QPushButton" name="pushButton_UpstreamRepo">
+                <property name="minimumSize">
+                 <size>
+                  <width>150</width>
+                  <height>150</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Open the upstream repository.</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">QPushButton { border: none; background: transparent; }</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="icon.qrc">
+                  <normaloff>:/new/prefix1/icon/github_blue.svg</normaloff>:/new/prefix1/icon/github_blue.svg</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>110</width>
+                  <height>110</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_UpstreamRepo">
+                <property name="text">
+                 <string>Upstream repo</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_UpstreamRepoUrl">
+                <property name="text">
+                 <string>github.com/AaronFeng753/Waifu2x-Extension-GUI</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_Home">
         <property name="font">
          <font>
           <pointsize>9</pointsize>

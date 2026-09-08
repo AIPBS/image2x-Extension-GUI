@@ -54,19 +54,8 @@ void MainWindow::Init_SystemTrayIcon()
     //===
     SendFeedback_SystemTrayIcon->setText(tr("Send feedback"));
     SendFeedback_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/SendFeedback.png"));
-    //===
-    BecomePatron_SystemTrayIcon->setText(tr("Get Premium version"));
-    BecomePatron_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/patreon_sysTray.png"));
-    //===
-    TopSupportersList_SystemTrayIcon->setText(tr("Top Supporters"));
-    TopSupportersList_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/donateTabIcon.png"));
-    //===
     About_SystemTrayIcon->setText(tr("About"));
     About_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/About.png"));
-    //===
-    Donate_SystemTrayIcon->setText(tr("Donate"));
-    Donate_SystemTrayIcon->setToolTip(tr("Donate to support this project."));
-    Donate_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/donateTabIcon_1.png"));
     //===
     Pause_SystemTrayIcon->setText(tr("Pause"));
     Pause_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/Pause_SysTray.png"));
@@ -79,12 +68,9 @@ void MainWindow::Init_SystemTrayIcon()
     connect(quitAct_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(close()),Qt::UniqueConnection);
     connect(BackgroundModeAct_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(EnableBackgroundMode_SystemTray()),Qt::UniqueConnection);
     connect(SendFeedback_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(on_pushButton_Report_clicked()),Qt::UniqueConnection);
-    connect(BecomePatron_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(on_pushButton_Patreon_clicked()),Qt::UniqueConnection);
     connect(About_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(on_pushButton_about_clicked()),Qt::UniqueConnection);
-    connect(Donate_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(SystemTray_showDonate()),Qt::UniqueConnection);
     connect(Pause_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(on_pushButton_Stop_clicked()),Qt::UniqueConnection);
     connect(Start_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(on_pushButton_Start_clicked()),Qt::UniqueConnection);
-    connect(TopSupportersList_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(on_pushButton_SupportersList_clicked()),Qt::UniqueConnection);
     //初始化菜单选项
     pContextMenu->setToolTipsVisible(1);
     pContextMenu->setToolTipDuration(-1);
@@ -96,10 +82,6 @@ void MainWindow::Init_SystemTrayIcon()
     pContextMenu->addSeparator();
     pContextMenu->addAction(BackgroundModeAct_SystemTrayIcon);
     pContextMenu->addSeparator();
-    pContextMenu->addAction(BecomePatron_SystemTrayIcon);
-    pContextMenu->addAction(TopSupportersList_SystemTrayIcon);
-    pContextMenu->addSeparator();
-    pContextMenu->addAction(Donate_SystemTrayIcon);
     pContextMenu->addAction(SendFeedback_SystemTrayIcon);
     pContextMenu->addAction(About_SystemTrayIcon);
     pContextMenu->addSeparator();
@@ -177,5 +159,4 @@ void MainWindow::SystemTray_showDonate()
     pContextMenu->hide();
     ui->tabWidget->setCurrentIndex(0);
 }
-
 

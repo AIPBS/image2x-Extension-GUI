@@ -48,6 +48,5 @@ void MainWindow::TextBrowser_StartMes()
     ui->textBrowser->append("image2x-Extension-GUI");
     ui->textBrowser->append(tr("Version:")+" "+VERSION+" "+CurrentVerState);
     ui->textBrowser->append("GitHub: https://github.com/AIPBS/image2x-Extension-GUI");
-    ui->textBrowser->append(tr("Please donate to support the developers, so we can bring further updates for this software, thank you! (｡･∀･)ﾉﾞ"));
     ui->textBrowser->moveCursor(QTextCursor::End);
 }

@@ -18,7 +18,7 @@ Created because w2x does not work well on linux.
 ├── vendor/                          ← Upstream baseline (not our code)
 │   └── w2x-v3.41.01-beta/          ← Pristine original source (diff baseline)
 ├── src_code/                        ← Our project
-│   ├── Waifu2x-Extension-QT/       ← Reconstructed source + new engines
+│   ├── image2x-Extension-QT/       ← Reconstructed source + new engines
 │   │   ├── MODELS.md               ← Model license boundaries & inventory
 │   │   ├── engine_registry.h       ← 179+ model weight mappings
 │   │   ├── platform_compat.h       ← Linux / Windows / macOS
@@ -41,7 +41,7 @@ cd src_code
 
 # Build:
 mkdir build && cd build
-qmake ../Waifu2x-Extension-QT/Waifu2x-Extension-QT.pro
+qmake ../image2x-Extension-QT/Waifu2x-Extension-QT.pro
 make -j$(nproc)
 ```
 

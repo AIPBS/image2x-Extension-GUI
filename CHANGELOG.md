@@ -4,6 +4,7 @@
 
 ### Changed
 - Compatibility Test result checkboxes can now be selected manually.
+- Remove the Compatibility Test separator that crossed the final engine options.
 
 ## v0.1.2 (2026-09-08)
 

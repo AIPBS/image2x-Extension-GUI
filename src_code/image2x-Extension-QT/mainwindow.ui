@@ -359,112 +359,171 @@ padding:10px;
            </property>
           </widget>
          </item>
-           <item row="3" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_Links">
-            <property name="spacing">
-             <number>80</number>
+          <item row="3" column="0" alignment="Qt::AlignCenter">
+           <widget class="QFrame" name="frame_LinksCard">
+            <property name="minimumSize">
+             <size>
+              <width>720</width>
+              <height>230</height>
+             </size>
             </property>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_CodeRepo">
-              <item>
-               <widget class="QPushButton" name="pushButton_CodeRepo">
-                <property name="minimumSize">
-                 <size>
-                  <width>150</width>
-                  <height>150</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Open the code repository.</string>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton { border: none; background: transparent; }</string>
-                </property>
-                <property name="icon">
-                 <iconset resource="icon.qrc">
-                  <normaloff>:/new/prefix1/icon/github_black.svg</normaloff>:/new/prefix1/icon/github_black.svg</iconset>
-                </property>
-                <property name="iconSize">
-                 <size>
-                  <width>110</width>
-                  <height>110</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_CodeRepo">
-                <property name="text">
-                 <string>Code repo</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_CodeRepoUrl">
-                <property name="text">
-                 <string>github.com/AIPBS/image2x-Extension-GUI</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_UpstreamRepo">
-              <item>
-               <widget class="QPushButton" name="pushButton_UpstreamRepo">
-                <property name="minimumSize">
-                 <size>
-                  <width>150</width>
-                  <height>150</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>Open the upstream repository.</string>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QPushButton { border: none; background: transparent; }</string>
-                </property>
-                <property name="icon">
-                 <iconset resource="icon.qrc">
-                  <normaloff>:/new/prefix1/icon/github_blue.svg</normaloff>:/new/prefix1/icon/github_blue.svg</iconset>
-                </property>
-                <property name="iconSize">
-                 <size>
-                  <width>110</width>
-                  <height>110</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_UpstreamRepo">
-                <property name="text">
-                 <string>Upstream repo</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_UpstreamRepoUrl">
-                <property name="text">
-                 <string>github.com/AaronFeng753/Waifu2x-Extension-GUI</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
+            <property name="maximumSize">
+             <size>
+              <width>720</width>
+              <height>230</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QFrame#frame_LinksCard { background: #ffffff; border: 1px solid #d5dce3; border-radius: 12px; }</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_Links">
+             <property name="leftMargin">
+              <number>32</number>
+             </property>
+             <property name="topMargin">
+              <number>22</number>
+             </property>
+             <property name="rightMargin">
+              <number>32</number>
+             </property>
+             <property name="bottomMargin">
+              <number>22</number>
+             </property>
+             <property name="horizontalSpacing">
+              <number>48</number>
+             </property>
+             <property name="verticalSpacing">
+              <number>6</number>
+             </property>
+             <item row="0" column="0" alignment="Qt::AlignCenter">
+              <widget class="QPushButton" name="pushButton_CodeRepo">
+               <property name="minimumSize">
+                <size>
+                 <width>92</width>
+                 <height>92</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>92</width>
+                 <height>92</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Open the code repository.</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton { border: none; background: transparent; }</string>
+               </property>
+               <property name="icon">
+                <iconset resource="icon.qrc">
+                 <normaloff>:/new/prefix1/icon/github_black.svg</normaloff>:/new/prefix1/icon/github_black.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>76</width>
+                 <height>76</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1" alignment="Qt::AlignCenter">
+              <widget class="QPushButton" name="pushButton_UpstreamRepo">
+               <property name="minimumSize">
+                <size>
+                 <width>92</width>
+                 <height>92</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>92</width>
+                 <height>92</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Open the upstream repository.</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton { border: none; background: transparent; }</string>
+               </property>
+               <property name="icon">
+                <iconset resource="icon.qrc">
+                 <normaloff>:/new/prefix1/icon/github_blue.svg</normaloff>:/new/prefix1/icon/github_blue.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>76</width>
+                 <height>76</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_CodeRepo">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Code repo</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="label_UpstreamRepo">
+               <property name="font">
+                <font>
+                 <pointsize>11</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Upstream repo</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_CodeRepoUrl">
+               <property name="styleSheet">
+                <string notr="true">color: #4b6377;</string>
+               </property>
+               <property name="text">
+                <string>github.com/AIPBS/image2x-Extension-GUI</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLabel" name="label_UpstreamRepoUrl">
+               <property name="styleSheet">
+                <string notr="true">color: #4b6377;</string>
+               </property>
+               <property name="text">
+                <string>github.com/AaronFeng753/Waifu2x-Extension-GUI</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
           </item>
          </layout>
         </widget>

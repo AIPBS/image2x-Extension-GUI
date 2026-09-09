@@ -1723,55 +1723,42 @@ void MainWindow::on_checkBox_SpecifyGPU_Anime4k_stateChanged(int arg1)
 }
 void MainWindow::on_checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW_clicked()
 {
-    ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW->setChecked(isCompatible_Waifu2x_NCNN_Vulkan_NEW);
 }
 void MainWindow::on_checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P_clicked()
 {
-    ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P->setChecked(isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P);
 }
 void MainWindow::on_checkBox_isCompatible_Waifu2x_NCNN_Vulkan_OLD_clicked()
 {
-    ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_OLD->setChecked(isCompatible_Waifu2x_NCNN_Vulkan_OLD);
 }
 void MainWindow::on_checkBox_isCompatible_SRMD_NCNN_Vulkan_clicked()
 {
-    ui->checkBox_isCompatible_SRMD_NCNN_Vulkan->setChecked(isCompatible_SRMD_NCNN_Vulkan);
 }
 void MainWindow::on_checkBox_isCompatible_SRMD_CUDA_clicked()
 {
-    ui->checkBox_isCompatible_SRMD_CUDA->setChecked(isCompatible_SRMD_CUDA);
 }
 void MainWindow::on_checkBox_isCompatible_Waifu2x_Converter_clicked()
 {
-    ui->checkBox_isCompatible_Waifu2x_Converter->setChecked(isCompatible_Waifu2x_Converter);
 }
 void MainWindow::on_checkBox_isCompatible_Anime4k_CPU_clicked()
 {
-    ui->checkBox_isCompatible_Anime4k_CPU->setChecked(isCompatible_Anime4k_CPU);
 }
 void MainWindow::on_checkBox_isCompatible_Anime4k_GPU_clicked()
 {
-    ui->checkBox_isCompatible_Anime4k_GPU->setChecked(isCompatible_Anime4k_GPU);
 }
 void MainWindow::on_checkBox_isCompatible_FFmpeg_clicked()
 {
-    ui->checkBox_isCompatible_FFmpeg->setChecked(isCompatible_FFmpeg);
 }
 void MainWindow::on_checkBox_isCompatible_FFprobe_clicked()
 {
-    ui->checkBox_isCompatible_FFprobe->setChecked(isCompatible_FFprobe);
 }
 void MainWindow::on_checkBox_isCompatible_ImageMagick_clicked()
 {
-    ui->checkBox_isCompatible_ImageMagick->setChecked(isCompatible_ImageMagick);
 }
 void MainWindow::on_checkBox_isCompatible_Gifsicle_clicked()
 {
-    ui->checkBox_isCompatible_Gifsicle->setChecked(isCompatible_Gifsicle);
 }
 void MainWindow::on_checkBox_isCompatible_SoX_clicked()
 {
-    ui->checkBox_isCompatible_SoX->setChecked(isCompatible_SoX);
 }
 void MainWindow::on_checkBox_GPUMode_Anime4K_stateChanged(int arg1)
 {
@@ -1798,15 +1785,12 @@ void MainWindow::on_checkBox_ShowInterPro_stateChanged(int arg1)
 }
 void MainWindow::on_checkBox_isCompatible_Waifu2x_Caffe_CPU_clicked()
 {
-    ui->checkBox_isCompatible_Waifu2x_Caffe_CPU->setChecked(isCompatible_Waifu2x_Caffe_CPU);
 }
 void MainWindow::on_checkBox_isCompatible_Waifu2x_Caffe_GPU_clicked()
 {
-    ui->checkBox_isCompatible_Waifu2x_Caffe_GPU->setChecked(isCompatible_Waifu2x_Caffe_GPU);
 }
 void MainWindow::on_checkBox_isCompatible_Waifu2x_Caffe_cuDNN_clicked()
 {
-    ui->checkBox_isCompatible_Waifu2x_Caffe_cuDNN->setChecked(isCompatible_Waifu2x_Caffe_cuDNN);
 }
 void MainWindow::on_pushButton_SplitSize_Add_Waifu2xCaffe_clicked()
 {
@@ -1826,7 +1810,6 @@ void MainWindow::on_pushButton_SplitSize_Minus_Waifu2xCaffe_clicked()
 }
 void MainWindow::on_checkBox_isCompatible_Realsr_NCNN_Vulkan_clicked()
 {
-    ui->checkBox_isCompatible_Realsr_NCNN_Vulkan->setChecked(isCompatible_Realsr_NCNN_Vulkan);
 }
 void MainWindow::on_checkBox_ACNet_Anime4K_stateChanged(int arg1)
 {

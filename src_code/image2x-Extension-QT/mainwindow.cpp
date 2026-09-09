@@ -499,20 +499,12 @@ void MainWindow::Play_NFSound()
 
 void MainWindow::on_pushButton_Report_clicked()
 {
-    QDesktopServices::openUrl(QUrl("https://github.com/AaronFeng753/Waifu2x-Extension-GUI/issues/new"));
+    QDesktopServices::openUrl(QUrl("https://github.com/AIPBS/image2x-Extension-GUI/issues/new"));
 }
 
 void MainWindow::on_pushButton_ReadMe_clicked()
 {
-    if(ui->comboBox_language->currentIndex()==1)
-    {
-        QDesktopServices::openUrl(QUrl("https://github.com/AaronFeng753/Waifu2x-Extension-GUI/"));
-        QDesktopServices::openUrl(QUrl("https://gitee.com/aaronfeng0711/Waifu2x-Extension-GUI/"));
-    }
-    else
-    {
-        QDesktopServices::openUrl(QUrl("https://github.com/AaronFeng753/Waifu2x-Extension-GUI/"));
-    }
+    QDesktopServices::openUrl(QUrl("https://github.com/AIPBS/image2x-Extension-GUI/"));
 }
 
 
@@ -1063,11 +1055,7 @@ void MainWindow::Read_Input_paths_BrowserFile(QStringList Input_path_List)
 */
 void MainWindow::on_pushButton_wiki_clicked()
 {
-    if(ui->comboBox_language->currentIndex()==1)
-    {
-        QDesktopServices::openUrl(QUrl("https://gitee.com/aaronfeng0711/Waifu2x-Extension-GUI/wikis"));
-    }
-    QDesktopServices::openUrl(QUrl("https://github.com/AaronFeng753/Waifu2x-Extension-GUI/wiki"));
+    QDesktopServices::openUrl(QUrl("https://github.com/AIPBS/image2x-Extension-GUI/wiki"));
 }
 
 void MainWindow::on_pushButton_HideTextBro_clicked()

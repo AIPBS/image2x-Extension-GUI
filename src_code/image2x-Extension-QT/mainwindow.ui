@@ -10233,8 +10233,11 @@ padding:10px;
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="pushButton_SupportersList">
-                    <property name="styleSheet">
+                    <widget class="QPushButton" name="pushButton_SupportersList">
+                     <property name="visible">
+                      <bool>false</bool>
+                     </property>
+                     <property name="styleSheet">
                      <string notr="true">QPushButton{
 background-color: rgb(255, 66, 77);
 color: rgb(255, 255, 255);

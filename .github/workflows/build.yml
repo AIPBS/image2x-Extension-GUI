@@ -144,19 +144,62 @@ jobs:
     needs: build-linux
     if: |
       startsWith(github.ref, 'refs/tags/v') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_release == 'true')
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_release == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout release source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine whether to publish a release
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+          PUBLISH_RELEASE: ${{ github.event.inputs.publish_release }}
+        run: |
+          set -euo pipefail
+          publish=false
+          tag=
+
+          if [[ "$EVENT_NAME" == "push" && "$REF_NAME" == v* ]]; then
+            publish=true
+            tag="$REF_NAME"
+          elif [[ "$EVENT_NAME" == "workflow_dispatch" && "$PUBLISH_RELEASE" == "true" ]]; then
+            publish=true
+            tag=nightly
+          elif [[ "$EVENT_NAME" == "push" ]]; then
+            if [[ "$BEFORE" == "0000000000000000000000000000000000000000" ]] || \
+               ! git diff --quiet "$BEFORE" "$SHA" -- src_code/image2x-Extension-QT/mainwindow.h; then
+              tag="$(awk -F '"' '/QString VERSION/{ print $2; exit }' src_code/image2x-Extension-QT/mainwindow.h)"
+              if [[ ! "$tag" =~ ^v[0-9]+(\.[0-9]+)*$ ]]; then
+                echo "Invalid release version: $tag" >&2
+                exit 1
+              fi
+              publish=true
+            fi
+          fi
+
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
       - name: Download bundle artifact
+        if: steps.release.outputs.publish == 'true'
         uses: actions/download-artifact@v4
         with:
           name: image2x-Extension-GUI-linux
           path: dist/
 
       - name: Create GitHub Release
+        if: steps.release.outputs.publish == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'nightly' }}
+          TAG: ${{ steps.release.outputs.tag }}
+          TARGET: ${{ github.sha }}
         run: |
           set -euo pipefail
           ls -lh dist/
@@ -164,5 +207,6 @@ jobs:
           gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
           gh release create "$TAG" dist/image2x-Extension-GUI-linux.tar.gz \
             --repo "$GITHUB_REPOSITORY" \
+            --target "$TARGET" \
             --title "image2x-Extension-GUI $TAG" \
             --notes "Linux bundle (Qt5). Models NOT included — download via src_code/scripts/download_models.sh"

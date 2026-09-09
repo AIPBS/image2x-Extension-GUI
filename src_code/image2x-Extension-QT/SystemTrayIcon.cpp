@@ -1,5 +1,6 @@
 ﻿/*
     Copyright (C) 2021  Aaron Feng
+    Copyright (C) 2026 AIPEAC
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -159,4 +160,3 @@ void MainWindow::SystemTray_showDonate()
     pContextMenu->hide();
     ui->tabWidget->setCurrentIndex(0);
 }
-

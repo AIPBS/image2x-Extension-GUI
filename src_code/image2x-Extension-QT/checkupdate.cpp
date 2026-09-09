@@ -25,6 +25,8 @@
 
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDir>
+#include <QStandardPaths>
 #include <QVersionNumber>
 
 void MainWindow::on_pushButton_CheckUpdate_clicked()
@@ -36,7 +38,13 @@ int MainWindow::CheckUpadte_Auto()
 {
     QString updateType = ui->comboBox_UpdateChannel->currentText();
     QString updateInfoUrl = "https://api.github.com/repos/AIPBS/image2x-Extension-GUI/releases/latest";
-    QString updateInfoPath = Current_Path+"/Update_Info_Github.json";
+    QString updateCacheDirectory = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+    if(updateCacheDirectory.isEmpty() || !QDir().mkpath(updateCacheDirectory))
+    {
+        emit Send_TextBrowser_NewMessage(tr("Unable to prepare update information storage."));
+        return 0;
+    }
+    QString updateInfoPath = QDir(updateCacheDirectory).filePath("Update_Info_Github.json");
 
     emit Send_TextBrowser_NewMessage(tr("Starting to download update information(for auto-check update) from Github."));
     DownloadTo(updateInfoUrl, updateInfoPath);

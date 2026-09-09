@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+## v0.1.3 (2026-09-09)
+
 ### Changed
 - Compatibility Test result checkboxes can now be selected manually.
 - Remove the Compatibility Test separator that crossed the final engine options.
+- Point the settings-panel website actions at this project's repository and hide Top Supporters.
+
+### Fixed
+- Check for updates against this project's GitHub Releases instead of upstream update files and release links.
 
 ## v0.1.2 (2026-09-08)
 

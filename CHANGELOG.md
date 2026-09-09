@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+- Compatibility Test result checkboxes can now be selected manually.
+
+## v0.1.2 (2026-09-08)
+
 ### Added
 - Linux runtime dependency layer for the supported waifu2x-ncnn-vulkan still-image workflow.
 - Checksum-verified installer for the pinned upstream Linux waifu2x-ncnn-vulkan runtime and models.

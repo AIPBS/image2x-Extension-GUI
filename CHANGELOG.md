@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.3.0 (2026-09-10)
+
+### Fixed
+- Run Linux Compatibility Test input and output files from the writable application-data directory, allowing the test to complete in the read-only Firefire application sandbox.
+
 ## v0.2.0 (2026-09-10)
 
 ### Changed

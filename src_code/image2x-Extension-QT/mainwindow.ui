@@ -2026,11 +2026,11 @@ padding:10px;
                     </item>
                     <item>
                      <widget class="QComboBox" name="comboBox_AspectRatio_custRes">
-                      <property name="minimumSize">
-                       <size>
-                        <width>280</width>
-                        <height>0</height>
-                       </size>
+                       <property name="minimumSize">
+                        <size>
+                         <width>320</width>
+                         <height>0</height>
+                        </size>
                       </property>
                       <property name="toolTip">
                        <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/new/prefix1/OtherPic/AspectRatioStrategy.jpg&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -2800,8 +2800,8 @@ the super-resolution, only interpolate video frames.
                   <property name="bottomMargin">
                    <number>6</number>
                   </property>
-                  <item row="0" column="0" colspan="3">
-                   <widget class="QLineEdit" name="lineEdit_outputPath">
+                   <item row="0" column="0" colspan="2">
+                    <widget class="QLineEdit" name="lineEdit_outputPath">
                     <property name="enabled">
                      <bool>false</bool>
                     </property>
@@ -2823,8 +2823,18 @@ the super-resolution, only interpolate video frames.
                      <bool>true</bool>
                     </property>
                    </widget>
-                  </item>
-                  <item row="1" column="0" rowspan="3" colspan="3">
+                   </item>
+                   <item row="0" column="2">
+                    <widget class="QPushButton" name="pushButton_BrowseOutputPath">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="text">
+                      <string>Browse...</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0" rowspan="3" colspan="3">
                    <widget class="QScrollArea" name="scrollArea_outputPathSettings">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -5387,7 +5397,7 @@ enabling [GPU Mode] can greatly increase the processing speed.
                      </property>
                     </widget>
                    </item>
-                   <item row="0" column="0">
+                    <item row="0" column="0">
                     <widget class="QCheckBox" name="checkBox_ACNet_Anime4K">
                      <property name="enabled">
                       <bool>true</bool>

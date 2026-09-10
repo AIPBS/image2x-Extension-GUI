@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## v0.2.0 (2026-09-10)
+
+### Changed
+- Widen the Aspect Ratio chooser so its full option labels remain visible.
+
+### Added
+- Add a Browse button next to Output path (Folder) for selecting the output directory.
+- Ask first-time users whether to run the Compatibility Test, then open and start it only when they choose Yes.
+
+### Fixed
+- Show Compatibility Test controls on their actual tab after Links is moved to the end of the tab bar.
+
+## v0.1.4 (2026-09-10)
+
+### Fixed
+- Make Files List controls visible and usable when their inherited icon assets are unavailable.
+- Use the built-in file chooser when adding files on Linux Wayland.
+
 ## v0.1.3 (2026-09-09)
 
 ### Changed

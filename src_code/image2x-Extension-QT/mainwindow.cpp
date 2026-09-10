@@ -338,6 +338,19 @@ void MainWindow::Set_Font_fixed()
         font.setPixelSize(15);
     }
     qApp->setFont(font);
+
+    const auto configureFileListButton = [this](QPushButton *button, const QString &label) {
+        button->setStyleSheet(QString());
+        button->setText(label);
+        button->setMinimumWidth(button->fontMetrics().horizontalAdvance(label) + 16);
+    };
+    configureFileListButton(ui->pushButton_ClearList, tr("Clear"));
+    configureFileListButton(ui->pushButton_RemoveItem, tr("Remove"));
+    configureFileListButton(ui->pushButton_ResizeFilesListSplitter, tr("Reset"));
+    configureFileListButton(ui->pushButton_SaveFileList, tr("Save list"));
+    configureFileListButton(ui->pushButton_ReadFileList, tr("Load list"));
+    configureFileListButton(ui->pushButton_BrowserFile, tr("Add files"));
+    configureFileListButton(ui->pushButton_TurnOffScreen, tr("Turn off"));
 }
 
 void MainWindow::on_pushButton_ClearList_clicked()
@@ -1004,7 +1017,17 @@ void MainWindow::on_pushButton_BrowserFile_clicked()
         if(!QFile::exists(BrowserStartPath))BrowserStartPath = "";
     }
     //===========================================================
-    QStringList Input_path_List = QFileDialog::getOpenFileNames(this, tr("Select files @Waifu2x-Extension-GUI"), BrowserStartPath,  tr("All file(")+nameFilters_QString+")");
+    QFileDialog fileDialog(this);
+    fileDialog.setOption(QFileDialog::DontUseNativeDialog);
+    fileDialog.setWindowTitle(tr("Select files @Waifu2x-Extension-GUI"));
+    fileDialog.setDirectory(BrowserStartPath);
+    fileDialog.setNameFilter(tr("All file(") + nameFilters_QString + ")");
+    fileDialog.setFileMode(QFileDialog::ExistingFiles);
+    if (fileDialog.exec() != QDialog::Accepted)
+    {
+        return;
+    }
+    QStringList Input_path_List = fileDialog.selectedFiles();
     if(Input_path_List.isEmpty())
     {
         return;
@@ -1033,6 +1056,22 @@ void MainWindow::on_pushButton_BrowserFile_clicked()
     emit Send_TextBrowser_NewMessage(tr("Adding files, please wait."));
     //===================================================
     QtConcurrent::run(this, &MainWindow::Read_Input_paths_BrowserFile, Input_path_List);
+}
+
+void MainWindow::on_pushButton_BrowseOutputPath_clicked()
+{
+    QString startPath = ui->lineEdit_outputPath->text().trimmed();
+    if (!QDir(startPath).exists())
+    {
+        startPath = Current_Path;
+    }
+
+    const QString selectedPath = QFileDialog::getExistingDirectory(
+        this, tr("Select output folder"), startPath);
+    if (!selectedPath.isEmpty())
+    {
+        ui->lineEdit_outputPath->setText(selectedPath);
+    }
 }
 /*
 读取 路径与添加文件
@@ -1228,15 +1267,17 @@ void MainWindow::Tip_FirstTimeStart()
         //======
         file_generateMarkFile(FirstTimeStart,"");
         on_pushButton_clear_textbrowser_clicked();
-#ifndef PLATFORM_LINUX
-        QMessageBox *MSG_2 = new QMessageBox(this);
-        MSG_2->setWindowTitle(tr("Notification"));
-        MSG_2->setText(tr("It is detected that this is the first time you have started the software, so the compatibility test will be performed automatically. Please wait for a while, then check the test result."));
-        MSG_2->setIcon(QMessageBox::Information);
-        MSG_2->setModal(true);
-        MSG_2->show();
-        on_pushButton_compatibilityTest_clicked();
-#endif
+        QMessageBox compatibilityPrompt(
+            QMessageBox::Question,
+            tr("Compatibility test"),
+            tr("Would you like to run the compatibility test now?"),
+            QMessageBox::Yes | QMessageBox::No,
+            this);
+        compatibilityPrompt.setDefaultButton(QMessageBox::No);
+        if (compatibilityPrompt.exec() == QMessageBox::Yes)
+        {
+            on_pushButton_compatibilityTest_clicked();
+        }
     }
 }
 
@@ -1276,6 +1317,7 @@ void MainWindow::on_checkBox_OutPath_isEnabled_stateChanged(int arg1)
     if(ui->checkBox_OutPath_isEnabled->isChecked())
     {
         ui->lineEdit_outputPath->setEnabled(1);
+        ui->pushButton_BrowseOutputPath->setEnabled(1);
         ui->checkBox_OutPath_KeepOriginalFileName->setEnabled(1);
         ui->checkBox_KeepParentFolder->setEnabled(1);
         ui->checkBox_OutPath_Overwrite->setEnabled(1);
@@ -1286,6 +1328,7 @@ void MainWindow::on_checkBox_OutPath_isEnabled_stateChanged(int arg1)
     else
     {
         ui->lineEdit_outputPath->setEnabled(0);
+        ui->pushButton_BrowseOutputPath->setEnabled(0);
         ui->checkBox_OutPath_KeepOriginalFileName->setEnabled(0);
         ui->checkBox_KeepParentFolder->setEnabled(0);
         ui->checkBox_OutPath_Overwrite->setEnabled(0);
@@ -1521,9 +1564,9 @@ void MainWindow::on_tabWidget_currentChanged(int index)
                 ui->groupBox_8->setVisible(0);
                 ui->groupBox_InputExt->setVisible(0);
                 ui->groupBox_other_1->setVisible(0);
-                //tab 6
-                ui->groupBox_CompatibilityTestRes->setVisible(0);
-                ui->pushButton_compatibilityTest->setVisible(0);
+                //tab 5
+                ui->groupBox_CompatibilityTestRes->setVisible(1);
+                ui->pushButton_compatibilityTest->setVisible(1);
                 break;
             }
         case 6:
@@ -1548,9 +1591,9 @@ void MainWindow::on_tabWidget_currentChanged(int index)
                 ui->groupBox_8->setVisible(0);
                 ui->groupBox_InputExt->setVisible(0);
                 ui->groupBox_other_1->setVisible(0);
-                //tab 6
-                ui->groupBox_CompatibilityTestRes->setVisible(1);
-                ui->pushButton_compatibilityTest->setVisible(1);
+                //tab 5
+                ui->groupBox_CompatibilityTestRes->setVisible(0);
+                ui->pushButton_compatibilityTest->setVisible(0);
                 break;
             }
         case 7:
@@ -1953,6 +1996,7 @@ void MainWindow::OutputSettingsArea_setEnabled(bool isEnabled)
 {
     ui->scrollArea_outputPathSettings->setEnabled(isEnabled);
     ui->lineEdit_outputPath->setClearButtonEnabled(isEnabled);
+    ui->pushButton_BrowseOutputPath->setEnabled(isEnabled && ui->checkBox_OutPath_isEnabled->isChecked());
     if(isEnabled==true)
     {
         ui->lineEdit_outputPath->setFocusPolicy(Qt::StrongFocus);

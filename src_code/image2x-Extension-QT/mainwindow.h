@@ -83,7 +83,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void changeEvent(QEvent *e);
     //=======================
-    QString VERSION = "v0.1.3";//软件版本号
+    QString VERSION = "v0.2.0";//软件版本号
     bool isBetaVer = false;
     QString LastStableVer = "v3.31.13";
     QString LastBetaVer = "v3.41.02-beta";
@@ -868,6 +868,8 @@ private slots:
     void on_pushButton_Save_GlobalFontSize_clicked();
 
     void on_pushButton_BrowserFile_clicked();
+
+    void on_pushButton_BrowseOutputPath_clicked();
 
     void on_pushButton_wiki_clicked();
 

@@ -1565,8 +1565,8 @@ void MainWindow::on_tabWidget_currentChanged(int index)
                 ui->groupBox_InputExt->setVisible(0);
                 ui->groupBox_other_1->setVisible(0);
                 //tab 5
-                ui->groupBox_CompatibilityTestRes->setVisible(1);
-                ui->pushButton_compatibilityTest->setVisible(1);
+                ui->groupBox_CompatibilityTestRes->setVisible(0);
+                ui->pushButton_compatibilityTest->setVisible(0);
                 break;
             }
         case 6:
@@ -1591,9 +1591,9 @@ void MainWindow::on_tabWidget_currentChanged(int index)
                 ui->groupBox_8->setVisible(0);
                 ui->groupBox_InputExt->setVisible(0);
                 ui->groupBox_other_1->setVisible(0);
-                //tab 5
-                ui->groupBox_CompatibilityTestRes->setVisible(0);
-                ui->pushButton_compatibilityTest->setVisible(0);
+                //tab 6
+                ui->groupBox_CompatibilityTestRes->setVisible(1);
+                ui->pushButton_compatibilityTest->setVisible(1);
                 break;
             }
         case 7:

@@ -42,14 +42,22 @@ int MainWindow::Waifu2x_Compatibility_Test()
 
     isCompatible_Waifu2x_NCNN_Vulkan_NEW = false;
     RuntimeDependencies dependencies(Current_Path);
-    const QString testDirectory = Current_Path + "/Compatibility_Test";
+    const QString appDataDirectory = QStandardPaths::writableLocation(
+        QStandardPaths::AppLocalDataLocation);
+    const QString testDirectory = QDir(appDataDirectory).filePath("Compatibility_Test");
     const QString inputPath = testDirectory + "/Compatibility_Test.png";
     const QString outputPath = testDirectory + "/res.png";
 
-    QDir().mkpath(testDirectory);
+    const bool testDirectoryReady = !appDataDirectory.isEmpty()
+        && QDir().mkpath(testDirectory);
     QFile::remove(outputPath);
 
-    if (!dependencies.isAvailable(RuntimeEngine::Waifu2xNcnnVulkan))
+    if (!testDirectoryReady)
+    {
+        emit Send_TextBrowser_NewMessage(
+            tr("Compatible with waifu2x-ncnn-vulkan: No. Unable to create the writable compatibility-test directory."));
+    }
+    else if (!dependencies.isAvailable(RuntimeEngine::Waifu2xNcnnVulkan))
     {
         emit Send_TextBrowser_NewMessage(tr("Compatible with waifu2x-ncnn-vulkan: No. The Linux runtime is not installed."));
     }
@@ -80,7 +88,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
                 && process.waitForFinished(120000)
                 && process.exitStatus() == QProcess::NormalExit
                 && process.exitCode() == 0
-                && QFile::exists(outputPath);
+                && QFileInfo(outputPath).size() > 0;
             isCompatible_Waifu2x_NCNN_Vulkan_NEW = completed;
 
             emit Send_TextBrowser_NewMessage(

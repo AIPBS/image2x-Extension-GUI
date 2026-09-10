@@ -83,12 +83,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void changeEvent(QEvent *e);
     //=======================
-    QString VERSION = "v0.3.1";//软件版本号
+    QString VERSION = "v0.3.2";
     bool isBetaVer = false;
     QString LastStableVer = "v3.31.13";
     QString LastBetaVer = "v3.41.02-beta";
     //=======================
-    QTranslator * translator;//界面翻译
+    QTranslator * translator;
     QIcon *MainIcon_QIcon = new QIcon(":/new/prefix1/icon/icon_main.png");
     TopSupportersList *TopSupportersList_widget;
     //=======

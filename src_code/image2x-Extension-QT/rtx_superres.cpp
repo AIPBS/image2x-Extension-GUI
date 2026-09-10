@@ -70,7 +70,7 @@
 #include "platform_compat.h"
 
 // ============================================================================
-// RTX Super-Res — Stub: Message about driver requirements
+// RTX Super-Res — VFX SDK requirements
 // ============================================================================
 
 /*
@@ -82,15 +82,13 @@ void MainWindow::RTXSuperRes_ShowRequirementsMessage()
     emit Send_TextBrowser_NewMessage(
         tr("NVIDIA RTX Super Resolution (RTX VSR) requires:"));
     emit Send_TextBrowser_NewMessage(
-        tr("  - NVIDIA driver version 531.18 or higher"));
+        tr("  - NVIDIA VFX SDK and nvvfxvideosuperres feature from NVIDIA NGC"));
     emit Send_TextBrowser_NewMessage(
-        tr("  - NVIDIA RTX 30 series, 40 series, or 50 series GPU"));
+        tr("  - NVIDIA driver 570.190+, 580.82+, or 590.44+ on Linux"));
     emit Send_TextBrowser_NewMessage(
-        tr("  - Windows 10/11 (64-bit)"));
+        tr("  - NVIDIA GPU with Tensor Cores"));
     emit Send_TextBrowser_NewMessage(
-        tr("This build uses a stub implementation. "
-           "Actual RTX Super-Res processing requires linking against the "
-           "NVIDIA Video Effects SDK (NvCVImage / NvVFX APIs)."));
+        tr("This build has not yet linked the NVIDIA VFX SDK APIs."));
 }
 
 // ============================================================================
@@ -546,23 +544,17 @@ int MainWindow::RTXSuperRes_Video_BySegment(int rowNum)
 
 /*
  * Compatibility test for RTX Super-Res.
- * Always reports "No" and the driver requirement message, since this is a stub
- * and the real API integration requires NVIDIA Video Effects SDK linking.
+ * Reports the missing VFX SDK integration until the app links its APIs.
  */
 bool MainWindow::RTXSuperRes_CompatibilityTest()
 {
     emit Send_TextBrowser_NewMessage(
         tr("Testing NVIDIA RTX Super Resolution compatibility, please wait."));
 
-    // RTX Super-Res is a driver-level feature — it can't be tested
-    // with a simple QProcess like the other engines.
-    // The stub always reports: "Requires NVIDIA driver 531.18+ and RTX 30/40/50 series GPU"
-
     emit Send_TextBrowser_NewMessage(
         tr("Compatible with NVIDIA RTX Super Resolution: Not tested. "
-           "[Requires NVIDIA driver 531.18+ and RTX 30/40/50 series GPU.] "
-           "The RTX Super-Res engine uses driver-level APIs and cannot be "
-           "tested through standard process execution."));
+           "[Requires the NVIDIA VFX SDK Core and nvvfxvideosuperres feature.] "
+           "The application must link the NVIDIA VFX APIs before this runtime can be tested."));
 
     emit Send_Add_progressBar_CompatibilityTest();
     return false;

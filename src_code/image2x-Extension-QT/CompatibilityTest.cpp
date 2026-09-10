@@ -47,10 +47,32 @@ int MainWindow::Waifu2x_Compatibility_Test()
     const QString testDirectory = QDir(appDataDirectory).filePath("Compatibility_Test");
     const QString inputPath = testDirectory + "/Compatibility_Test.png";
     const QString outputPath = testDirectory + "/res.png";
+    const QString videoPath = testDirectory + "/CompatibilityTest_Video.mp4";
+    const QString imageMagickOutputPath = testDirectory + "/convert_res.bmp";
+    const QString gifInputPath = testDirectory + "/CompatibilityTest_GIF.gif";
+    const QString gifOutputPath = testDirectory + "/CompatibilityTest_GIF_RES.gif";
+    const QString soxInputPath = testDirectory + "/CompatibilityTest_Sound.wav";
+    const QString soxProfilePath = testDirectory + "/TestTemp_DenoiseProfile.dp";
+
+    const auto runProcess = [](const QString &program, const QStringList &arguments) {
+        QProcess process;
+        process.start(program, arguments);
+        return process.waitForStarted(30000)
+            && process.waitForFinished(120000)
+            && process.exitStatus() == QProcess::NormalExit
+            && process.exitCode() == 0;
+    };
 
     const bool testDirectoryReady = !appDataDirectory.isEmpty()
         && QDir().mkpath(testDirectory);
     QFile::remove(outputPath);
+    bool inputImageReady = false;
+    if (testDirectoryReady)
+    {
+        QImage inputImage(1, 1, QImage::Format_RGB32);
+        inputImage.fill(Qt::white);
+        inputImageReady = inputImage.save(inputPath);
+    }
 
     if (!testDirectoryReady)
     {
@@ -61,45 +83,127 @@ int MainWindow::Waifu2x_Compatibility_Test()
     {
         emit Send_TextBrowser_NewMessage(tr("Compatible with waifu2x-ncnn-vulkan: No. The Linux runtime is not installed."));
     }
+    else if (!inputImageReady)
+    {
+        emit Send_TextBrowser_NewMessage(tr("Compatible with waifu2x-ncnn-vulkan: No. Unable to create the test image."));
+    }
     else
     {
-        QImage inputImage(1, 1, QImage::Format_RGB32);
-        inputImage.fill(Qt::white);
+        QProcess process;
+        process.start(
+            dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan),
+            QStringList()
+                << "-i" << inputPath
+                << "-o" << outputPath
+                << "-s" << "2"
+                << "-n" << "0"
+                << "-t" << "32"
+                << "-m" << dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan) + "/models-cunet"
+                << "-j" << "1:1:1");
 
-        if (!inputImage.save(inputPath))
-        {
-            emit Send_TextBrowser_NewMessage(tr("Compatible with waifu2x-ncnn-vulkan: No. Unable to create the test image."));
-        }
-        else
-        {
-            QProcess process;
-            process.start(
-                dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan),
-                QStringList()
-                    << "-i" << inputPath
-                    << "-o" << outputPath
-                    << "-s" << "2"
-                    << "-n" << "0"
-                    << "-t" << "32"
-                    << "-m" << dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan) + "/models-cunet"
-                    << "-j" << "1:1:1");
+        const bool completed = process.waitForStarted(30000)
+            && process.waitForFinished(120000)
+            && process.exitStatus() == QProcess::NormalExit
+            && process.exitCode() == 0
+            && QFileInfo(outputPath).size() > 0;
+        isCompatible_Waifu2x_NCNN_Vulkan_NEW = completed;
 
-            const bool completed = process.waitForStarted(30000)
-                && process.waitForFinished(120000)
-                && process.exitStatus() == QProcess::NormalExit
-                && process.exitCode() == 0
-                && QFileInfo(outputPath).size() > 0;
-            isCompatible_Waifu2x_NCNN_Vulkan_NEW = completed;
-
-            emit Send_TextBrowser_NewMessage(
-                completed
-                    ? tr("Compatible with waifu2x-ncnn-vulkan: Yes.")
-                    : tr("Compatible with waifu2x-ncnn-vulkan: No. Check the Vulkan runtime and graphics driver."));
-        }
+        emit Send_TextBrowser_NewMessage(
+            completed
+                ? tr("Compatible with waifu2x-ncnn-vulkan: Yes.")
+                : tr("Compatible with waifu2x-ncnn-vulkan: No. Check the Vulkan runtime and graphics driver."));
     }
 
-    QFile::remove(inputPath);
     QFile::remove(outputPath);
+    QFile::remove(videoPath);
+    QFile::remove(imageMagickOutputPath);
+    QFile::remove(gifInputPath);
+    QFile::remove(gifOutputPath);
+    QFile::remove(soxInputPath);
+    QFile::remove(soxProfilePath);
+
+    if (testDirectoryReady)
+    {
+        isCompatible_FFmpeg = runProcess(
+            "ffmpeg",
+            QStringList()
+                << "-hide_banner" << "-loglevel" << "error" << "-y"
+                << "-f" << "lavfi" << "-i" << "testsrc=size=16x16:rate=1"
+                << "-t" << "0.1" << "-pix_fmt" << "yuv420p" << videoPath)
+            && QFileInfo(videoPath).size() > 0;
+        emit Send_TextBrowser_NewMessage(
+            isCompatible_FFmpeg
+                ? tr("Compatible with FFmpeg: Yes.")
+                : tr("Compatible with FFmpeg: No."));
+        emit Send_Add_progressBar_CompatibilityTest();
+
+        QProcess ffprobeProcess;
+        ffprobeProcess.start(
+            "ffprobe",
+            QStringList()
+                << "-v" << "error" << "-show_entries" << "format=duration"
+                << "-of" << "default=noprint_wrappers=1:nokey=1" << videoPath);
+        isCompatible_FFprobe = ffprobeProcess.waitForStarted(30000)
+            && ffprobeProcess.waitForFinished(120000)
+            && ffprobeProcess.exitStatus() == QProcess::NormalExit
+            && ffprobeProcess.exitCode() == 0
+            && !ffprobeProcess.readAllStandardOutput().trimmed().isEmpty();
+        emit Send_TextBrowser_NewMessage(
+            isCompatible_FFprobe
+                ? tr("Compatible with FFprobe: Yes.")
+                : tr("Compatible with FFprobe: No."));
+        emit Send_Add_progressBar_CompatibilityTest();
+
+        isCompatible_ImageMagick = inputImageReady
+            && runProcess("convert", QStringList() << inputPath << imageMagickOutputPath)
+            && QFileInfo(imageMagickOutputPath).size() > 0;
+        emit Send_TextBrowser_NewMessage(
+            isCompatible_ImageMagick
+                ? tr("Compatible with ImageMagick: Yes.")
+                : tr("Compatible with ImageMagick: No."));
+        emit Send_Add_progressBar_CompatibilityTest();
+
+        QFile gifInput(gifInputPath);
+        const bool gifInputReady = gifInput.open(QIODevice::WriteOnly)
+            && gifInput.write(QByteArray::fromHex(
+                "47494638396101000100800000ffffff00000021f90401000000002c00000000010001000002024401003b")) > 0;
+        gifInput.close();
+        isCompatible_Gifsicle = gifInputReady
+            && runProcess("gifsicle", QStringList() << "-O3" << "-i" << gifInputPath << "-o" << gifOutputPath)
+            && QFileInfo(gifOutputPath).size() > 0;
+        emit Send_TextBrowser_NewMessage(
+            isCompatible_Gifsicle
+                ? tr("Compatible with Gifsicle: Yes.")
+                : tr("Compatible with Gifsicle: No."));
+        emit Send_Add_progressBar_CompatibilityTest();
+
+        const bool soxInputReady = runProcess(
+            "sox", QStringList() << "-n" << soxInputPath << "synth" << "0.1" << "sine" << "440");
+        isCompatible_SoX = soxInputReady
+            && runProcess("sox", QStringList() << soxInputPath << "-n" << "noiseprof" << soxProfilePath)
+            && QFileInfo(soxProfilePath).size() > 0;
+        emit Send_TextBrowser_NewMessage(
+            isCompatible_SoX
+                ? tr("Compatible with SoX: Yes.")
+                : tr("Compatible with SoX: No."));
+        emit Send_Add_progressBar_CompatibilityTest();
+    }
+    else
+    {
+        isCompatible_FFmpeg = false;
+        isCompatible_FFprobe = false;
+        isCompatible_ImageMagick = false;
+        isCompatible_Gifsicle = false;
+        isCompatible_SoX = false;
+    }
+
+    QFile::remove(videoPath);
+    QFile::remove(inputPath);
+    QFile::remove(imageMagickOutputPath);
+    QFile::remove(gifInputPath);
+    QFile::remove(gifOutputPath);
+    QFile::remove(soxInputPath);
+    QFile::remove(soxProfilePath);
     emit Send_Add_progressBar_CompatibilityTest();
     emit Send_TextBrowser_NewMessage(tr("Compatibility test is complete!"));
     emit Send_SystemTray_NewMessage(tr("Compatibility test is complete!"));

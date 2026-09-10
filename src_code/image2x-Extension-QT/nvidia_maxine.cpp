@@ -72,13 +72,15 @@
 #include "ui_mainwindow.h"
 #include "platform_compat.h"
 
+#include <QFileInfo>
+
 // ============================================================================
 // NVIDIA Maxine — Platform Check
 // ============================================================================
 
 /*
  * Check whether NVIDIA Maxine is available on the current platform.
- * Returns true only on Windows (where the SDK is supported).
+ * Checks for the SDK runtime on the current platform.
  */
 bool MainWindow::NvidiaMaxine_IsAvailable()
 {
@@ -86,6 +88,8 @@ bool MainWindow::NvidiaMaxine_IsAvailable()
     // On Windows, check if the executable exists
     QString maxinePath = Current_Path + "/NVIDIA-Maxine/VideoEffectsApp_W2xEX.exe";
     return QFile::exists(maxinePath);
+#elif defined(PLATFORM_LINUX)
+    return QFileInfo::exists("/usr/local/VideoFX");
 #else
     return false;
 #endif
@@ -723,11 +727,12 @@ bool MainWindow::NvidiaMaxine_CompatibilityTest()
         return false;
     }
 #else
-    // Non-Windows platforms
+    // Linux SDK installations use the NVIDIA VFX SDK libraries and models,
+    // rather than the Windows sample executable.
     emit Send_TextBrowser_NewMessage(
         tr("Compatible with NVIDIA Maxine Video Effects SDK: No. "
-           "[The NVIDIA Maxine SDK supports Windows only. "
-           "Please use alternative video processing engines on this platform.]"));
+           "[The Linux NVIDIA VFX SDK is not installed. Install the VFX SDK Core "
+           "and nvvfxvideosuperres feature from NVIDIA NGC, then restart the application.]"));
     emit Send_Add_progressBar_CompatibilityTest();
     return false;
 #endif

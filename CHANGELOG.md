@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.3.1 (2026-09-10)
+
+### Added
+- Test installed FFmpeg, FFprobe, ImageMagick, Gifsicle, and SoX binaries in the Linux Compatibility Test using writable temporary inputs and outputs.
+
 ## v0.3.0 (2026-09-10)
 
 ### Fixed

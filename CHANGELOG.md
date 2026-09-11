@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added
+- Expose the staged Linux Real-ESRGAN and Real-CUGAN image engines.
+- Validate the selected Linux engine and exact model directory before processing.
+- Require all three Waifu2x NCNN Vulkan model directories during Linux installation.
+- Keep unsupported Real-CUGAN denoise levels disabled for each model variant.
+
+### Fixed
+- Bound Linux Compatibility Test engine waits, clean up timed-out processes, and use valid representative inputs and model arguments.
+
 ## v0.4.3 (2026-09-11)
 
 ### Fixed

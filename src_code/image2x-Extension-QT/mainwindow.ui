@@ -4143,6 +4143,16 @@ SRMD-CUDA           [Speed:★★☆ Image quality:★★★] [2D Anime]&amp;[3D
                       <string>[BETA] srmd-cuda</string>
                      </property>
                     </item>
+                    <item>
+                     <property name="text">
+                      <string notr="true">RealESRGAN-NCNN-Vulkan</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string notr="true">Real-CUGAN-NCNN-Vulkan</string>
+                     </property>
+                    </item>
                    </widget>
                   </item>
                   <item row="0" column="9">
@@ -7829,35 +7839,28 @@ padding:10px;
                    <property name="text"><string>2D Anime Model:</string></property>
                   </widget>
                  </item>
-                 <item row="2" column="1">
-                  <widget class="QComboBox" name="comboBox_Model_2D_RealESRGAN">
-                   <property name="toolTip"><string>Select model for anime upscaling.</string></property>
-                   <item><property name="text"><string notr="true">AnimeVideo-MiniV1.8-W2xEX</string></property></item>
-                   <item><property name="text"><string notr="true">Anime-HQ-W4xEX</string></property></item>
-                   <item><property name="text"><string notr="true">realesr-animevideov3</string></property></item>
-                   <item><property name="text"><string notr="true">realesrgan-x4plus-anime</string></property></item>
-                   <item><property name="text"><string notr="true">RealESRGANv2-animevideo-xsx2</string></property></item>
-                   <item><property name="text"><string notr="true">RealESRGANv2-animevideo-xsx4</string></property></item>
-                   <item><property name="text"><string notr="true">Omni-TurboV1.5-W2xEX</string></property></item>
-                   <item><property name="text"><string notr="true">Omni-MiniV2-W2xEX</string></property></item>
-                   <item><property name="text"><string notr="true">Omni-Smallv2-W2xEX</string></property></item>
-                  </widget>
+                  <item row="2" column="1">
+                   <widget class="QComboBox" name="comboBox_Model_2D_RealESRGAN">
+                    <property name="toolTip"><string>Select model for anime upscaling.</string></property>
+                    <item><property name="text"><string notr="true">realesr-animevideov3-x2</string></property></item>
+                    <item><property name="text"><string notr="true">realesr-animevideov3-x3</string></property></item>
+                    <item><property name="text"><string notr="true">realesr-animevideov3-x4</string></property></item>
+                    <item><property name="text"><string notr="true">realesrgan-x4plus-anime</string></property></item>
+                    <item><property name="text"><string notr="true">RealESRGANv2-animevideo-xsx2</string></property></item>
+                    <item><property name="text"><string notr="true">RealESRGANv2-animevideo-xsx4</string></property></item>
+                   </widget>
                  </item>
                  <item row="3" column="0">
                   <widget class="QLabel" name="label_RealESRGAN_3DModel">
                    <property name="text"><string>3D Photo Model:</string></property>
                   </widget>
                  </item>
-                 <item row="3" column="1">
-                  <widget class="QComboBox" name="comboBox_Model_3D_RealESRGAN">
-                   <property name="toolTip"><string>Select model for photo upscaling.</string></property>
-                   <item><property name="text"><string notr="true">Universal-FastV2-W2xEX</string></property></item>
-                   <item><property name="text"><string notr="true">Photo-Small-W2xEX</string></property></item>
-                   <item><property name="text"><string notr="true">Photo-HQ-W4xEX</string></property></item>
-                   <item><property name="text"><string notr="true">Photo-Conservative-x4</string></property></item>
-                   <item><property name="text"><string notr="true">realesrgan-x4plus</string></property></item>
-                   <item><property name="text"><string notr="true">realesr-general-x4v3</string></property></item>
-                   <item><property name="text"><string notr="true">realesr-general-wdn-x4v3</string></property></item>
+                  <item row="3" column="1">
+                   <widget class="QComboBox" name="comboBox_Model_3D_RealESRGAN">
+                    <property name="toolTip"><string>Select model for photo upscaling.</string></property>
+                    <item><property name="text"><string notr="true">realesrgan-x4plus</string></property></item>
+                    <item><property name="text"><string notr="true">realesr-general-x4v3</string></property></item>
+                    <item><property name="text"><string notr="true">realesr-general-wdn-x4v3</string></property></item>
                   </widget>
                  </item>
                  <item row="4" column="0">

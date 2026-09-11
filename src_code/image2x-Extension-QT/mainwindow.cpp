@@ -22,6 +22,8 @@
 #include "ui_mainwindow.h"
 #include "runtime_dependencies.h"
 
+#include <cstdio>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -1781,6 +1783,25 @@ bool MainWindow::ValidateRuntimeDependencies()
 
     return true;
 }
+#ifdef PLATFORM_LINUX
+void MainWindow::LogEngineProgress(const QString &engineName, QProcess *process,
+                                   const QString &outputPath, QElapsedTimer *timer)
+{
+    if (timer->elapsed() < 5000)
+    {
+        return;
+    }
+
+    const QFileInfo outputInfo(outputPath);
+    std::fprintf(stderr,
+                 "[image2x] engine still running: %s; pid=%lld; elapsed_ms=%lld; output_bytes=%lld\n",
+                 qPrintable(engineName), static_cast<long long>(process->processId()),
+                 static_cast<long long>(timer->elapsed()),
+                 static_cast<long long>(outputInfo.size()));
+    std::fflush(stderr);
+    timer->restart();
+}
+#endif
 void MainWindow::on_checkBox_EnablePreProcessing_Anime4k_stateChanged(int arg1)
 {
     if(ui->checkBox_EnablePreProcessing_Anime4k->isChecked())

@@ -120,10 +120,23 @@ int MainWindow::Realsr_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaC
             //==========================
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+file_ext+".png";
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "4" + Realsr_NCNN_Vulkan_ReadSettings();
+            qWarning().noquote() << "[image2x] launching realsr-ncnn-vulkan:" << cmd;
+            QElapsedTimer engineTimer;
+            engineTimer.start();
             Waifu2x->start(cmd);
-            while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
+            if (!Waifu2x->waitForStarted(10000))
+            {
+                waifu2x_qprocess_failed = true;
+                qWarning().noquote() << "[image2x] realsr-ncnn-vulkan failed to start:"
+                                     << Waifu2x->errorString();
+                break;
+            }
+            qWarning().noquote() << "[image2x] realsr-ncnn-vulkan started with pid"
+                                 << Waifu2x->processId();
             while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
             {
+                LogEngineProgress(QStringLiteral("realsr-ncnn-vulkan"), Waifu2x,
+                                  OutputPath_tmp, &engineTimer);
                 //判断用户是否暂停处理
                 if(waifu2x_STOP)
                 {
@@ -154,6 +167,8 @@ int MainWindow::Realsr_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaC
                     break;
                 }
             }
+            qWarning().noquote() << "[image2x] realsr-ncnn-vulkan finished with exit code"
+                                 << Waifu2x->exitCode() << "and status" << Waifu2x->exitStatus();
             //===============
             if(waifu2x_qprocess_failed)break;
             //===============

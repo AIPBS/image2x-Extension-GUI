@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Changed
+- Print Linux still-image engine launch, heartbeat, and exit diagnostics to stderr.
+
 ### Fixed
 - Use Qt image encoding for Linux PNG preprocessing instead of waiting on the Windows-only converter.
 

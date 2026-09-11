@@ -40,6 +40,7 @@
 #include <windows.h>
 #endif
 #include <QTime>
+#include <QElapsedTimer>
 #include <QMediaPlayer>
 #include <QDesktopServices>
 #include <QSize>
@@ -169,6 +170,10 @@ public:
     QString OutPutFolder_main="";//总输出文件夹
     int Waifu2xMainThread();//waifu2x总线程,负责读取文件列表,调度waifu2x放大线程
     bool ValidateRuntimeDependencies();
+#ifdef PLATFORM_LINUX
+    void LogEngineProgress(const QString &engineName, QProcess *process,
+                           const QString &outputPath, QElapsedTimer *timer);
+#endif
     QStringList WaitForEngineIO(QStringList OutPutFilesFullPathList);
     QStringList WaitForEngineIO_NcnnVulkan(QString OutputFolderFullPath);
     void Restore_SplitFramesFolderPath(QString SplitFramesFolderPath, QStringList GPU_SplitFramesFolderPath_List);

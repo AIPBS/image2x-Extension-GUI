@@ -1758,7 +1758,7 @@ QString MainWindow::Waifu2x_NCNN_Vulkan_ReadSettings()
 {
     QString Waifu2x_NCNN_Vulkan_Settings_str = "";
 #ifdef PLATFORM_LINUX
-    Waifu2x_NCNN_Vulkan_Settings_str.append("-g -1 ");
+    Waifu2x_NCNN_Vulkan_Settings_str.append("-g 0 ");
 #endif
     Waifu2x_NCNN_Vulkan_Settings_str.append(Waifu2x_NCNN_Vulkan_PreLoad_Settings_Str);
     if(ui->checkBox_MultiGPU_Waifu2xNCNNVulkan->isChecked())

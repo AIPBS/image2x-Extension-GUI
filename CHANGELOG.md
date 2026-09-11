@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+## v0.3.5 (2026-09-11)
+
+### Added
+- Show Compatibility Test results and Linux installation guidance in a large, scrollable popup window.
+
+## v0.3.3 (2026-09-10)
+
+### Added
+- Tell Linux users which package-manager packages or application runtimes are needed when Compatibility Test checks fail.
+- Install APNG tools in Linux CI so the APNG compatibility check is covered by the build environment.
+
+## v0.3.2 (2026-09-10)
+
+### Added
+- Run Linux Compatibility Test checks for the installed RealSR, SRMD, Real-ESRGAN, Real-CUGAN, RIFE, CAIN, DAIN, and IFRNet runtimes.
+
+### Fixed
+- Report every visible Compatibility Test option and match the progress bar to all 26 checks.
+- Use the CPU backend for supported Linux waifu2x processing when automatic Vulkan-device selection stalls in the test sandbox.
+- Show a final Compatibility Test summary in the log so every checked and unchecked option has an explicit result.
+
 ## v0.3.1 (2026-09-10)
 
 ### Added

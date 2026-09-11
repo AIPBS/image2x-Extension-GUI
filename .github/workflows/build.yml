@@ -31,9 +31,12 @@ jobs:
             qtmultimedia5-dev \
             qttools5-dev-tools \
             libgl1-mesa-dev \
-            libx11-dev \
-            pkg-config \
-            patchelf
+             libx11-dev \
+             pkg-config \
+             patchelf \
+             apngasm \
+             apngdis \
+             apngopt
 
       - name: Build
         working-directory: src_code/image2x-Extension-QT

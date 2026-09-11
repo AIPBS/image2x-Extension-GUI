@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.4.2 (2026-09-11)
+
+### Fixed
+- Use the first Vulkan device for Linux Waifu2x processing because the CPU backend crashes in the supported runtime.
+
 ## v0.4.1 (2026-09-11)
 
 ### Changed

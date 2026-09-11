@@ -133,7 +133,7 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlp
     QString OutPut_Path = file_path + "/" + file_name + "_waifu2x_"+QString::number(ScaleRatio, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
     //============================== 放大 =======================================
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realcugan-ncnn-vulkan/realcugan-ncnn-vulkan_W2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realcugan-ncnn-vulkan", "realcugan-ncnn-vulkan");
     //==========
     QMap<QString,int> result_map = Calculate_ScaleRatio_RealCUGAN_NCNNVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];
@@ -443,7 +443,7 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_GIF(int rowNum)
     //读取配置讯息
     QString RealCUGAN_NCNN_Vulkan_Settings_str = RealCUGAN_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realcugan-ncnn-vulkan/realcugan-ncnn-vulkan_W2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realcugan-ncnn-vulkan", "realcugan-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = DenoiseLevel;
     int CountFinishedRounds=0;
@@ -848,7 +848,7 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_Video(int rowNum)
     //读取配置讯息
     QString RealCUGAN_NCNN_Vulkan_Settings_str = RealCUGAN_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realcugan-ncnn-vulkan/realcugan-ncnn-vulkan_W2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realcugan-ncnn-vulkan", "realcugan-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = DenoiseLevel;
     int CountFinishedRounds=0;
@@ -1333,7 +1333,7 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_Video_BySegment(int rowNum)
             //读取配置讯息
             QString RealCUGAN_NCNN_Vulkan_Settings_str = RealCUGAN_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
             QProcess *Waifu2x = new QProcess();
-            QString program = Current_Path+"/realcugan-ncnn-vulkan/realcugan-ncnn-vulkan_W2xEX.exe";
+            QString program = resolveEnginePath(Current_Path, "realcugan-ncnn-vulkan", "realcugan-ncnn-vulkan");
             bool waifu2x_qprocess_failed = false;
             int DenoiseLevel_tmp = DenoiseLevel;
             int CountFinishedRounds=0;
@@ -1593,7 +1593,7 @@ QString MainWindow::RealCUGAN_NCNN_Vulkan_ReadSettings()
         RealCUGAN_NCNN_Vulkan_Settings_str.append("-t "+GPUInfo["TileSize"]+" ");
     }
     //Model
-    QString engine_folder = Current_Path + "/realcugan-ncnn-vulkan";
+    QString engine_folder = resolveEngineDirectory(Current_Path, "realcugan-ncnn-vulkan");
     QString model_variant = "";
     switch(ui->comboBox_ModelVariant_RealCUGAN->currentIndex())
     {
@@ -1637,8 +1637,8 @@ int MainWindow::RealCUGAN_ncnn_vulkan_DetectGPU()
     QString OutputPath = Current_Path + "/Compatibility_Test/res.png";
     QFile::remove(OutputPath);
     //==============
-    QString engine_folder = Current_Path + "/realcugan-ncnn-vulkan";
-    QString program = engine_folder + "/realcugan-ncnn-vulkan_W2xEX.exe";
+    QString engine_folder = resolveEngineDirectory(Current_Path, "realcugan-ncnn-vulkan");
+    QString program = resolveEnginePath(Current_Path, "realcugan-ncnn-vulkan", "realcugan-ncnn-vulkan");
     QString model_path = engine_folder+"/models-se";
     //===========
     int GPU_ID=-1;
@@ -2123,7 +2123,7 @@ QString MainWindow::RealCUGAN_NCNN_Vulkan_ReadSettings_Video_GIF(int ThreadNum)
         RealCUGAN_NCNN_Vulkan_Settings_str.append("-x ");
     }
     //Model - select variant based on comboBox_ModelVariant_RealCUGAN
-    QString engine_folder = Current_Path + "/realcugan-ncnn-vulkan";
+    QString engine_folder = resolveEngineDirectory(Current_Path, "realcugan-ncnn-vulkan");
     QString model_variant = "";
     switch(ui->comboBox_ModelVariant_RealCUGAN->currentIndex())
     {
@@ -2169,7 +2169,7 @@ bool MainWindow::APNG_RealCUGAN_NCNNVulkan(QString splitFramesFolder,QString sca
     }
     QString RealCUGAN_NCNN_Vulkan_Settings_str = RealCUGAN_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realcugan-ncnn-vulkan/realcugan-ncnn-vulkan_W2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realcugan-ncnn-vulkan", "realcugan-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = ui->comboBox_Denoise_RealCUGAN->currentIndex();
     int CountFinishedRounds=0;

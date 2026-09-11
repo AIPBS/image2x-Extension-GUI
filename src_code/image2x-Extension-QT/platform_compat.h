@@ -90,6 +90,23 @@
 #endif
 
 /*
+ * Resolve the directory containing an engine runtime and its models.
+ * Packaged Linux builds keep these under dependencies/engines; the original
+ * flat layout remains a fallback for Windows and older installations.
+ */
+inline QString resolveEngineDirectory(const QString &baseDir,
+                                      const QString &engineName)
+{
+    const QString packagedEngineDirectory = QDir(baseDir).filePath(
+        QStringLiteral("dependencies/engines/%1").arg(engineName));
+    if (QDir(packagedEngineDirectory).isDir())
+    {
+        return QDir::toNativeSeparators(packagedEngineDirectory);
+    }
+    return QDir::toNativeSeparators(QDir(baseDir).filePath(engineName));
+}
+
+/*
  * Resolve the full path to an engine executable.
  *
  * On Windows the executable is named "<exeName>_waifu2xEX.exe".
@@ -105,14 +122,15 @@ inline QString resolveEnginePath(const QString &baseDir,
                                  const QString &engineName,
                                  const QString &exeName)
 {
-    QString path = baseDir + "/" + engineName + "/" + exeName + ENGINE_SUFFIX;
+    const QString engineDirectory = resolveEngineDirectory(baseDir, engineName);
+    QString path = QDir(engineDirectory).filePath(exeName + QStringLiteral(ENGINE_SUFFIX));
 
     // On non-Windows platforms, also try without ENGINE_SUFFIX
     // (the ENGINE_SUFFIX is empty for Linux/macOS, so this is already correct)
     if (!QFile::exists(path))
     {
         // Try plain exeName as a fallback
-        path = baseDir + "/" + engineName + "/" + exeName;
+        path = QDir(engineDirectory).filePath(exeName);
     }
 
     return QDir::toNativeSeparators(path);
@@ -129,8 +147,8 @@ inline QString resolveModelPath(const QString &baseDir,
                                 const QString &engineName,
                                 const QString &modelDir)
 {
-    QString path = baseDir + "/" + engineName + "/" + modelDir;
-    return QDir::toNativeSeparators(path);
+    const QString engineDirectory = resolveEngineDirectory(baseDir, engineName);
+    return QDir::toNativeSeparators(QDir(engineDirectory).filePath(modelDir));
 }
 
 /*

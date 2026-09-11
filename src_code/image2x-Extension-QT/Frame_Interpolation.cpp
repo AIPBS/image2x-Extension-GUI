@@ -454,6 +454,10 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
         OutputPath = OutputPath.left(OutputPath.length() - 1);
     }
     if(file_isDirExist(SourcePath)==false)return false;
+    if(ui->comboBox_Engine_VFI->currentIndex()==3)
+    {
+        return IFRNet_FrameInterpolation(SourcePath, OutputPath);
+    }
     //=======
     emit Send_TextBrowser_NewMessage(tr("Starting to interpolate frames in:[")+SourcePath+"]");
     //==== 检测是否启用了自动调整线程数量,若启用则强制设定重试次数大于6 ====
@@ -499,17 +503,22 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
     {
         case 0:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/rife-ncnn-vulkan/rife-ncnn-vulkan_waifu2xEX.exe";
+                FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "rife-ncnn-vulkan", "rife-ncnn-vulkan");
                 break;
             }
         case 1:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/cain-ncnn-vulkan/cain-ncnn-vulkan_waifu2xEX.exe";
+                FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "cain-ncnn-vulkan", "cain-ncnn-vulkan");
                 break;
             }
         case 2:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/dain-ncnn-vulkan/dain-ncnn-vulkan_waifu2xEX.exe";
+                FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "dain-ncnn-vulkan", "dain-ncnn-vulkan");
+                break;
+            }
+        case 3:
+            {
+                FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "ifrnet-ncnn-vulkan", "ifrnet-ncnn-vulkan");
                 break;
             }
     }
@@ -797,17 +806,17 @@ QString MainWindow::FrameInterpolation_ReadConfig(bool isUhdInput,int NumOfFrame
     {
         case 0://rife
             {
-                VFI_Config.append("-m \""+Current_Path+"/rife-ncnn-vulkan/"+ui->comboBox_Model_VFI->currentText().trimmed()+"\" ");
+                VFI_Config.append("-m \""+resolveModelPath(Current_Path, "rife-ncnn-vulkan", ui->comboBox_Model_VFI->currentText().trimmed())+"\" ");
                 break;
             }
         case 1://cain
             {
-                VFI_Config.append("-m \""+Current_Path+"/cain-ncnn-vulkan/cain\" ");
+                VFI_Config.append("-m \""+resolveModelPath(Current_Path, "cain-ncnn-vulkan", "cain")+"\" ");
                 break;
             }
         case 2://dain
             {
-                VFI_Config.append("-m \""+Current_Path+"/dain-ncnn-vulkan/best\" ");
+                VFI_Config.append("-m \""+resolveModelPath(Current_Path, "dain-ncnn-vulkan", "best")+"\" ");
                 //顺便把帧数倍率塞进去
                 VFI_Config.append("-n "+QString("%1").arg(NumOfFrames)+" ");
                 break;
@@ -851,21 +860,27 @@ int MainWindow::FrameInterpolation_DetectGPU()
     {
         case 0:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/rife-ncnn-vulkan/rife-ncnn-vulkan_waifu2xEX.exe";
-                FrameInterpolation_ModelPath = Current_Path+"/rife-ncnn-vulkan/rife-v2.4";
+                FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "rife-ncnn-vulkan", "rife-ncnn-vulkan");
+                FrameInterpolation_ModelPath = resolveModelPath(Current_Path, "rife-ncnn-vulkan", "rife-v2.4");
                 break;
             }
         case 1:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/cain-ncnn-vulkan/cain-ncnn-vulkan_waifu2xEX.exe";
-                FrameInterpolation_ModelPath = Current_Path+"/cain-ncnn-vulkan/cain";
+                FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "cain-ncnn-vulkan", "cain-ncnn-vulkan");
+                FrameInterpolation_ModelPath = resolveModelPath(Current_Path, "cain-ncnn-vulkan", "cain");
                 break;
             }
         case 2:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/dain-ncnn-vulkan/dain-ncnn-vulkan_waifu2xEX.exe";
-                FrameInterpolation_ModelPath = Current_Path+"/dain-ncnn-vulkan/best";
+                FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "dain-ncnn-vulkan", "dain-ncnn-vulkan");
+                FrameInterpolation_ModelPath = resolveModelPath(Current_Path, "dain-ncnn-vulkan", "best");
                 TileSize_qstr = " -t 128 ";
+                break;
+            }
+        case 3:
+            {
+                FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "ifrnet-ncnn-vulkan", "ifrnet-ncnn-vulkan");
+                FrameInterpolation_ModelPath = resolveModelPath(Current_Path, "ifrnet-ncnn-vulkan", "IFRNet_Vimeo90K");
                 break;
             }
     }

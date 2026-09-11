@@ -104,8 +104,8 @@ int MainWindow::SRMD_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaCha
     QString OutPut_Path = file_path + "/" + file_name + "_waifu2x_"+QString::number(ScaleRatio, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
     //============================== 放大 =======================================
     QProcess *Waifu2x = new QProcess();
-    QString Waifu2x_folder_path = Current_Path + "/srmd-ncnn-vulkan";
-    QString program = Waifu2x_folder_path + "/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString Waifu2x_folder_path = resolveEngineDirectory(Current_Path, "srmd-ncnn-vulkan");
+    QString program = resolveEnginePath(Current_Path, "srmd-ncnn-vulkan", "srmd-ncnn-vulkan");
     //==========
     QMap<QString,int> result_map = Calculate_ScaleRatio_SrmdNcnnVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];
@@ -416,7 +416,7 @@ int MainWindow::SRMD_NCNN_Vulkan_GIF(int rowNum)
     //读取配置讯息
     QString SRMD_NCNN_Vulkan_Settings_str = SrmdNcnnVulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path + "/srmd-ncnn-vulkan/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "srmd-ncnn-vulkan", "srmd-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = DenoiseLevel;
     int CountFinishedRounds=0;
@@ -818,7 +818,7 @@ int MainWindow::SRMD_NCNN_Vulkan_Video(int rowNum)
     //读取配置讯息
     QString SRMD_NCNN_Vulkan_Settings_str = SrmdNcnnVulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path + "/srmd-ncnn-vulkan/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "srmd-ncnn-vulkan", "srmd-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = DenoiseLevel;
     int CountFinishedRounds=0;
@@ -1365,7 +1365,7 @@ int MainWindow::SRMD_NCNN_Vulkan_Video_BySegment(int rowNum)
             //读取配置讯息
             QString SRMD_NCNN_Vulkan_Settings_str = SrmdNcnnVulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
             QProcess *Waifu2x = new QProcess();
-            QString program = Current_Path + "/srmd-ncnn-vulkan/srmd-ncnn-vulkan_waifu2xEX.exe";
+            QString program = resolveEnginePath(Current_Path, "srmd-ncnn-vulkan", "srmd-ncnn-vulkan");
             bool waifu2x_qprocess_failed = false;
             int DenoiseLevel_tmp = DenoiseLevel;
             int CountFinishedRounds=0;
@@ -1614,8 +1614,8 @@ int MainWindow::SRMD_DetectGPU()
     QString OutputPath = Current_Path + "/Compatibility_Test/res.png";
     QFile::remove(OutputPath);
     //==============
-    QString Waifu2x_folder_path = Current_Path + "/srmd-ncnn-vulkan";
-    QString program = Waifu2x_folder_path + "/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString Waifu2x_folder_path = resolveEngineDirectory(Current_Path, "srmd-ncnn-vulkan");
+    QString program = resolveEnginePath(Current_Path, "srmd-ncnn-vulkan", "srmd-ncnn-vulkan");
     QString model_path = Waifu2x_folder_path+"/models-srmd";
     //=========
     int GPU_ID=-1;
@@ -1707,7 +1707,7 @@ QString MainWindow::SrmdNcnnVulkan_PreLoad_Settings()
         SrmdNcnnVulkan_Settings_str.append("-t "+QString::number(ui->spinBox_TileSize_srmd->value(),10)+" ");
     }
     //Model
-    QString SrmdNcnnVulkan_folder_path = Current_Path + "/srmd-ncnn-vulkan";
+    QString SrmdNcnnVulkan_folder_path = resolveEngineDirectory(Current_Path, "srmd-ncnn-vulkan");
     QString model_path = SrmdNcnnVulkan_folder_path+"/models-srmd";
     SrmdNcnnVulkan_Settings_str.append("-m \""+model_path+"\" ");
     SrmdNcnnVulkan_Settings_str.append("-j 1:1:1 ");
@@ -2136,7 +2136,7 @@ QString MainWindow::SrmdNcnnVulkan_ReadSettings_Video_GIF(int ThreadNum)
         SrmdNcnnVulkan_Settings_str.append(QString("-j %1:").arg(LoadAndWrite_tnum)+Jobs_cmd+QString(":%1 ").arg(LoadAndWrite_tnum));
     }
     //Model
-    SrmdNcnnVulkan_Settings_str.append("-m \""+Current_Path+"/srmd-ncnn-vulkan/models-srmd"+"\" ");
+    SrmdNcnnVulkan_Settings_str.append("-m \""+resolveModelPath(Current_Path, "srmd-ncnn-vulkan", "models-srmd")+"\" ");
     //=======================================
     return SrmdNcnnVulkan_Settings_str;
 }
@@ -2179,7 +2179,7 @@ bool MainWindow::APNG_SrmdNCNNVulkan(QString splitFramesFolder,QString scaledFra
     //读取配置讯息
     QString SRMD_NCNN_Vulkan_Settings_str = SrmdNcnnVulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path + "/srmd-ncnn-vulkan/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "srmd-ncnn-vulkan", "srmd-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = ui->spinBox_DenoiseLevel_gif->value();
     int CountFinishedRounds=0;

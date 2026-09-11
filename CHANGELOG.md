@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v0.4.0 (2026-09-11)
+
+### Added
+- Wire Linux still-image dispatch and runtime/model validation for SRMD, RealSR, Real-ESRGAN, and Real-CUGAN.
+- Add IFRNet to the frame-interpolation engine dispatch.
+
+### Fixed
+- Resolve packaged Linux engines under `dependencies/engines` while retaining the legacy flat-layout fallback.
+- Use platform-correct executable names in the newly supported engine paths.
+
 ## v0.3.5 (2026-09-11)
 
 ### Added

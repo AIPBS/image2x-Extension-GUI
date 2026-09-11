@@ -371,6 +371,22 @@ int MainWindow::Waifu2xMainThread()
                         QtConcurrent::run(this, &MainWindow::SRMD_CUDA_Image, currentRowNumber, false);
                         break;
                     }
+                case 7:
+                    {
+                        mutex_ThreadNumRunning.lock();
+                        ThreadNumRunning++;//线程数量统计+1
+                        mutex_ThreadNumRunning.unlock();
+                        QtConcurrent::run(this, &MainWindow::RealESRGAN_NCNN_Vulkan_Image, currentRowNumber, false);
+                        break;
+                    }
+                case 8:
+                    {
+                        mutex_ThreadNumRunning.lock();
+                        ThreadNumRunning++;//线程数量统计+1
+                        mutex_ThreadNumRunning.unlock();
+                        QtConcurrent::run(this, &MainWindow::RealCUGAN_NCNN_Vulkan_Image, currentRowNumber, false);
+                        break;
+                    }
             }
             //================
             while (ThreadNumRunning >= ThreadNumMax)

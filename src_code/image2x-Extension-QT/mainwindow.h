@@ -58,6 +58,7 @@
 #include <QMutex>
 #include <QSystemTrayIcon>
 #include <QMenu>
+#include "platform_compat.h"
 #include <QMetaType>
 #include <QRandomGenerator>
 #include <QScrollBar>
@@ -83,7 +84,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void changeEvent(QEvent *e);
     //=======================
-    QString VERSION = "v0.3.5";
+    QString VERSION = "v0.4.0";
     bool isBetaVer = false;
     QString LastStableVer = "v3.31.13";
     QString LastBetaVer = "v3.41.02-beta";

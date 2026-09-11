@@ -103,7 +103,7 @@ int MainWindow::Realsr_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaC
     QString OutPut_Path = file_path + "/" + file_name + "_waifu2x_"+QString::number(ScaleRatio, 10)+"x_"+file_ext+".png";
     //============================== 放大 =======================================
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realsr-ncnn-vulkan/realsr-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realsr-ncnn-vulkan", "realsr-ncnn-vulkan");
     //==========
     int ScaleRatio_tmp=Calculate_Temporary_ScaleRatio_RealsrNCNNVulkan(ScaleRatio);
     QString InputPath_tmp = SourceFile_fullPath;
@@ -408,7 +408,7 @@ int MainWindow::Realsr_NCNN_Vulkan_GIF(int rowNum)
     //读取配置讯息
     QString Realsr_NCNN_Vulkan_Settings_str = Realsr_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realsr-ncnn-vulkan/realsr-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realsr-ncnn-vulkan", "realsr-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int CountFinishedRounds=0;
     //====
@@ -809,7 +809,7 @@ int MainWindow::Realsr_NCNN_Vulkan_Video(int rowNum)
     //读取配置讯息
     QString Realsr_NCNN_Vulkan_Settings_str = Realsr_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realsr-ncnn-vulkan/realsr-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realsr-ncnn-vulkan", "realsr-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int CountFinishedRounds=0;
     //====
@@ -1349,7 +1349,7 @@ int MainWindow::Realsr_NCNN_Vulkan_Video_BySegment(int rowNum)
             //读取配置讯息
             QString Realsr_NCNN_Vulkan_Settings_str = Realsr_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
             QProcess *Waifu2x = new QProcess();
-            QString program = Current_Path+"/realsr-ncnn-vulkan/realsr-ncnn-vulkan_waifu2xEX.exe";
+                    QString program = resolveEnginePath(Current_Path, "realsr-ncnn-vulkan", "realsr-ncnn-vulkan");
             bool waifu2x_qprocess_failed = false;
             int CountFinishedRounds=0;
             //====
@@ -1595,7 +1595,7 @@ QString MainWindow::Realsr_NCNN_Vulkan_PreLoad_Settings()
         Realsr_NCNN_Vulkan_Settings_str.append("-x ");
     }
     //Model
-    QString Waifu2x_folder_path = Current_Path+"/realsr-ncnn-vulkan";
+    QString Waifu2x_folder_path = resolveEngineDirectory(Current_Path, "realsr-ncnn-vulkan");
     switch(ui->comboBox_Model_RealsrNCNNVulkan->currentIndex())
     {
         case 0:
@@ -1668,8 +1668,8 @@ int MainWindow::Realsr_ncnn_vulkan_DetectGPU()
     QString OutputPath = Current_Path + "/Compatibility_Test/res.png";
     QFile::remove(OutputPath);
     //==============
-    QString Waifu2x_folder_path = Current_Path + "/realsr-ncnn-vulkan";
-    QString program = Waifu2x_folder_path + "/realsr-ncnn-vulkan_waifu2xEX.exe";
+    QString Waifu2x_folder_path = resolveEngineDirectory(Current_Path, "realsr-ncnn-vulkan");
+    QString program = resolveEnginePath(Current_Path, "realsr-ncnn-vulkan", "realsr-ncnn-vulkan");
     QString model_path = Waifu2x_folder_path+"/models-DF2K_JPEG";
     //===========
     int GPU_ID=-1;
@@ -2036,7 +2036,7 @@ QString MainWindow::Realsr_NCNN_Vulkan_ReadSettings_Video_GIF(int ThreadNum)
         Realsr_NCNN_Vulkan_Settings_str.append("-x ");
     }
     //Model
-    QString Waifu2x_folder_path = Current_Path+"/realsr-ncnn-vulkan";
+    QString Waifu2x_folder_path = resolveEngineDirectory(Current_Path, "realsr-ncnn-vulkan");
     switch(ui->comboBox_Model_RealsrNCNNVulkan->currentIndex())
     {
         case 0:
@@ -2090,7 +2090,7 @@ bool MainWindow::APNG_RealsrNCNNVulkan(QString splitFramesFolder,QString scaledF
     //读取配置讯息
     QString Realsr_NCNN_Vulkan_Settings_str = Realsr_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realsr-ncnn-vulkan/realsr-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realsr-ncnn-vulkan", "realsr-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int CountFinishedRounds=0;
     //====

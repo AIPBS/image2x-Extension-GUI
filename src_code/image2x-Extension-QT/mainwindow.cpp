@@ -1666,26 +1666,115 @@ bool MainWindow::ValidateRuntimeDependencies()
         return false;
     }
 
-    if (ui->comboBox_Engine_Image->currentIndex() != 0)
+    const int imageEngine = ui->comboBox_Engine_Image->currentIndex();
+    QString engineName;
+    QString executableName;
+    QString modelPath;
+    switch (imageEngine)
     {
-        const QString message = tr(
-            "The selected image engine is not packaged for Linux yet. "
-            "Select waifu2x-ncnn-vulkan to process still images.");
-        emit Send_TextBrowser_NewMessage(message);
-        QMessageBox::warning(this, tr("Unavailable Linux engine"), message);
-        return false;
+        case 0:
+            {
+                RuntimeDependencies dependencies(Current_Path);
+                const QStringList missing = dependencies.missingFiles(RuntimeEngine::Waifu2xNcnnVulkan);
+                if (!missing.isEmpty())
+                {
+                    const QString message = tr(
+                        "The Linux waifu2x runtime is not installed. Run:\n%1\n\nMissing:\n%2")
+                        .arg(dependencies.installCommand(RuntimeEngine::Waifu2xNcnnVulkan),
+                             missing.join(QStringLiteral("\n")));
+                    emit Send_TextBrowser_NewMessage(message);
+                    QMessageBox::warning(this, tr("Linux runtime missing"), message);
+                    return false;
+                }
+                return true;
+            }
+        case 2:
+            engineName = QStringLiteral("srmd-ncnn-vulkan");
+            executableName = QStringLiteral("srmd-ncnn-vulkan");
+            modelPath = resolveModelPath(Current_Path, engineName, QStringLiteral("models-srmd"));
+            break;
+        case 5:
+            engineName = QStringLiteral("realsr-ncnn-vulkan");
+            executableName = QStringLiteral("realsr-ncnn-vulkan");
+            modelPath = resolveModelPath(Current_Path, engineName,
+                                         ui->comboBox_Model_RealsrNCNNVulkan->currentIndex() == 0
+                                             ? QStringLiteral("models-DF2K_JPEG")
+                                             : QStringLiteral("models-DF2K"));
+            break;
+        case 7:
+            {
+                engineName = QStringLiteral("realesrgan-ncnn-vulkan");
+                executableName = QStringLiteral("realesrgan-ncnn-vulkan");
+                const QStringList animeModels = {
+                    QStringLiteral("Anime-HQ-W4xEX"),
+                    QStringLiteral("AnimeVideo-MiniV1.8-W2xEX"),
+                    QStringLiteral("realesr-animevideov3-x2"),
+                    QStringLiteral("realesr-animevideov3-x3"),
+                    QStringLiteral("realesr-animevideov3-x4"),
+                    QStringLiteral("realesrgan-x4plus-anime"),
+                    QStringLiteral("RealESRGANv2-animevideo-xsx2"),
+                    QStringLiteral("RealESRGANv2-animevideo-xsx4")};
+                const QStringList photoModels = {
+                    QStringLiteral("Omni-TurboV1.5-W2xEX"),
+                    QStringLiteral("Omni-MiniV2-W2xEX"),
+                    QStringLiteral("Omni-Smallv2-W2xEX"),
+                    QStringLiteral("Photo-HQ-W4xEX"),
+                    QStringLiteral("Photo-Small-W2xEX"),
+                    QStringLiteral("Universal-FastV2-W2xEX"),
+                    QStringLiteral("Photo-Conservative-x4"),
+                    QStringLiteral("realesrgan-x4plus"),
+                    QStringLiteral("realesr-general-x4v3"),
+                    QStringLiteral("realesr-general-wdn-x4v3")};
+                const bool anime = ui->comboBox_ImageStyle_RealESRGAN->currentIndex() == 0;
+                const QStringList models = anime ? animeModels : photoModels;
+                const int modelIndex = anime
+                    ? ui->comboBox_Model_2D_RealESRGAN->currentIndex()
+                    : ui->comboBox_Model_3D_RealESRGAN->currentIndex();
+                if (modelIndex >= 0 && modelIndex < models.size())
+                {
+                    modelPath = resolveModelPath(Current_Path, engineName,
+                                                 QStringLiteral("models/%1").arg(models.at(modelIndex)));
+                }
+                break;
+            }
+        case 8:
+            engineName = QStringLiteral("realcugan-ncnn-vulkan");
+            executableName = QStringLiteral("realcugan-ncnn-vulkan");
+            modelPath = resolveModelPath(Current_Path, engineName,
+                                         QStringLiteral("models-%1").arg(
+                                             ui->comboBox_ModelVariant_RealCUGAN->currentIndex() == 1
+                                                 ? QStringLiteral("pro")
+                                                 : ui->comboBox_ModelVariant_RealCUGAN->currentIndex() == 2
+                                                     ? QStringLiteral("nose")
+                                                     : QStringLiteral("se")));
+            break;
+        default:
+            {
+                const QString message = tr(
+                    "The selected image engine is not packaged for Linux yet.");
+                emit Send_TextBrowser_NewMessage(message);
+                QMessageBox::warning(this, tr("Unavailable Linux engine"), message);
+                return false;
+            }
     }
 
-    RuntimeDependencies dependencies(Current_Path);
-    const QStringList missing = dependencies.missingFiles(RuntimeEngine::Waifu2xNcnnVulkan);
-    if (!missing.isEmpty())
+    const QString executablePath = resolveEnginePath(Current_Path, engineName, executableName);
+    if (!QFile::exists(executablePath))
     {
-        const QString message = tr(
-            "The Linux waifu2x runtime is not installed. Run:\n%1\n\nMissing:\n%2")
-            .arg(dependencies.installCommand(RuntimeEngine::Waifu2xNcnnVulkan),
-                 missing.join(QStringLiteral("\n")));
+        const QString message = tr("The Linux %1 runtime is missing:\n%2")
+            .arg(engineName, executablePath);
         emit Send_TextBrowser_NewMessage(message);
         QMessageBox::warning(this, tr("Linux runtime missing"), message);
+        return false;
+    }
+    if (!modelPath.isEmpty() && !QDir(modelPath).isDir()
+        && !QFile::exists(modelPath + QStringLiteral(".param"))
+        && !QFile::exists(modelPath + QStringLiteral(".bin")))
+    {
+        const QString message = tr("The selected Linux model is missing:\n%1")
+            .arg(modelPath);
+        emit Send_TextBrowser_NewMessage(message);
+        QMessageBox::warning(this, tr("Linux model missing"), message);
         return false;
     }
 #endif

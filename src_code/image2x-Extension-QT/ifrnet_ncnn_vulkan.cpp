@@ -102,7 +102,7 @@ bool MainWindow::IFRNet_FrameInterpolation(QString SourcePath,QString OutputPath
     int FileNum_New = 0;
     int FileNum_Old = 0;
     //========
-    QString FrameInterpolation_ProgramPath = Current_Path+"/ifrnet-ncnn-vulkan/ifrnet-ncnn-vulkan_waifu2xEX.exe";
+    QString FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "ifrnet-ncnn-vulkan", "ifrnet-ncnn-vulkan");
     QString CMD ="";
     //========
     bool FrameInterpolation_QProcess_failed = false;
@@ -350,7 +350,7 @@ QString MainWindow::IFRNet_ReadConfig(bool isUhdInput,int NumOfFrames)
         }
     }
     //Model
-    QString engine_folder = Current_Path + "/ifrnet-ncnn-vulkan";
+    QString engine_folder = resolveEngineDirectory(Current_Path, "ifrnet-ncnn-vulkan");
     VFI_Config.append("-m \""+engine_folder+"/"+ui->comboBox_Model_VFI->currentText().trimmed()+"\" ");
     //========================
     return VFI_Config;
@@ -383,8 +383,8 @@ int MainWindow::IFRNet_DetectGPU()
     QString OutputPath = Current_Path + "/Compatibility_Test/res.png";
     QFile::remove(OutputPath);
     //==============
-    QString program = Current_Path+"/ifrnet-ncnn-vulkan/ifrnet-ncnn-vulkan_waifu2xEX.exe";
-    QString model_path = Current_Path+"/ifrnet-ncnn-vulkan/IFRNet_Vimeo90K";
+    QString program = resolveEnginePath(Current_Path, "ifrnet-ncnn-vulkan", "ifrnet-ncnn-vulkan");
+    QString model_path = resolveModelPath(Current_Path, "ifrnet-ncnn-vulkan", "IFRNet_Vimeo90K");
     //=========
     int GPU_ID=-1;
     //=========

@@ -133,7 +133,7 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAl
     QString OutPut_Path = file_path + "/" + file_name + "_waifu2x_"+QString::number(ScaleRatio, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
     //============================== 放大 =======================================
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realesrgan-ncnn-vulkan", "realesrgan-ncnn-vulkan");
     //==========
     QMap<QString,int> result_map = Calculate_ScaleRatio_RealESRGAN_NCNNVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];
@@ -443,7 +443,7 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_GIF(int rowNum)
     //读取配置讯息
     QString RealESRGAN_NCNN_Vulkan_Settings_str = RealESRGAN_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realesrgan-ncnn-vulkan", "realesrgan-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = DenoiseLevel;
     int CountFinishedRounds=0;
@@ -848,7 +848,7 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video(int rowNum)
     //读取配置讯息
     QString RealESRGAN_NCNN_Vulkan_Settings_str = RealESRGAN_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realesrgan-ncnn-vulkan", "realesrgan-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = DenoiseLevel;
     int CountFinishedRounds=0;
@@ -1333,7 +1333,7 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video_BySegment(int rowNum)
             //读取配置讯息
             QString RealESRGAN_NCNN_Vulkan_Settings_str = RealESRGAN_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
             QProcess *Waifu2x = new QProcess();
-            QString program = Current_Path+"/realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan_waifu2xEX.exe";
+            QString program = resolveEnginePath(Current_Path, "realesrgan-ncnn-vulkan", "realesrgan-ncnn-vulkan");
             bool waifu2x_qprocess_failed = false;
             int DenoiseLevel_tmp = DenoiseLevel;
             int CountFinishedRounds=0;
@@ -1596,7 +1596,7 @@ QString MainWindow::RealESRGAN_NCNN_Vulkan_ReadSettings()
     }
     //Model - select based on image style
     QString model_path = "";
-    QString engine_folder = Current_Path + "/realesrgan-ncnn-vulkan";
+    QString engine_folder = resolveEngineDirectory(Current_Path, "realesrgan-ncnn-vulkan");
     if(ui->comboBox_ImageStyle->currentIndex()==0)
     {
         //2D Anime models
@@ -1669,8 +1669,8 @@ int MainWindow::RealESRGAN_ncnn_vulkan_DetectGPU()
     QString OutputPath = Current_Path + "/Compatibility_Test/res.png";
     QFile::remove(OutputPath);
     //==============
-    QString engine_folder = Current_Path + "/realesrgan-ncnn-vulkan";
-    QString program = engine_folder + "/realesrgan-ncnn-vulkan_waifu2xEX.exe";
+    QString engine_folder = resolveEngineDirectory(Current_Path, "realesrgan-ncnn-vulkan");
+    QString program = resolveEnginePath(Current_Path, "realesrgan-ncnn-vulkan", "realesrgan-ncnn-vulkan");
     QString model_path = engine_folder+"/models/realesrgan-x4plus";
     //===========
     int GPU_ID=-1;
@@ -2140,7 +2140,7 @@ QString MainWindow::RealESRGAN_NCNN_Vulkan_ReadSettings_Video_GIF(int ThreadNum)
         RealESRGAN_NCNN_Vulkan_Settings_str.append("-x ");
     }
     //Model
-    QString engine_folder = Current_Path + "/realesrgan-ncnn-vulkan";
+    QString engine_folder = resolveEngineDirectory(Current_Path, "realesrgan-ncnn-vulkan");
     QString model_path = "";
     if(ui->comboBox_ImageStyle->currentIndex()==0)
     {
@@ -2217,7 +2217,7 @@ bool MainWindow::APNG_RealESRGAN_NCNNVulkan(QString splitFramesFolder,QString sc
     //读取配置讯息
     QString RealESRGAN_NCNN_Vulkan_Settings_str = RealESRGAN_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path+"/realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan_waifu2xEX.exe";
+    QString program = resolveEnginePath(Current_Path, "realesrgan-ncnn-vulkan", "realesrgan-ncnn-vulkan");
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = ui->spinBox_DenoiseLevel_gif->value();
     int CountFinishedRounds=0;

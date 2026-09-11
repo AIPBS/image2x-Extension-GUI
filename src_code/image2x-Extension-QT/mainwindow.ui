@@ -3892,7 +3892,9 @@ Anime4K             [Speed:★★★ Image quality:★☆  ] [2D Anime]
 SRMD-NCNN-Vulkan    [Speed:★☆   Image quality:★★★] [2D Anime]&amp;[3D Real-life]
 Waifu2x-Caffe       [Speed:★☆   Image quality:★★★] [2D Anime]&amp;[3D Real-life]
 RealSR-NCNN-Vulkan  [Speed:☆     Image quality:★★★] [3D Real-life]
-SRMD-CUDA           [Speed:★★☆ Image quality:★★★] [2D Anime]&amp;[3D Real-life]</string>
+SRMD-CUDA           [Speed:★★☆ Image quality:★★★] [2D Anime]&amp;[3D Real-life]
+RealESRGAN-NCNN-Vulkan [Speed:★★  Image quality:★★★] [2D Anime]&amp;[3D Real-life]
+RealCUGAN-NCNN-Vulkan  [Speed:★★  Image quality:★★★] [2D Anime]</string>
                     </property>
                     <property name="currentText">
                      <string notr="true">waifu2x-ncnn-vulkan</string>
@@ -3930,11 +3932,21 @@ SRMD-CUDA           [Speed:★★☆ Image quality:★★★] [2D Anime]&amp;[3D
                       <string notr="true">realsr-ncnn-vulkan</string>
                      </property>
                     </item>
-                    <item>
-                     <property name="text">
-                      <string>[BETA] srmd-cuda</string>
-                     </property>
-                    </item>
+                     <item>
+                      <property name="text">
+                       <string>[BETA] srmd-cuda</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string notr="true">realesrgan-ncnn-vulkan</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string notr="true">realcugan-ncnn-vulkan</string>
+                      </property>
+                     </item>
                    </widget>
                   </item>
                   <item row="0" column="0">
@@ -8195,7 +8207,8 @@ Only works when using [rife-ncnn-vulkan] engine.</string>
                        <property name="toolTip">
                         <string>RIFE-NCNN-Vulkan [Speed:★★★ Image quality:★★☆] [2D Anime]&amp;[3D Real-life]
 CAIN-NCNN-Vulkan [Speed:★★★ Image quality:★★☆] [2D Anime]&amp;[3D Real-life]
-DAIN-NCNN-Vulkan [Speed:☆     Image quality:★★★] [2D Anime]&amp;[3D Real-life]</string>
+DAIN-NCNN-Vulkan [Speed:☆     Image quality:★★★] [2D Anime]&amp;[3D Real-life]
+IFRNet-NCNN-Vulkan [Speed:★★  Image quality:★★★] [2D Anime]&amp;[3D Real-life]</string>
                        </property>
                        <item>
                         <property name="text">
@@ -8207,11 +8220,16 @@ DAIN-NCNN-Vulkan [Speed:☆     Image quality:★★★] [2D Anime]&amp;[3D Real
                          <string notr="true">cain-ncnn-vulkan</string>
                         </property>
                        </item>
-                       <item>
-                        <property name="text">
-                         <string notr="true">dain-ncnn-vulkan</string>
-                        </property>
-                       </item>
+                        <item>
+                         <property name="text">
+                          <string notr="true">dain-ncnn-vulkan</string>
+                         </property>
+                        </item>
+                        <item>
+                         <property name="text">
+                          <string notr="true">ifrnet-ncnn-vulkan</string>
+                         </property>
+                        </item>
                       </widget>
                      </item>
                     </layout>

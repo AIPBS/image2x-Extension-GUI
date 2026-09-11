@@ -129,10 +129,10 @@ copy_models() {
         mkdir -p "$(dirname "$dst")"
         if [ -f "$src" ]; then
             cp "$src" "$dst"
-            ((copied++))
+            copied=$((copied + 1))
         else
             echo "  NOT FOUND: $model"
-            ((missing++))
+            missing=$((missing + 1))
         fi
     done
 

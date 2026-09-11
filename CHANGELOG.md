@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.4.3 (2026-09-11)
+
+### Fixed
+- Use Qt image encoding on Linux instead of waiting for the Windows-only format converter, keeping the GUI responsive after processing.
+
 ## v0.4.2 (2026-09-11)
 
 ### Fixed

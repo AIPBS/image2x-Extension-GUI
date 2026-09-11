@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Use Qt image encoding for Linux PNG preprocessing instead of waiting on the Windows-only converter.
+
 ## v0.4.0 (2026-09-11)
 
 ### Added

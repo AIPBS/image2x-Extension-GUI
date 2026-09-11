@@ -99,7 +99,7 @@ inline QString resolveEngineDirectory(const QString &baseDir,
 {
     const QString packagedEngineDirectory = QDir(baseDir).filePath(
         QStringLiteral("dependencies/engines/%1").arg(engineName));
-    if (QDir(packagedEngineDirectory).isDir())
+    if (QDir(packagedEngineDirectory).exists())
     {
         return QDir::toNativeSeparators(packagedEngineDirectory);
     }

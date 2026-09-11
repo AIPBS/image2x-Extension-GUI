@@ -402,6 +402,11 @@ void MainWindow::APNG_Frames2APNG(QString sourceFileFullPath,QString scaledFrame
 bool MainWindow::APNG_isAnimatedPNG(int rowNum)
 {
     QString sourceFileFullPath = Table_model_image->item(rowNum,2)->text();
+#ifdef PLATFORM_LINUX
+    qWarning().noquote() << "[image2x] Linux APNG probe skipped; treating image as still:"
+                         << sourceFileFullPath;
+    return false;
+#else
     //========================= 调用ffprobe读取APNG信息 ======================
     QProcess *Get_APNGAvgFPS_process = new QProcess();
     QString cmd_Get_APNGAvgFPS_process = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+sourceFileFullPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
@@ -439,4 +444,5 @@ bool MainWindow::APNG_isAnimatedPNG(int rowNum)
     }
     APNG_info_ini.remove();
     return isAPNG;
+#endif
 }

@@ -121,17 +121,26 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlpha
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
             cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + Waifu2x_NCNN_Vulkan_ReadSettings();
             const QStringList commandParts = QProcess::splitCommand(cmd);
+            qWarning().noquote() << "[image2x] launching waifu2x-ncnn-vulkan:" << cmd;
+            QElapsedTimer engineTimer;
+            engineTimer.start();
             Waifu2x->start(commandParts.first(), commandParts.mid(1));
             if(!Waifu2x->waitForStarted(10000))
             {
                 waifu2x_qprocess_failed = true;
+                qWarning().noquote() << "[image2x] waifu2x-ncnn-vulkan failed to start:"
+                                     << Waifu2x->errorString();
                 emit Send_TextBrowser_NewMessage(tr("Unable to start waifu2x-ncnn-vulkan: [")
                                                  + Waifu2x->errorString() + "]");
                 QFile::remove(OutputPath_tmp);
                 break;
             }
+            qWarning().noquote() << "[image2x] waifu2x-ncnn-vulkan started with pid"
+                                 << Waifu2x->processId();
             while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
             {
+                LogEngineProgress(QStringLiteral("waifu2x-ncnn-vulkan"), Waifu2x,
+                                  OutputPath_tmp, &engineTimer);
                 if(waifu2x_STOP)
                 {
                     Waifu2x->close();
@@ -160,6 +169,8 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlpha
                     break;
                 }
             }
+            qWarning().noquote() << "[image2x] waifu2x-ncnn-vulkan finished with exit code"
+                                 << Waifu2x->exitCode() << "and status" << Waifu2x->exitStatus();
             //===============
             if(waifu2x_qprocess_failed)break;
             //===============

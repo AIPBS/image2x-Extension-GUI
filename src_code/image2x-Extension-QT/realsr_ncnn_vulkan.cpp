@@ -119,7 +119,7 @@ int MainWindow::Realsr_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaC
             QString StanderMSG="";
             //==========================
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+file_ext+".png";
-            QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "4" + Realsr_NCNN_Vulkan_ReadSettings();
+            QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "4" + " " + Realsr_NCNN_Vulkan_ReadSettings();
             qWarning().noquote() << "[image2x] launching realsr-ncnn-vulkan:" << cmd;
             QElapsedTimer engineTimer;
             engineTimer.start();

@@ -153,7 +153,7 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAl
             QString StanderMSG="";
             //==========
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
-            QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " -n " + QString::number(DenoiseLevel_tmp, 10) + RealESRGAN_NCNN_Vulkan_ReadSettings();
+            QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " " + RealESRGAN_NCNN_Vulkan_ReadSettings();
             qWarning().noquote() << "[image2x] launching realesrgan-ncnn-vulkan:" << cmd;
             QElapsedTimer engineTimer;
             engineTimer.start();

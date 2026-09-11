@@ -119,7 +119,7 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlpha
             StanderMSG="";
             //==========
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
-            cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + Waifu2x_NCNN_Vulkan_ReadSettings();
+            cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + " " + Waifu2x_NCNN_Vulkan_ReadSettings();
             const QStringList commandParts = QProcess::splitCommand(cmd);
             qWarning().noquote() << "[image2x] launching waifu2x-ncnn-vulkan:" << cmd;
             QElapsedTimer engineTimer;

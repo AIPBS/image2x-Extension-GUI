@@ -2,12 +2,15 @@
 
 ## Unreleased
 
+## v0.4.1 (2026-09-11)
+
 ### Changed
 - Print Linux still-image engine launch, heartbeat, and exit diagnostics to stderr.
 
 ### Fixed
 - Use Qt image encoding for Linux PNG preprocessing instead of waiting on the Windows-only converter.
 - Skip the Windows-only APNG probe on Linux so still-image processing can reach the selected engine.
+- Separate Linux engine arguments correctly so the selected model options are parsed by the runtime.
 
 ## v0.4.0 (2026-09-11)
 

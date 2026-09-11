@@ -20,6 +20,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "runtime_dependencies.h"
+#include <QPlainTextEdit>
 
 void MainWindow::on_pushButton_compatibilityTest_clicked()
 {
@@ -51,6 +52,10 @@ int MainWindow::Waifu2x_Compatibility_Test()
     const QString imageMagickOutputPath = testDirectory + "/convert_res.bmp";
     const QString gifInputPath = testDirectory + "/CompatibilityTest_GIF.gif";
     const QString gifOutputPath = testDirectory + "/CompatibilityTest_GIF_RES.gif";
+    const QString apngFrameOnePath = testDirectory + "/frame001.png";
+    const QString apngFrameTwoPath = testDirectory + "/frame002.png";
+    const QString apngOutputPath = testDirectory + "/CompatibilityTest_APNG.png";
+    const QString apngExtractedFramePath = testDirectory + "/1.png";
     const QString soxInputPath = testDirectory + "/CompatibilityTest_Sound.wav";
     const QString soxProfilePath = testDirectory + "/TestTemp_DenoiseProfile.dp";
 
@@ -61,6 +66,21 @@ int MainWindow::Waifu2x_Compatibility_Test()
             && process.waitForFinished(120000)
             && process.exitStatus() == QProcess::NormalExit
             && process.exitCode() == 0;
+    };
+    const auto runProcessInDirectory = [](const QString &program, const QStringList &arguments,
+                                          const QString &workingDirectory) {
+        QProcess process;
+        process.setWorkingDirectory(workingDirectory);
+        process.start(program, arguments);
+        return process.waitForStarted(30000)
+            && process.waitForFinished(120000)
+            && process.exitStatus() == QProcess::NormalExit
+            && process.exitCode() == 0;
+    };
+    const auto missingPackageAdvice = [&](const QString &program, const QString &package) {
+        return QStandardPaths::findExecutable(program).isEmpty()
+            ? tr("Install package '%1' with your package manager.").arg(package)
+            : tr("The installed '%1' package did not pass its functional check.").arg(package);
     };
 
     const bool testDirectoryReady = !appDataDirectory.isEmpty()
@@ -81,7 +101,8 @@ int MainWindow::Waifu2x_Compatibility_Test()
     }
     else if (!dependencies.isAvailable(RuntimeEngine::Waifu2xNcnnVulkan))
     {
-        emit Send_TextBrowser_NewMessage(tr("Compatible with waifu2x-ncnn-vulkan: No. The Linux runtime is not installed."));
+        emit Send_TextBrowser_NewMessage(tr(
+            "Compatible with waifu2x-ncnn-vulkan: No. Install the Linux runtime supplied with this application."));
     }
     else if (!inputImageReady)
     {
@@ -99,7 +120,8 @@ int MainWindow::Waifu2x_Compatibility_Test()
                 << "-n" << "0"
                 << "-t" << "32"
                 << "-m" << dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan) + "/models-cunet"
-                << "-j" << "1:1:1");
+                << "-j" << "1:1:1"
+                << "-g" << "-1");
 
         const bool completed = process.waitForStarted(30000)
             && process.waitForFinished(120000)
@@ -113,12 +135,159 @@ int MainWindow::Waifu2x_Compatibility_Test()
                 ? tr("Compatible with waifu2x-ncnn-vulkan: Yes.")
                 : tr("Compatible with waifu2x-ncnn-vulkan: No. Check the Vulkan runtime and graphics driver."));
     }
+    emit Send_Add_progressBar_CompatibilityTest();
+
+    const QString enginesDirectory = Current_Path + "/dependencies/engines";
+    const auto testEngine = [&](const QString &name, const QString &program,
+                                const QStringList &arguments, const QString &resultPath) {
+        QFile::remove(resultPath);
+        QProcess process;
+        const bool prerequisitesReady = testDirectoryReady
+            && inputImageReady
+            && QFileInfo::exists(program);
+        bool completed = false;
+        QString diagnostics;
+        if (prerequisitesReady)
+        {
+            process.start(program, arguments);
+            completed = process.waitForStarted(30000)
+                && process.waitForFinished(120000)
+                && process.exitStatus() == QProcess::NormalExit
+                && process.exitCode() == 0
+                && QFileInfo(resultPath).size() > 0;
+            diagnostics = QString::fromUtf8(process.readAllStandardError()).trimmed();
+            if (diagnostics.isEmpty() && !completed)
+            {
+                diagnostics = process.errorString();
+            }
+        }
+        else
+        {
+            diagnostics = tr("The executable, test image, or writable test directory is unavailable.");
+        }
+        emit Send_TextBrowser_NewMessage(
+            completed
+                ? tr("Compatible with %1: Yes.").arg(name)
+                : tr("Compatible with %1: No. %2").arg(name, diagnostics));
+        emit Send_Add_progressBar_CompatibilityTest();
+        return completed;
+    };
+    const auto reportUnavailable = [&](const QString &name, bool &compatible, const QString &advice) {
+        compatible = false;
+        emit Send_TextBrowser_NewMessage(
+            tr("Compatible with %1: No. %2").arg(name, advice));
+        emit Send_Add_progressBar_CompatibilityTest();
+    };
+
+    const QString realSrDirectory = enginesDirectory + "/realsr-ncnn-vulkan";
+    isCompatible_Realsr_NCNN_Vulkan = testEngine(
+        "RealSR-NCNN-Vulkan", realSrDirectory + "/realsr-ncnn-vulkan",
+        QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "4"
+                      << "-t" << "32" << "-m" << realSrDirectory + "/models-DF2K",
+        outputPath);
+
+    const QString srmdDirectory = enginesDirectory + "/srmd-ncnn-vulkan";
+    isCompatible_SRMD_NCNN_Vulkan = testEngine(
+        "SRMD-NCNN-Vulkan", srmdDirectory + "/srmd-ncnn-vulkan",
+        QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
+                      << "-n" << "0" << "-t" << "32" << "-m" << srmdDirectory + "/models-srmd",
+        outputPath);
+
+    const QString realEsrganDirectory = enginesDirectory + "/realesrgan-ncnn-vulkan";
+    isCompatible_RealESRGAN = testEngine(
+        "Real-ESRGAN", realEsrganDirectory + "/realesrgan-ncnn-vulkan",
+        QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
+                      << "-n" << "realesrgan-x4plus" << "-t" << "32"
+                      << "-m" << realEsrganDirectory + "/models",
+        outputPath);
+
+    const QString realCuganDirectory = enginesDirectory + "/realcugan-ncnn-vulkan";
+    isCompatible_RealCUGAN = testEngine(
+        "Real-CUGAN", realCuganDirectory + "/realcugan-ncnn-vulkan",
+        QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
+                      << "-n" << "0" << "-t" << "32" << "-m" << realCuganDirectory + "/models-se",
+        outputPath);
+
+    const QString rifeDirectory = enginesDirectory + "/rife-ncnn-vulkan";
+    isCompatible_RifeNcnnVulkan = testEngine(
+        "RIFE-NCNN-Vulkan", rifeDirectory + "/rife-ncnn-vulkan",
+        QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
+                      << "-j" << "1:1:1" << "-m" << rifeDirectory + "/rife-v4.6",
+        outputPath);
+
+    const QString cainDirectory = enginesDirectory + "/cain-ncnn-vulkan";
+    isCompatible_CainNcnnVulkan = testEngine(
+        "CAIN-NCNN-Vulkan", cainDirectory + "/cain-ncnn-vulkan",
+        QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
+                      << "-j" << "1:1:1" << "-m" << cainDirectory + "/cain",
+        outputPath);
+
+    const QString dainDirectory = enginesDirectory + "/dain-ncnn-vulkan";
+    isCompatible_DainNcnnVulkan = testEngine(
+        "DAIN-NCNN-Vulkan", dainDirectory + "/dain-ncnn-vulkan",
+        QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
+                      << "-j" << "1:1:1" << "-m" << dainDirectory + "/best",
+        outputPath);
+
+    const QString ifrnetDirectory = enginesDirectory + "/ifrnet-ncnn-vulkan";
+    isCompatible_IFRNetNcnnVulkan = testEngine(
+        "IFRNet-NCNN-Vulkan", ifrnetDirectory + "/ifrnet-ncnn-vulkan",
+        QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
+                      << "-j" << "1:1:1" << "-m" << ifrnetDirectory + "/IFRNet_Vimeo90K",
+        outputPath);
+
+    reportUnavailable("waifu2x-ncnn-vulkan (FP16)", isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P,
+                      tr("No separate Linux runtime is bundled; use the Latest option."));
+    reportUnavailable("waifu2x-ncnn-vulkan (legacy)", isCompatible_Waifu2x_NCNN_Vulkan_OLD,
+                      tr("No separate Linux runtime is bundled; use the Latest option."));
+    reportUnavailable("SRMD-CUDA", isCompatible_SRMD_CUDA,
+                      tr("This requires an upstream CUDA runtime; it is not an apt package."));
+    reportUnavailable("waifu2x-converter", isCompatible_Waifu2x_Converter,
+                      tr("No Linux runtime is bundled for this option."));
+    reportUnavailable("Anime4K (CPU)", isCompatible_Anime4k_CPU,
+                      tr("No Linux runtime is bundled for this option."));
+    reportUnavailable("Anime4K (GPU)", isCompatible_Anime4k_GPU,
+                      tr("No Linux runtime is bundled for this option."));
+    reportUnavailable("waifu2x-caffe (CPU)", isCompatible_Waifu2x_Caffe_CPU,
+                      tr("No Linux runtime is bundled for this option."));
+    reportUnavailable("waifu2x-caffe (GPU)", isCompatible_Waifu2x_Caffe_GPU,
+                      tr("No Linux runtime is bundled for this option."));
+    reportUnavailable("waifu2x-caffe (cuDNN)", isCompatible_Waifu2x_Caffe_cuDNN,
+                      tr("No Linux runtime is bundled for this option."));
+    reportUnavailable("RTX Super Resolution", isCompatible_RTXSuperRes,
+                      tr("This requires NVIDIA driver support; it is not an app package."));
+    reportUnavailable("NVIDIA Maxine", isCompatible_NvidiaMaxine,
+                      tr("This requires the NVIDIA Video Effects SDK; it is not an apt package."));
+    QImage apngFrameOne(1, 1, QImage::Format_RGB32);
+    QImage apngFrameTwo(1, 1, QImage::Format_RGB32);
+    apngFrameOne.fill(Qt::white);
+    apngFrameTwo.fill(Qt::black);
+    const bool apngFramesReady = testDirectoryReady
+        && apngFrameOne.save(apngFrameOnePath)
+        && apngFrameTwo.save(apngFrameTwoPath);
+    const QString apngAdvice = QStandardPaths::findExecutable("apngasm").isEmpty()
+        || QStandardPaths::findExecutable("apngdis").isEmpty()
+        ? tr("Install packages 'apngasm' and 'apngdis' with your package manager.")
+        : tr("The installed APNG tools did not pass their functional check.");
+    isCompatible_APNG = apngFramesReady
+        && runProcess("apngasm", QStringList() << apngOutputPath << apngFrameOnePath << "-l1")
+        && runProcessInDirectory("apngdis", QStringList() << apngOutputPath, testDirectory)
+        && QFileInfo(apngExtractedFramePath).size() > 0;
+    emit Send_TextBrowser_NewMessage(
+        isCompatible_APNG
+            ? tr("Compatible with APNG Tools: Yes.")
+            : tr("Compatible with APNG Tools: No. %1").arg(apngAdvice));
+    emit Send_Add_progressBar_CompatibilityTest();
 
     QFile::remove(outputPath);
     QFile::remove(videoPath);
     QFile::remove(imageMagickOutputPath);
     QFile::remove(gifInputPath);
     QFile::remove(gifOutputPath);
+    QFile::remove(apngFrameOnePath);
+    QFile::remove(apngFrameTwoPath);
+    QFile::remove(apngOutputPath);
+    QFile::remove(apngExtractedFramePath);
     QFile::remove(soxInputPath);
     QFile::remove(soxProfilePath);
 
@@ -134,7 +303,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         emit Send_TextBrowser_NewMessage(
             isCompatible_FFmpeg
                 ? tr("Compatible with FFmpeg: Yes.")
-                : tr("Compatible with FFmpeg: No."));
+                : tr("Compatible with FFmpeg: No. %1").arg(missingPackageAdvice("ffmpeg", "ffmpeg")));
         emit Send_Add_progressBar_CompatibilityTest();
 
         QProcess ffprobeProcess;
@@ -151,7 +320,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         emit Send_TextBrowser_NewMessage(
             isCompatible_FFprobe
                 ? tr("Compatible with FFprobe: Yes.")
-                : tr("Compatible with FFprobe: No."));
+                : tr("Compatible with FFprobe: No. %1").arg(missingPackageAdvice("ffprobe", "ffmpeg")));
         emit Send_Add_progressBar_CompatibilityTest();
 
         isCompatible_ImageMagick = inputImageReady
@@ -160,7 +329,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         emit Send_TextBrowser_NewMessage(
             isCompatible_ImageMagick
                 ? tr("Compatible with ImageMagick: Yes.")
-                : tr("Compatible with ImageMagick: No."));
+                : tr("Compatible with ImageMagick: No. %1").arg(missingPackageAdvice("convert", "imagemagick")));
         emit Send_Add_progressBar_CompatibilityTest();
 
         QFile gifInput(gifInputPath);
@@ -174,7 +343,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         emit Send_TextBrowser_NewMessage(
             isCompatible_Gifsicle
                 ? tr("Compatible with Gifsicle: Yes.")
-                : tr("Compatible with Gifsicle: No."));
+                : tr("Compatible with Gifsicle: No. %1").arg(missingPackageAdvice("gifsicle", "gifsicle")));
         emit Send_Add_progressBar_CompatibilityTest();
 
         const bool soxInputReady = runProcess(
@@ -185,7 +354,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         emit Send_TextBrowser_NewMessage(
             isCompatible_SoX
                 ? tr("Compatible with SoX: Yes.")
-                : tr("Compatible with SoX: No."));
+                : tr("Compatible with SoX: No. %1").arg(missingPackageAdvice("sox", "sox")));
         emit Send_Add_progressBar_CompatibilityTest();
     }
     else
@@ -197,14 +366,78 @@ int MainWindow::Waifu2x_Compatibility_Test()
         isCompatible_SoX = false;
     }
 
+    emit Send_TextBrowser_NewMessage(tr("Compatibility test results summary:"));
+    const auto reportSummary = [&](const QString &name, bool compatible) {
+        emit Send_TextBrowser_NewMessage(
+            tr("%1: %2").arg(name, compatible ? tr("Yes") : tr("No")));
+    };
+    reportSummary("waifu2x-ncnn-vulkan (Latest)", isCompatible_Waifu2x_NCNN_Vulkan_NEW);
+    reportSummary("waifu2x-ncnn-vulkan (FP16)", isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P);
+    reportSummary("waifu2x-ncnn-vulkan (Legacy)", isCompatible_Waifu2x_NCNN_Vulkan_OLD);
+    reportSummary("SRMD-NCNN-Vulkan", isCompatible_SRMD_NCNN_Vulkan);
+    reportSummary("waifu2x-converter", isCompatible_Waifu2x_Converter);
+    reportSummary("Anime4K (CPU)", isCompatible_Anime4k_CPU);
+    reportSummary("Anime4K (GPU)", isCompatible_Anime4k_GPU);
+    reportSummary("FFmpeg", isCompatible_FFmpeg);
+    reportSummary("FFprobe", isCompatible_FFprobe);
+    reportSummary("ImageMagick", isCompatible_ImageMagick);
+    reportSummary("Gifsicle", isCompatible_Gifsicle);
+    reportSummary("SoX", isCompatible_SoX);
+    reportSummary("waifu2x-caffe (CPU)", isCompatible_Waifu2x_Caffe_CPU);
+    reportSummary("waifu2x-caffe (GPU)", isCompatible_Waifu2x_Caffe_GPU);
+    reportSummary("waifu2x-caffe (cuDNN)", isCompatible_Waifu2x_Caffe_cuDNN);
+    reportSummary("RealSR-NCNN-Vulkan", isCompatible_Realsr_NCNN_Vulkan);
+    reportSummary("RIFE-NCNN-Vulkan", isCompatible_RifeNcnnVulkan);
+    reportSummary("CAIN-NCNN-Vulkan", isCompatible_CainNcnnVulkan);
+    reportSummary("DAIN-NCNN-Vulkan", isCompatible_DainNcnnVulkan);
+    reportSummary("Real-ESRGAN", isCompatible_RealESRGAN);
+    reportSummary("Real-CUGAN", isCompatible_RealCUGAN);
+    reportSummary("IFRNet-NCNN-Vulkan", isCompatible_IFRNetNcnnVulkan);
+    reportSummary("RTX Super Resolution", isCompatible_RTXSuperRes);
+    reportSummary("NVIDIA Maxine", isCompatible_NvidiaMaxine);
+    reportSummary("APNG Tools", isCompatible_APNG);
+    if (!isCompatible_Waifu2x_NCNN_Vulkan_NEW)
+    {
+        emit Send_TextBrowser_NewMessage(tr(
+            "Install guidance: install the Linux waifu2x runtime supplied with this application."));
+    }
+    if (!isCompatible_FFmpeg || !isCompatible_FFprobe)
+    {
+        emit Send_TextBrowser_NewMessage(tr(
+            "Install guidance: install package 'ffmpeg' with your package manager."));
+    }
+    if (!isCompatible_ImageMagick)
+    {
+        emit Send_TextBrowser_NewMessage(tr(
+            "Install guidance: install package 'imagemagick' with your package manager."));
+    }
+    if (!isCompatible_Gifsicle)
+    {
+        emit Send_TextBrowser_NewMessage(tr(
+            "Install guidance: install package 'gifsicle' with your package manager."));
+    }
+    if (!isCompatible_SoX)
+    {
+        emit Send_TextBrowser_NewMessage(tr(
+            "Install guidance: install package 'sox' with your package manager."));
+    }
+    if (!isCompatible_APNG)
+    {
+        emit Send_TextBrowser_NewMessage(tr(
+            "Install guidance: install packages 'apngasm' and 'apngdis' with your package manager."));
+    }
+
     QFile::remove(videoPath);
     QFile::remove(inputPath);
     QFile::remove(imageMagickOutputPath);
     QFile::remove(gifInputPath);
     QFile::remove(gifOutputPath);
+    QFile::remove(apngFrameOnePath);
+    QFile::remove(apngFrameTwoPath);
+    QFile::remove(apngOutputPath);
+    QFile::remove(apngExtractedFramePath);
     QFile::remove(soxInputPath);
     QFile::remove(soxProfilePath);
-    emit Send_Add_progressBar_CompatibilityTest();
     emit Send_TextBrowser_NewMessage(tr("Compatibility test is complete!"));
     emit Send_SystemTray_NewMessage(tr("Compatibility test is complete!"));
     emit Send_Waifu2x_Compatibility_Test_finished();
@@ -894,6 +1127,12 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     ui->checkBox_isCompatible_RifeNcnnVulkan->setChecked(isCompatible_RifeNcnnVulkan);
     ui->checkBox_isCompatible_CainNcnnVulkan->setChecked(isCompatible_CainNcnnVulkan);
     ui->checkBox_isCompatible_DainNcnnVulkan->setChecked(isCompatible_DainNcnnVulkan);
+    ui->checkBox_isCompatible_RealESRGAN->setChecked(isCompatible_RealESRGAN);
+    ui->checkBox_isCompatible_RealCUGAN->setChecked(isCompatible_RealCUGAN);
+    ui->checkBox_isCompatible_IFRNetNcnnVulkan->setChecked(isCompatible_IFRNetNcnnVulkan);
+    ui->checkBox_isCompatible_RTXSuperRes->setChecked(isCompatible_RTXSuperRes);
+    ui->checkBox_isCompatible_NvidiaMaxine->setChecked(isCompatible_NvidiaMaxine);
+    ui->checkBox_isCompatible_APNG->setChecked(isCompatible_APNG);
     //解除界面管制
     Finish_progressBar_CompatibilityTest();
     ui->tab_Home->setEnabled(1);
@@ -905,6 +1144,83 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     ui->pushButton_compatibilityTest->setText(tr("Start compatibility test"));
     ui->tabWidget->setCurrentIndex(5);
 #ifdef PLATFORM_LINUX
+    QStringList resultLines;
+    resultLines << tr("Compatibility Test Results") << QString();
+    const auto addResult = [&](const QString &name, bool compatible, const QString &guidance) {
+        resultLines << tr("%1: %2").arg(name, compatible ? tr("Compatible") : tr("Not compatible"));
+        if (!compatible && !guidance.isEmpty())
+        {
+            resultLines << tr("  Action: %1").arg(guidance);
+        }
+    };
+    const auto packageGuidance = [&](const QString &program, const QString &package) {
+        return QStandardPaths::findExecutable(program).isEmpty()
+            ? tr("Install package '%1' with your package manager.").arg(package)
+            : tr("The installed package '%1' failed its functional check.").arg(package);
+    };
+    addResult("waifu2x-ncnn-vulkan (Latest)", isCompatible_Waifu2x_NCNN_Vulkan_NEW,
+              tr("Install the Linux runtime supplied with this application."));
+    addResult("waifu2x-ncnn-vulkan (FP16)", isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P,
+              tr("No separate Linux runtime is bundled; use Latest."));
+    addResult("waifu2x-ncnn-vulkan (Legacy)", isCompatible_Waifu2x_NCNN_Vulkan_OLD,
+              tr("No separate Linux runtime is bundled; use Latest."));
+    addResult("SRMD-NCNN-Vulkan", isCompatible_SRMD_NCNN_Vulkan,
+              tr("No Linux runtime is bundled for this option."));
+    addResult("waifu2x-converter", isCompatible_Waifu2x_Converter,
+              tr("No Linux runtime is bundled for this option."));
+    addResult("Anime4K (CPU)", isCompatible_Anime4k_CPU,
+              tr("No Linux runtime is bundled for this option."));
+    addResult("Anime4K (GPU)", isCompatible_Anime4k_GPU,
+              tr("No Linux runtime is bundled for this option."));
+    addResult("FFmpeg", isCompatible_FFmpeg, packageGuidance("ffmpeg", "ffmpeg"));
+    addResult("FFprobe", isCompatible_FFprobe, packageGuidance("ffprobe", "ffmpeg"));
+    addResult("ImageMagick", isCompatible_ImageMagick, packageGuidance("convert", "imagemagick"));
+    addResult("Gifsicle", isCompatible_Gifsicle, packageGuidance("gifsicle", "gifsicle"));
+    addResult("SoX", isCompatible_SoX, packageGuidance("sox", "sox"));
+    addResult("waifu2x-caffe (CPU)", isCompatible_Waifu2x_Caffe_CPU,
+              tr("No Linux runtime is bundled for this option."));
+    addResult("waifu2x-caffe (GPU)", isCompatible_Waifu2x_Caffe_GPU,
+              tr("No Linux runtime is bundled for this option."));
+    addResult("waifu2x-caffe (cuDNN)", isCompatible_Waifu2x_Caffe_cuDNN,
+              tr("No Linux runtime is bundled for this option."));
+    addResult("RealSR-NCNN-Vulkan", isCompatible_Realsr_NCNN_Vulkan,
+              tr("Install the RealSR Linux runtime and models."));
+    addResult("RIFE-NCNN-Vulkan", isCompatible_RifeNcnnVulkan,
+              tr("Install the RIFE Linux runtime and models."));
+    addResult("CAIN-NCNN-Vulkan", isCompatible_CainNcnnVulkan,
+              tr("Install the CAIN Linux runtime and models."));
+    addResult("DAIN-NCNN-Vulkan", isCompatible_DainNcnnVulkan,
+              tr("Install the DAIN Linux runtime and models."));
+    addResult("Real-ESRGAN", isCompatible_RealESRGAN,
+              tr("Install the Real-ESRGAN Linux runtime and models."));
+    addResult("Real-CUGAN", isCompatible_RealCUGAN,
+              tr("Install the Real-CUGAN Linux runtime and models."));
+    addResult("IFRNet-NCNN-Vulkan", isCompatible_IFRNetNcnnVulkan,
+              tr("Install the IFRNet Linux runtime and models."));
+    addResult("RTX Super Resolution", isCompatible_RTXSuperRes,
+              tr("Install compatible NVIDIA driver support."));
+    addResult("NVIDIA Maxine", isCompatible_NvidiaMaxine,
+              tr("Install the NVIDIA Video Effects SDK."));
+    const QString apngGuidance = QStandardPaths::findExecutable("apngasm").isEmpty()
+        || QStandardPaths::findExecutable("apngdis").isEmpty()
+        ? tr("Install packages 'apngasm' and 'apngdis' with your package manager.")
+        : tr("The installed APNG tools failed their functional check.");
+    addResult("APNG Tools", isCompatible_APNG, apngGuidance);
+    QDialog *resultsDialog = new QDialog(this);
+    resultsDialog->setAttribute(Qt::WA_DeleteOnClose);
+    resultsDialog->setWindowTitle(tr("Compatibility Test Results"));
+    resultsDialog->resize(780, 700);
+    QVBoxLayout *resultsLayout = new QVBoxLayout(resultsDialog);
+    QPlainTextEdit *resultsText = new QPlainTextEdit(resultsDialog);
+    resultsText->setReadOnly(true);
+    resultsText->setPlainText(resultLines.join("\n"));
+    resultsLayout->addWidget(resultsText);
+    QPushButton *closeResultsButton = new QPushButton(tr("Close"), resultsDialog);
+    connect(closeResultsButton, &QPushButton::clicked, resultsDialog, &QDialog::accept);
+    resultsLayout->addWidget(closeResultsButton, 0, Qt::AlignRight);
+    resultsDialog->show();
+    resultsDialog->raise();
+    resultsDialog->activateWindow();
     if (isCompatible_Waifu2x_NCNN_Vulkan_NEW)
     {
         ui->comboBox_Engine_Image->setCurrentIndex(0);
@@ -1172,7 +1488,7 @@ void MainWindow::Init_progressBar_CompatibilityTest()
 {
     ui->progressBar_CompatibilityTest->setEnabled(1);
     ui->progressBar_CompatibilityTest->setVisible(1);
-    ui->progressBar_CompatibilityTest->setRange(0,20);
+    ui->progressBar_CompatibilityTest->setRange(0,26);
     ui->progressBar_CompatibilityTest->setValue(0);
 }
 //进度+1 -兼容性测试进度条

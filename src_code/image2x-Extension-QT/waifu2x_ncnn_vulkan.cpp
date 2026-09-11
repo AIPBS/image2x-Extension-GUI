@@ -1,5 +1,6 @@
 ﻿/*
     Copyright (C) 2021  Aaron Feng
+    Copyright (C) 2026 AIPEAC
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -119,7 +120,8 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlpha
             //==========
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
             cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + Waifu2x_NCNN_Vulkan_ReadSettings();
-            Waifu2x->start(cmd);
+            const QStringList commandParts = QProcess::splitCommand(cmd);
+            Waifu2x->start(commandParts.first(), commandParts.mid(1));
             if(!Waifu2x->waitForStarted(10000))
             {
                 waifu2x_qprocess_failed = true;
@@ -421,7 +423,8 @@ int MainWindow::Waifu2x_NCNN_Vulkan_GIF(int rowNum)
             //==========
             waifu2x_qprocess_failed = false;
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + Waifu2x_NCNN_Vulkan_Settings_str;
-            Waifu2x->start(cmd);
+            const QStringList commandParts = QProcess::splitCommand(cmd);
+            Waifu2x->start(commandParts.first(), commandParts.mid(1));
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
             {
@@ -827,7 +830,8 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video(int rowNum)
             waifu2x_qprocess_failed = false;
             Waifu2x_NCNN_Vulkan_Settings_str = Waifu2x_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
             cmd = "\"" + program + "\"" + " -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + Waifu2x_NCNN_Vulkan_Settings_str;
-            Waifu2x->start(cmd);
+            const QStringList commandParts = QProcess::splitCommand(cmd);
+            Waifu2x->start(commandParts.first(), commandParts.mid(1));
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
             {
@@ -1377,7 +1381,8 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video_BySegment(int rowNum)
                     waifu2x_qprocess_failed = false;
                     Waifu2x_NCNN_Vulkan_Settings_str = Waifu2x_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
                     cmd = "\"" + Waifu2x_ncnn_vulkan_ProgramPath + "\"" + " -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + Waifu2x_NCNN_Vulkan_Settings_str;
-                    Waifu2x->start(cmd);
+                    const QStringList commandParts = QProcess::splitCommand(cmd);
+                    Waifu2x->start(commandParts.first(), commandParts.mid(1));
                     while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
                     while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
                     {
@@ -1626,7 +1631,8 @@ int MainWindow::Waifu2x_DetectGPU()
         QProcess *Waifu2x = new QProcess();
         QString gpu_str = " -g "+QString::number(GPU_ID,10)+" ";
         QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -t 32 -m " + "\"" + model_path + "\"" + " -j 1:1:1"+gpu_str;
-        Waifu2x->start(cmd);
+        const QStringList commandParts = QProcess::splitCommand(cmd);
+        Waifu2x->start(commandParts.first(), commandParts.mid(1));
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(100)&&!QProcess_stop) {}
         if(QFile::exists(OutputPath) && (Waifu2x->readAllStandardError().toLower().contains("failed")||Waifu2x->readAllStandardOutput().toLower().contains("failed"))==false)
@@ -1740,6 +1746,9 @@ Waifu2x_NCNN_Vulkan
 QString MainWindow::Waifu2x_NCNN_Vulkan_ReadSettings()
 {
     QString Waifu2x_NCNN_Vulkan_Settings_str = "";
+#ifdef PLATFORM_LINUX
+    Waifu2x_NCNN_Vulkan_Settings_str.append("-g -1 ");
+#endif
     Waifu2x_NCNN_Vulkan_Settings_str.append(Waifu2x_NCNN_Vulkan_PreLoad_Settings_Str);
     if(ui->checkBox_MultiGPU_Waifu2xNCNNVulkan->isChecked())
     {
@@ -2157,7 +2166,8 @@ bool MainWindow::APNG_Waifu2xNCNNVulkan(QString splitFramesFolder,QString scaled
             //==========
             waifu2x_qprocess_failed = false;
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + splitFramesFolder + "\"" + " -o " + "\"" + scaledFramesFolder + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + Waifu2x_NCNN_Vulkan_Settings_str;
-            Waifu2x->start(cmd);
+            const QStringList commandParts = QProcess::splitCommand(cmd);
+            Waifu2x->start(commandParts.first(), commandParts.mid(1));
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
             {

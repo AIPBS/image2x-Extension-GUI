@@ -134,6 +134,8 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlp
     //============================== 放大 =======================================
     QProcess *Waifu2x = new QProcess();
     QString program = resolveEnginePath(Current_Path, "realcugan-ncnn-vulkan", "realcugan-ncnn-vulkan");
+    Waifu2x->setWorkingDirectory(
+        resolveEngineDirectory(Current_Path, "realcugan-ncnn-vulkan"));
     //==========
     QMap<QString,int> result_map = Calculate_ScaleRatio_RealCUGAN_NCNNVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];
@@ -1616,7 +1618,11 @@ QString MainWindow::RealCUGAN_NCNN_Vulkan_ReadSettings()
         case 1: model_variant = "models-pro"; break;
         case 2: model_variant = "models-nose"; break;
     }
+#ifdef PLATFORM_LINUX
+    RealCUGAN_NCNN_Vulkan_Settings_str.append("-m \""+model_variant+"\" ");
+#else
     RealCUGAN_NCNN_Vulkan_Settings_str.append("-m \""+engine_folder+"/"+model_variant+"\" ");
+#endif
     //=======================================
     return RealCUGAN_NCNN_Vulkan_Settings_str;
 }
@@ -2185,6 +2191,8 @@ bool MainWindow::APNG_RealCUGAN_NCNNVulkan(QString splitFramesFolder,QString sca
     QString RealCUGAN_NCNN_Vulkan_Settings_str = RealCUGAN_NCNN_Vulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
     QString program = resolveEnginePath(Current_Path, "realcugan-ncnn-vulkan", "realcugan-ncnn-vulkan");
+    Waifu2x->setWorkingDirectory(
+        resolveEngineDirectory(Current_Path, "realcugan-ncnn-vulkan"));
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = ui->comboBox_Denoise_RealCUGAN->currentIndex();
     int CountFinishedRounds=0;

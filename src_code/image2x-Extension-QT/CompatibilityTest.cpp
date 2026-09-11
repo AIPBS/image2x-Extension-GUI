@@ -108,7 +108,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     bool inputImageReady = false;
     if (testDirectoryReady)
     {
-        QImage inputImage(128, 128, QImage::Format_RGB32);
+        QImage inputImage(32, 32, QImage::Format_RGB32);
         inputImage.fill(Qt::white);
         inputImageReady = inputImage.save(inputPath);
     }
@@ -120,6 +120,9 @@ int MainWindow::Waifu2x_Compatibility_Test()
     }
     else if (!dependencies.isAvailable(RuntimeEngine::Waifu2xNcnnVulkan))
     {
+        qWarning().noquote() << "[compat] Waifu2x runtime unavailable at"
+                             << dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan)
+                             << "missing:" << dependencies.missingFiles(RuntimeEngine::Waifu2xNcnnVulkan);
         emit Send_TextBrowser_NewMessage(tr(
             "Compatible with waifu2x-ncnn-vulkan: No. Install the Linux runtime supplied with this application."));
     }
@@ -139,12 +142,12 @@ int MainWindow::Waifu2x_Compatibility_Test()
                 << "-s" << "2"
                 << "-n" << "0"
                 << "-t" << "32"
-                 << "-m" << "models-cunet"
+                << "-m" << "models-cunet"
                 << "-j" << "1:1:1"
-                 << "-g" << "0");
+                << "-g" << "0");
 
         const bool started = process.waitForStarted(10000);
-        const bool finished = started && process.waitForFinished(30000);
+        const bool finished = started && process.waitForFinished(60000);
         if (!finished && process.state() != QProcess::NotRunning)
         {
             process.kill();
@@ -156,6 +159,12 @@ int MainWindow::Waifu2x_Compatibility_Test()
             && process.exitCode() == 0
             && QFileInfo(outputPath).size() > 0
             && isValidImage(outputPath);
+        if (!completed)
+        {
+            qWarning().noquote() << "[compat] Waifu2x failed:" << process.errorString()
+                                 << "exit=" << process.exitCode()
+                                 << "stderr=" << process.readAllStandardError();
+        }
         isCompatible_Waifu2x_NCNN_Vulkan_NEW = completed;
 
         emit Send_TextBrowser_NewMessage(
@@ -177,6 +186,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         QString diagnostics;
         if (prerequisitesReady)
         {
+            process.setWorkingDirectory(QFileInfo(program).absolutePath());
             process.start(program, arguments);
             const bool started = process.waitForStarted(10000);
             const bool finished = started && process.waitForFinished(30000);
@@ -224,14 +234,14 @@ int MainWindow::Waifu2x_Compatibility_Test()
     isCompatible_Realsr_NCNN_Vulkan = testEngine(
         "RealSR-NCNN-Vulkan", realSrDirectory + "/realsr-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "4"
-                      << "-t" << "32" << "-m" << realSrDirectory + "/models-DF2K",
+                      << "-t" << "32" << "-m" << "models-DF2K",
         outputPath);
 
     const QString srmdDirectory = enginesDirectory + "/srmd-ncnn-vulkan";
     isCompatible_SRMD_NCNN_Vulkan = testEngine(
         "SRMD-NCNN-Vulkan", srmdDirectory + "/srmd-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
-                      << "-n" << "0" << "-t" << "32" << "-m" << srmdDirectory + "/models-srmd",
+                      << "-n" << "0" << "-t" << "32" << "-m" << "models-srmd",
         outputPath);
 
     const QString realEsrganDirectory = enginesDirectory + "/realesrgan-ncnn-vulkan";
@@ -239,42 +249,42 @@ int MainWindow::Waifu2x_Compatibility_Test()
         "Real-ESRGAN", realEsrganDirectory + "/realesrgan-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
                       << "-n" << "realesr-animevideov3-x2" << "-t" << "32"
-                      << "-m" << realEsrganDirectory + "/models",
+                      << "-m" << "models",
         outputPath);
 
     const QString realCuganDirectory = enginesDirectory + "/realcugan-ncnn-vulkan";
     isCompatible_RealCUGAN = testEngine(
         "Real-CUGAN", realCuganDirectory + "/realcugan-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
-                      << "-n" << "0" << "-t" << "32" << "-m" << realCuganDirectory + "/models-se",
+                      << "-n" << "0" << "-t" << "32" << "-m" << "models-se",
         outputPath);
 
     const QString rifeDirectory = enginesDirectory + "/rife-ncnn-vulkan";
     isCompatible_RifeNcnnVulkan = testEngine(
         "RIFE-NCNN-Vulkan", rifeDirectory + "/rife-ncnn-vulkan",
         QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
-                      << "-j" << "1:1:1" << "-m" << rifeDirectory + "/rife-v4.6",
+                       << "-j" << "1:1:1" << "-m" << "rife-v4.6",
         outputPath);
 
     const QString cainDirectory = enginesDirectory + "/cain-ncnn-vulkan";
     isCompatible_CainNcnnVulkan = testEngine(
         "CAIN-NCNN-Vulkan", cainDirectory + "/cain-ncnn-vulkan",
         QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
-                      << "-j" << "1:1:1" << "-m" << cainDirectory + "/cain",
+                       << "-j" << "1:1:1" << "-m" << "cain",
         outputPath);
 
     const QString dainDirectory = enginesDirectory + "/dain-ncnn-vulkan";
     isCompatible_DainNcnnVulkan = testEngine(
         "DAIN-NCNN-Vulkan", dainDirectory + "/dain-ncnn-vulkan",
         QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
-                      << "-j" << "1:1:1" << "-m" << dainDirectory + "/best",
+                       << "-j" << "1:1:1" << "-m" << "best",
         outputPath);
 
     const QString ifrnetDirectory = enginesDirectory + "/ifrnet-ncnn-vulkan";
     isCompatible_IFRNetNcnnVulkan = testEngine(
         "IFRNet-NCNN-Vulkan", ifrnetDirectory + "/ifrnet-ncnn-vulkan",
         QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
-                      << "-j" << "1:1:1" << "-m" << ifrnetDirectory + "/IFRNet_Vimeo90K",
+                       << "-j" << "1:1:1" << "-m" << "IFRNet_Vimeo90K",
         outputPath);
 
     reportUnavailable("waifu2x-ncnn-vulkan (FP16)", isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P,

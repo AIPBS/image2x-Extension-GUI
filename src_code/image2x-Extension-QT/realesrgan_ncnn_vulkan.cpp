@@ -134,6 +134,8 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAl
     //============================== 放大 =======================================
     QProcess *Waifu2x = new QProcess();
     QString program = resolveEnginePath(Current_Path, "realesrgan-ncnn-vulkan", "realesrgan-ncnn-vulkan");
+    Waifu2x->setWorkingDirectory(
+        resolveEngineDirectory(Current_Path, "realesrgan-ncnn-vulkan"));
     //==========
     QMap<QString,int> result_map = Calculate_ScaleRatio_RealESRGAN_NCNNVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];
@@ -1634,7 +1636,11 @@ QString MainWindow::RealESRGAN_NCNN_Vulkan_ReadSettings()
             case 2: model_name = "realesr-general-wdn-x4v3"; break;
         }
     }
+    #ifdef PLATFORM_LINUX
+    model_path = "models";
+    #else
     model_path = engine_folder + "/models";
+    #endif
     RealESRGAN_NCNN_Vulkan_Settings_str.append("-m \""+model_path+"\" ");
     RealESRGAN_NCNN_Vulkan_Settings_str.append("-n \""+model_name+"\" ");
     //=======================================

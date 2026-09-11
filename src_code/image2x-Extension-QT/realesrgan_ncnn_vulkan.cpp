@@ -146,14 +146,13 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAl
         bool waifu2x_qprocess_failed = false;
         InputPath_tmp = SourceFile_fullPath;
         OutputPath_tmp ="";
-        int DenoiseLevel_tmp = DenoiseLevel;
         for(int i=Initial_ScaleRatio; i<=ScaleRatio_tmp; i*=Initial_ScaleRatio)
         {
             QString ErrorMSG="";
             QString StanderMSG="";
             //==========
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
-            QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " " + RealESRGAN_NCNN_Vulkan_ReadSettings();
+            QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " " + RealESRGAN_NCNN_Vulkan_ReadSettings();
             qWarning().noquote() << "[image2x] launching realesrgan-ncnn-vulkan:" << cmd;
             QElapsedTimer engineTimer;
             engineTimer.start();
@@ -221,7 +220,6 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAl
             {
                 QFile::remove(InputPath_tmp);
             }
-            DenoiseLevel_tmp = -1;
             InputPath_tmp = OutputPath_tmp;
         }
         //========= 检测是否成功,是否需要重试 ============
@@ -1611,20 +1609,19 @@ QString MainWindow::RealESRGAN_NCNN_Vulkan_ReadSettings()
     }
     //Model - select based on image style
     QString model_path = "";
+    QString model_name = "";
     QString engine_folder = resolveEngineDirectory(Current_Path, "realesrgan-ncnn-vulkan");
-    if(ui->comboBox_ImageStyle->currentIndex()==0)
+    if(ui->comboBox_ImageStyle_RealESRGAN->currentIndex()==0)
     {
         //2D Anime models
         switch(ui->comboBox_Model_2D_RealESRGAN->currentIndex())
         {
-            case 0: model_path = engine_folder + "/models/Anime-HQ-W4xEX"; break;
-            case 1: model_path = engine_folder + "/models/AnimeVideo-MiniV1.8-W2xEX"; break;
-            case 2: model_path = engine_folder + "/models/realesr-animevideov3-x2"; break;
-            case 3: model_path = engine_folder + "/models/realesr-animevideov3-x3"; break;
-            case 4: model_path = engine_folder + "/models/realesr-animevideov3-x4"; break;
-            case 5: model_path = engine_folder + "/models/realesrgan-x4plus-anime"; break;
-            case 6: model_path = engine_folder + "/models/RealESRGANv2-animevideo-xsx2"; break;
-            case 7: model_path = engine_folder + "/models/RealESRGANv2-animevideo-xsx4"; break;
+            case 0: model_name = "realesr-animevideov3-x2"; break;
+            case 1: model_name = "realesr-animevideov3-x3"; break;
+            case 2: model_name = "realesr-animevideov3-x4"; break;
+            case 3: model_name = "realesrgan-x4plus-anime"; break;
+            case 4: model_name = "RealESRGANv2-animevideo-xsx2"; break;
+            case 5: model_name = "RealESRGANv2-animevideo-xsx4"; break;
         }
     }
     else
@@ -1632,19 +1629,14 @@ QString MainWindow::RealESRGAN_NCNN_Vulkan_ReadSettings()
         //3D Photo models
         switch(ui->comboBox_Model_3D_RealESRGAN->currentIndex())
         {
-            case 0: model_path = engine_folder + "/models/Omni-TurboV1.5-W2xEX"; break;
-            case 1: model_path = engine_folder + "/models/Omni-MiniV2-W2xEX"; break;
-            case 2: model_path = engine_folder + "/models/Omni-Smallv2-W2xEX"; break;
-            case 3: model_path = engine_folder + "/models/Photo-HQ-W4xEX"; break;
-            case 4: model_path = engine_folder + "/models/Photo-Small-W2xEX"; break;
-            case 5: model_path = engine_folder + "/models/Universal-FastV2-W2xEX"; break;
-            case 6: model_path = engine_folder + "/models/Photo-Conservative-x4"; break;
-            case 7: model_path = engine_folder + "/models/realesrgan-x4plus"; break;
-            case 8: model_path = engine_folder + "/models/realesr-general-x4v3"; break;
-            case 9: model_path = engine_folder + "/models/realesr-general-wdn-x4v3"; break;
+            case 0: model_name = "realesrgan-x4plus"; break;
+            case 1: model_name = "realesr-general-x4v3"; break;
+            case 2: model_name = "realesr-general-wdn-x4v3"; break;
         }
     }
+    model_path = engine_folder + "/models";
     RealESRGAN_NCNN_Vulkan_Settings_str.append("-m \""+model_path+"\" ");
+    RealESRGAN_NCNN_Vulkan_Settings_str.append("-n \""+model_name+"\" ");
     //=======================================
     return RealESRGAN_NCNN_Vulkan_Settings_str;
 }

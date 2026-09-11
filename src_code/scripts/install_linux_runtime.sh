@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Installs the first supported Linux runtime: waifu2x-ncnn-vulkan and its
-# open-source models. The release is pinned and checksum-verified so the
-# application and test workspace use the same known engine layout.
+# Installs the supported Linux Waifu2x NCNN Vulkan runtime and all of its
+# open-source model directories. The release is pinned and checksum-verified
+# so the application and test workspace use the same known engine layout.
 
 set -euo pipefail
 
@@ -55,10 +55,21 @@ if [[ "${#entries[@]}" -ne 1 || ! -d "${entries[0]}" ]]; then
     exit 1
 fi
 
-if [[ ! -x "${entries[0]}/waifu2x-ncnn-vulkan" || ! -d "${entries[0]}/models-cunet" ]]; then
+required_models=(
+    "models-cunet"
+    "models-upconv_7_anime_style_art_rgb"
+    "models-upconv_7_photo"
+)
+if [[ ! -x "${entries[0]}/waifu2x-ncnn-vulkan" ]]; then
     printf 'Archive does not contain the expected executable and models.\n' >&2
     exit 1
 fi
+for model_directory in "${required_models[@]}"; do
+    if [[ ! -d "${entries[0]}/${model_directory}" ]]; then
+        printf 'Archive is missing required model directory: %s\n' "${model_directory}" >&2
+        exit 1
+    fi
+done
 
 mkdir -p "$(dirname "$ENGINE_DIRECTORY")"
 mv "${entries[0]}" "$ENGINE_DIRECTORY"

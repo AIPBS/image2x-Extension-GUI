@@ -62,8 +62,15 @@ int MainWindow::Waifu2x_Compatibility_Test()
     const auto runProcess = [](const QString &program, const QStringList &arguments) {
         QProcess process;
         process.start(program, arguments);
-        return process.waitForStarted(30000)
-            && process.waitForFinished(120000)
+        const bool started = process.waitForStarted(10000);
+        const bool finished = started && process.waitForFinished(30000);
+        if (!finished && process.state() != QProcess::NotRunning)
+        {
+            process.kill();
+            process.waitForFinished(5000);
+        }
+        return started
+            && finished
             && process.exitStatus() == QProcess::NormalExit
             && process.exitCode() == 0;
     };
@@ -72,10 +79,22 @@ int MainWindow::Waifu2x_Compatibility_Test()
         QProcess process;
         process.setWorkingDirectory(workingDirectory);
         process.start(program, arguments);
-        return process.waitForStarted(30000)
-            && process.waitForFinished(120000)
+        const bool started = process.waitForStarted(10000);
+        const bool finished = started && process.waitForFinished(30000);
+        if (!finished && process.state() != QProcess::NotRunning)
+        {
+            process.kill();
+            process.waitForFinished(5000);
+        }
+        return started
+            && finished
             && process.exitStatus() == QProcess::NormalExit
             && process.exitCode() == 0;
+    };
+    const auto isValidImage = [](const QString &path) {
+        QImage image;
+        return image.load(path) && !image.isNull()
+            && image.width() > 0 && image.height() > 0;
     };
     const auto missingPackageAdvice = [&](const QString &program, const QString &package) {
         return QStandardPaths::findExecutable(program).isEmpty()
@@ -89,7 +108,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     bool inputImageReady = false;
     if (testDirectoryReady)
     {
-        QImage inputImage(1, 1, QImage::Format_RGB32);
+        QImage inputImage(128, 128, QImage::Format_RGB32);
         inputImage.fill(Qt::white);
         inputImageReady = inputImage.save(inputPath);
     }
@@ -111,6 +130,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     else
     {
         QProcess process;
+        process.setWorkingDirectory(dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan));
         process.start(
             dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan),
             QStringList()
@@ -119,15 +139,23 @@ int MainWindow::Waifu2x_Compatibility_Test()
                 << "-s" << "2"
                 << "-n" << "0"
                 << "-t" << "32"
-                << "-m" << dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan) + "/models-cunet"
+                 << "-m" << "models-cunet"
                 << "-j" << "1:1:1"
-                << "-g" << "-1");
+                 << "-g" << "0");
 
-        const bool completed = process.waitForStarted(30000)
-            && process.waitForFinished(120000)
+        const bool started = process.waitForStarted(10000);
+        const bool finished = started && process.waitForFinished(30000);
+        if (!finished && process.state() != QProcess::NotRunning)
+        {
+            process.kill();
+            process.waitForFinished(5000);
+        }
+        const bool completed = started
+            && finished
             && process.exitStatus() == QProcess::NormalExit
             && process.exitCode() == 0
-            && QFileInfo(outputPath).size() > 0;
+            && QFileInfo(outputPath).size() > 0
+            && isValidImage(outputPath);
         isCompatible_Waifu2x_NCNN_Vulkan_NEW = completed;
 
         emit Send_TextBrowser_NewMessage(
@@ -150,12 +178,25 @@ int MainWindow::Waifu2x_Compatibility_Test()
         if (prerequisitesReady)
         {
             process.start(program, arguments);
-            completed = process.waitForStarted(30000)
-                && process.waitForFinished(120000)
+            const bool started = process.waitForStarted(10000);
+            const bool finished = started && process.waitForFinished(30000);
+            if (!finished && process.state() != QProcess::NotRunning)
+            {
+                process.kill();
+                process.waitForFinished(5000);
+            }
+            completed = started
+                && finished
                 && process.exitStatus() == QProcess::NormalExit
                 && process.exitCode() == 0
-                && QFileInfo(resultPath).size() > 0;
+                && QFileInfo(resultPath).size() > 0
+                && isValidImage(resultPath);
             diagnostics = QString::fromUtf8(process.readAllStandardError()).trimmed();
+            if (!completed && diagnostics.isEmpty()
+                && process.exitStatus() == QProcess::NormalExit)
+            {
+                diagnostics = tr("The process exited with code %1.").arg(process.exitCode());
+            }
             if (diagnostics.isEmpty() && !completed)
             {
                 diagnostics = process.errorString();
@@ -197,7 +238,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     isCompatible_RealESRGAN = testEngine(
         "Real-ESRGAN", realEsrganDirectory + "/realesrgan-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
-                      << "-n" << "realesrgan-x4plus" << "-t" << "32"
+                      << "-n" << "realesr-animevideov3-x2" << "-t" << "32"
                       << "-m" << realEsrganDirectory + "/models",
         outputPath);
 

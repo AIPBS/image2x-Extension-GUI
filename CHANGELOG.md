@@ -7,6 +7,7 @@
 
 ### Fixed
 - Use Qt image encoding for Linux PNG preprocessing instead of waiting on the Windows-only converter.
+- Skip the Windows-only APNG probe on Linux so still-image processing can reach the selected engine.
 
 ## v0.4.0 (2026-09-11)
 

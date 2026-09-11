@@ -1767,7 +1767,7 @@ bool MainWindow::ValidateRuntimeDependencies()
         QMessageBox::warning(this, tr("Linux runtime missing"), message);
         return false;
     }
-    if (!modelPath.isEmpty() && !QDir(modelPath).isDir()
+    if (!modelPath.isEmpty() && !QDir(modelPath).exists()
         && !QFile::exists(modelPath + QStringLiteral(".param"))
         && !QFile::exists(modelPath + QStringLiteral(".bin")))
     {

@@ -295,6 +295,16 @@ QString MainWindow::Imgae_PreProcess(QString ImagePath,bool ReProcess_AlphaChann
         QString file_Folder = file_getFolderPath(fileinfo_ImagePath);
         QString OutPut_Path_WebpCache = file_Folder + "/" + file_name + "_W2xEX_temp.webp";//输出的webp缓存的完整路径
         QString OutPut_Path_FinalPNG = file_Folder + "/" + file_name + "_W2xEX_PPAC.png";//输出的png图片的完整路径
+#ifdef PLATFORM_LINUX
+        QFile::remove(OutPut_Path_FinalPNG);
+        if (!QImage_ImagePath.save(OutPut_Path_FinalPNG, "PNG"))
+        {
+            emit Send_TextBrowser_NewMessage(tr("Error: Can't pre-process [") + ImagePath
+                                             + tr("] as PNG. The pre-process will be skipped and try to process the original image directly."));
+            return ImagePath;
+        }
+        return OutPut_Path_FinalPNG;
+#else
         //======
         QString program = Current_Path+"/convert_waifu2xEX.exe";
         QFile::remove(OutPut_Path_FinalPNG);
@@ -321,6 +331,7 @@ QString MainWindow::Imgae_PreProcess(QString ImagePath,bool ReProcess_AlphaChann
         }
         //======
         return OutPut_Path_FinalPNG;
+#endif
     }
     //判断是否已经是PNG
     if(ui->checkBox_PreProcessImage->isChecked()==false)return ImagePath;
@@ -329,6 +340,16 @@ QString MainWindow::Imgae_PreProcess(QString ImagePath,bool ReProcess_AlphaChann
     QString file_name = file_getBaseName(ImagePath);
     QString file_Folder = file_getFolderPath(fileinfo_ImagePath);
     QString OutPut_Path = file_Folder + "/" + file_name + "_W2xEX_"+file_ext_ImagePath+".png";//输出的png图片的完整路径
+#ifdef PLATFORM_LINUX
+    QFile::remove(OutPut_Path);
+    if (!QImage_ImagePath.save(OutPut_Path, "PNG"))
+    {
+        emit Send_TextBrowser_NewMessage(tr("Error: Can't pre-process [") + ImagePath
+                                         + tr("] as PNG. The pre-process will be skipped and try to process the original image directly."));
+        return ImagePath;
+    }
+    return OutPut_Path;
+#else
     //======
     QString program = Current_Path+"/convert_waifu2xEX.exe";
     QFile::remove(OutPut_Path);
@@ -344,4 +365,5 @@ QString MainWindow::Imgae_PreProcess(QString ImagePath,bool ReProcess_AlphaChann
     }
     //======
     return OutPut_Path;
+#endif
 }

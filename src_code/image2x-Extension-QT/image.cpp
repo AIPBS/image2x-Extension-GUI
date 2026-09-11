@@ -228,6 +228,21 @@ QString MainWindow::SaveImageAs_FormatAndQuality(QString OriginalSourceImage_ful
     //============ 组装完整路径 ==============
     FinalFile_FullPath = FinalFile_Folder+"/"+FinalFile_FullName;
     //==========================
+#ifdef PLATFORM_LINUX
+    QByteArray outputFormat = FinalFile_Ext.toLatin1();
+    QImage scaledImage(ScaledImage_fullPath);
+    QFile::remove(FinalFile_FullPath);
+    if (scaledImage.isNull()
+        || !scaledImage.save(FinalFile_FullPath, outputFormat.constData(), ImageQualityLevel))
+    {
+        QFile::remove(FinalFile_FullPath);
+        emit Send_TextBrowser_NewMessage(tr("Error: Can\'t convert [")
+                                         + ScaledImage_fullPath + tr("] to ") + FinalFile_Ext);
+        return ScaledImage_fullPath;
+    }
+    QFile::remove(ScaledImage_fullPath);
+    return FinalFile_FullPath;
+#else
     QString program = Current_Path+"/convert_waifu2xEX.exe";
     QFile::remove(FinalFile_FullPath);
     QProcess SaveImageAs_QProcess;
@@ -244,6 +259,7 @@ QString MainWindow::SaveImageAs_FormatAndQuality(QString OriginalSourceImage_ful
     }
     QFile::remove(ScaledImage_fullPath);
     return FinalFile_FullPath;
+#endif
 }
 /*
 根据保存的格式判断是否要启用 质量等级 调整

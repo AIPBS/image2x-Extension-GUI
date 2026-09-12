@@ -56,6 +56,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     const QString apngFrameTwoPath = testDirectory + "/frame002.png";
     const QString apngOutputPath = testDirectory + "/CompatibilityTest_APNG.png";
     const QString apngExtractedFramePath = testDirectory + "/1.png";
+    const QString frameInputPath = testDirectory + "/Compatibility_Test_1.png";
     const QString soxInputPath = testDirectory + "/CompatibilityTest_Sound.wav";
     const QString soxProfilePath = testDirectory + "/TestTemp_DenoiseProfile.dp";
 
@@ -106,11 +107,15 @@ int MainWindow::Waifu2x_Compatibility_Test()
         && QDir().mkpath(testDirectory);
     QFile::remove(outputPath);
     bool inputImageReady = false;
+    bool frameInputImageReady = false;
     if (testDirectoryReady)
     {
         QImage inputImage(32, 32, QImage::Format_RGB32);
         inputImage.fill(Qt::white);
         inputImageReady = inputImage.save(inputPath);
+        QImage frameInputImage(32, 32, QImage::Format_RGB32);
+        frameInputImage.fill(Qt::black);
+        frameInputImageReady = frameInputImage.save(frameInputPath);
     }
 
     if (!testDirectoryReady)
@@ -142,7 +147,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
                 << "-s" << "2"
                 << "-n" << "0"
                 << "-t" << "32"
-                << "-m" << "models-cunet"
+                << "-m" << "models-upconv_7_anime_style_art_rgb"
                 << "-j" << "1:1:1"
                 << "-g" << "0");
 
@@ -260,30 +265,30 @@ int MainWindow::Waifu2x_Compatibility_Test()
         outputPath);
 
     const QString rifeDirectory = enginesDirectory + "/rife-ncnn-vulkan";
-    isCompatible_RifeNcnnVulkan = testEngine(
+    isCompatible_RifeNcnnVulkan = frameInputImageReady && testEngine(
         "RIFE-NCNN-Vulkan", rifeDirectory + "/rife-ncnn-vulkan",
-        QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
+        QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
                        << "-j" << "1:1:1" << "-m" << "rife-v4.6",
         outputPath);
 
     const QString cainDirectory = enginesDirectory + "/cain-ncnn-vulkan";
-    isCompatible_CainNcnnVulkan = testEngine(
+    isCompatible_CainNcnnVulkan = frameInputImageReady && testEngine(
         "CAIN-NCNN-Vulkan", cainDirectory + "/cain-ncnn-vulkan",
-        QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
+        QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
                        << "-j" << "1:1:1" << "-m" << "cain",
         outputPath);
 
     const QString dainDirectory = enginesDirectory + "/dain-ncnn-vulkan";
-    isCompatible_DainNcnnVulkan = testEngine(
+    isCompatible_DainNcnnVulkan = frameInputImageReady && testEngine(
         "DAIN-NCNN-Vulkan", dainDirectory + "/dain-ncnn-vulkan",
-        QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
+        QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
                        << "-j" << "1:1:1" << "-m" << "best",
         outputPath);
 
     const QString ifrnetDirectory = enginesDirectory + "/ifrnet-ncnn-vulkan";
-    isCompatible_IFRNetNcnnVulkan = testEngine(
+    isCompatible_IFRNetNcnnVulkan = frameInputImageReady && testEngine(
         "IFRNet-NCNN-Vulkan", ifrnetDirectory + "/ifrnet-ncnn-vulkan",
-        QStringList() << "-0" << inputPath << "-1" << inputPath << "-o" << outputPath
+        QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
                        << "-j" << "1:1:1" << "-m" << "IFRNet_Vimeo90K",
         outputPath);
 
@@ -480,6 +485,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
 
     QFile::remove(videoPath);
     QFile::remove(inputPath);
+    QFile::remove(frameInputPath);
     QFile::remove(imageMagickOutputPath);
     QFile::remove(gifInputPath);
     QFile::remove(gifOutputPath);

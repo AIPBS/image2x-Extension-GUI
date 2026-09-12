@@ -181,7 +181,8 @@ int MainWindow::Waifu2x_Compatibility_Test()
 
     const QString enginesDirectory = Current_Path + "/dependencies/engines";
     const auto testEngine = [&](const QString &name, const QString &program,
-                                const QStringList &arguments, const QString &resultPath) {
+                                const QStringList &arguments, const QString &resultPath,
+                                int timeoutMs = 30000) {
         QFile::remove(resultPath);
         QProcess process;
         const bool prerequisitesReady = testDirectoryReady
@@ -194,7 +195,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
             process.setWorkingDirectory(QFileInfo(program).absolutePath());
             process.start(program, arguments);
             const bool started = process.waitForStarted(10000);
-            const bool finished = started && process.waitForFinished(30000);
+            const bool finished = started && process.waitForFinished(timeoutMs);
             if (!finished && process.state() != QProcess::NotRunning)
             {
                 process.kill();
@@ -240,7 +241,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         "RealSR-NCNN-Vulkan", realSrDirectory + "/realsr-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "4"
                       << "-t" << "32" << "-m" << "models-DF2K",
-        outputPath);
+        outputPath, 60000);
 
     const QString srmdDirectory = enginesDirectory + "/srmd-ncnn-vulkan";
     isCompatible_SRMD_NCNN_Vulkan = testEngine(
@@ -276,7 +277,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         "CAIN-NCNN-Vulkan", cainDirectory + "/cain-ncnn-vulkan",
         QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
                        << "-j" << "1:1:1" << "-m" << "cain",
-        outputPath);
+        outputPath, 60000);
 
     const QString dainDirectory = enginesDirectory + "/dain-ncnn-vulkan";
     isCompatible_DainNcnnVulkan = frameInputImageReady && testEngine(

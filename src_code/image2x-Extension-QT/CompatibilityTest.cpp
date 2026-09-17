@@ -19,7 +19,10 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "compatibility_presentation.h"
+#include "engine_test_runner.h"
 #include "runtime_dependencies.h"
+#include "ui_routing.h"
 #include <QHBoxLayout>
 #include <QPlainTextEdit>
 #include <QRegularExpression>
@@ -109,7 +112,8 @@ void MainWindow::on_pushButton_compatibilityTest_clicked()
     ui->tab_VideoSettings->setEnabled(0);
     ui->tab_AdditionalSettings->setEnabled(0);
     ui->pushButton_compatibilityTest->setEnabled(0);
-    ui->tabWidget->setCurrentIndex(5);
+    ui->tabWidget->setCurrentIndex(
+        UiRouting::compatibilityTabIndex(ui->tabWidget, ui->tab_CompatibilityTest));
     ui->pushButton_compatibilityTest->setText(tr("Testing, please wait..."));
     Init_progressBar_CompatibilityTest();
     QtConcurrent::run(this, &MainWindow::Waifu2x_Compatibility_Test);
@@ -338,52 +342,26 @@ int MainWindow::Waifu2x_Compatibility_Test()
     const auto testEngine = [&](const QString &name, const QString &program,
                                 const QStringList &arguments, const QString &resultPath,
                                 int timeoutMs = 30000, bool requireHardwareVulkan = true) {
-        QFile::remove(resultPath);
-        QProcess process;
-        const bool prerequisitesReady = testDirectoryReady
-            && inputImageReady
-            && QFileInfo::exists(program);
-        bool completed = false;
-        QString diagnostics;
-        if (prerequisitesReady)
+        EngineTestRequest request;
+        request.name = name;
+        request.executable = program;
+        request.workingDirectory = QFileInfo(program).absolutePath();
+        request.arguments = arguments;
+        request.outputPath = resultPath;
+        request.timeoutMs = timeoutMs;
+        request.device = requireHardwareVulkan
+            ? EngineTestDevice::HardwareGpu : EngineTestDevice::SoftwareCpu;
+        const EngineTestResult result = (!testDirectoryReady || !inputImageReady)
+            ? EngineTestResult{false, false, false, false, false, -1, QString(),
+                               tr("The executable, test image, or writable test directory is unavailable."),
+                               QByteArray(), QByteArray()}
+            : EngineTestRunner::run(request);
+        const bool completed = result.passed;
+        QString diagnostics = result.diagnostic;
+        if (!completed && requireHardwareVulkan && !result.deviceAccepted
+            && !result.deviceName.isEmpty())
         {
-            process.setWorkingDirectory(QFileInfo(program).absolutePath());
-            process.start(program, arguments);
-            const bool started = process.waitForStarted(10000);
-            const bool finished = started && process.waitForFinished(timeoutMs);
-            if (!finished && process.state() != QProcess::NotRunning)
-            {
-                process.kill();
-                process.waitForFinished(5000);
-            }
-            const QByteArray standardOutput = process.readAllStandardOutput();
-            const QByteArray standardError = process.readAllStandardError();
-            const QPair<QString, bool> vulkanDevice = reportedVulkanDevice(standardOutput, standardError);
-            completed = started
-                && finished
-                && process.exitStatus() == QProcess::NormalExit
-                && process.exitCode() == 0
-                && QFileInfo(resultPath).size() > 0
-                && isValidImage(resultPath)
-                && (!requireHardwareVulkan || vulkanDevice.second);
-            diagnostics = QString::fromUtf8(standardError).trimmed();
-            if (!completed && requireHardwareVulkan && !vulkanDevice.second)
-            {
-                diagnostics = hardwareVulkanAdvice(vulkanDevice.first);
-            }
-            if (!completed && diagnostics.isEmpty()
-                && process.exitStatus() == QProcess::NormalExit)
-            {
-                diagnostics = tr("The process exited with code %1.").arg(process.exitCode());
-            }
-            if (diagnostics.isEmpty() && !completed)
-            {
-                diagnostics = process.errorString();
-            }
-        }
-        else
-        {
-            diagnostics = tr("The executable, test image, or writable test directory is unavailable.");
+            diagnostics = hardwareVulkanAdvice(result.deviceName);
         }
         emit Send_TextBrowser_NewMessage(
             completed
@@ -1406,9 +1384,10 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
         {
             return;
         }
-        gpuCheckbox->setChecked(gpuResult);
-        cpuCheckbox->setChecked(cpuResult);
-        cpuCheckbox->setEnabled(!gpuResult);
+        const CompatibilityPairState state = CompatibilityPresentation::pairState(gpuResult, cpuResult);
+        gpuCheckbox->setChecked(state.gpuChecked);
+        cpuCheckbox->setChecked(state.cpuChecked);
+        cpuCheckbox->setEnabled(state.cpuEnabled);
     };
     updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW,
                             isCompatible_Waifu2x_NCNN_Vulkan_NEW,
@@ -1466,7 +1445,8 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     ui->tab_AdditionalSettings->setEnabled(1);
     ui->pushButton_compatibilityTest->setEnabled(1);
     ui->pushButton_compatibilityTest->setText(tr("Start compatibility test"));
-    ui->tabWidget->setCurrentIndex(5);
+    ui->tabWidget->setCurrentIndex(
+        UiRouting::compatibilityTabIndex(ui->tabWidget, ui->tab_CompatibilityTest));
 #ifdef PLATFORM_LINUX
     QStringList resultLines;
     resultLines << tr("Compatibility Test Results") << QString();

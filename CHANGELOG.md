@@ -1,5 +1,13 @@
 # Change log
 
+## v0.7.0 (2026-09-17)
+
+### Added
+- Add reusable Qt logic, UI-policy, and packaged model test executables.
+- Add separate regular-test and release workflows.
+- Bundle the public Linux runtimes and model files in release artifacts while
+  leaving device-specific Vulkan drivers to the installed system.
+
 ## v0.6.1 (2026-09-17)
 
 ### Fixed

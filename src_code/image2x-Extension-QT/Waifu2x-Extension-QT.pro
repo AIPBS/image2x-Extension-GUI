@@ -92,14 +92,20 @@ SOURCES += \
     dain_ncnn_vulkan.cpp \
     rife_v4_ncnn_vulkan.cpp \
     nvidia_maxine.cpp \
-    runtime_dependencies.cpp
+    runtime_dependencies.cpp \
+    engine_test_runner.cpp \
+    model_test_matrix.cpp
 
 HEADERS += \
     mainwindow.h \
     topsupporterslist.h \
     platform_compat.h \
     engine_registry.h \
-    runtime_dependencies.h
+    runtime_dependencies.h \
+    engine_test_runner.h \
+    model_test_matrix.h \
+    compatibility_presentation.h \
+    ui_routing.h
 
 FORMS += \
     mainwindow.ui \

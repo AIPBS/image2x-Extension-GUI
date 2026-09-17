@@ -1,0 +1,145 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install packaging and runtime tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            qtbase5-dev \
+            qtmultimedia5-dev \
+            qttools5-dev-tools \
+            libgl1-mesa-dev \
+            libx11-dev \
+            pkg-config \
+            patchelf \
+            apngasm \
+            apngdis \
+            apngopt \
+            curl \
+            unzip \
+            tar \
+            imagemagick \
+            libvulkan1 \
+            mesa-vulkan-drivers \
+            vulkan-tools
+
+      - name: Download tested binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: image2x-tested-binaries
+          path: tested/
+
+      - name: Create self-contained bundle
+        run: |
+          set -euo pipefail
+          mkdir -p bundle/lib bundle/plugins
+          cp tested/image2x-Extension-GUI bundle/
+          cp tested/language_*.qm bundle/
+          chmod 755 bundle/image2x-Extension-GUI
+
+          copy_libs() {
+            ldd "$1" 2>/dev/null | awk '/=> \//{print $3}' | sort -u
+          }
+          exclude='^(libc\.so\.6|libm\.so\.6|libpthread\.so\.0|libdl\.so\.2|libresolv\.so\.2|libnsl\.so\.1|libstdc\+\+\.so\.6|libgcc_s\.so\.1|linux-vdso\.so\.1|ld-linux.*\.so\.2)$'
+
+          libraries="$(copy_libs bundle/image2x-Extension-GUI)"
+          for library in $libraries; do
+            name="$(basename "$library")"
+            [[ "$name" =~ $exclude ]] && continue
+            cp -L "$library" bundle/lib/
+          done
+          for plugin_dir in /usr/lib/x86_64-linux-gnu/qt5/plugins/*/; do
+            [[ -d "$plugin_dir" ]] && cp -r "$plugin_dir" bundle/plugins/
+          done
+          for plugin in bundle/plugins/*/*.so*; do
+            [[ -f "$plugin" ]] || continue
+            for library in $(copy_libs "$plugin"); do
+              name="$(basename "$library")"
+              [[ "$name" =~ $exclude ]] && continue
+              cp -L "$library" bundle/lib/ 2>/dev/null || true
+            done
+          done
+
+          printf '%s\n' '[Paths]' 'Prefix = .' 'Libraries = lib' 'Plugins = plugins' > bundle/qt.conf
+          patchelf --set-rpath '$ORIGIN' bundle/lib/*.so* 2>/dev/null || true
+          patchelf --set-rpath '$ORIGIN/lib' bundle/image2x-Extension-GUI
+          for plugin in bundle/plugins/*/*.so*; do
+            [[ -f "$plugin" ]] && patchelf --set-rpath '$ORIGIN/../../lib' "$plugin" 2>/dev/null || true
+          done
+
+      - name: Install public engines and models
+        run: |
+          bash src_code/scripts/install_linux_runtime.sh "$GITHUB_WORKSPACE/bundle"
+
+      - name: Create runtime manifest
+        run: |
+          (
+            cd bundle
+            find dependencies/engines -type f -print0 \
+              | sort -z \
+              | xargs -0 sha256sum
+          ) > bundle/runtime-manifest.sha256
+
+      - name: Run packaged CPU model matrix
+        run: |
+          set -euo pipefail
+          convert -size 32x32 xc:white /tmp/image2x-model-input.png
+          software_icd=''
+          for candidate in /usr/share/vulkan/icd.d/*lvp*.json; do
+            if [[ -f "$candidate" ]]; then
+              software_icd="$candidate"
+              break
+            fi
+          done
+          [[ -n "$software_icd" ]] || { echo 'No software Vulkan ICD found.' >&2; exit 1; }
+          export IMAGE2X_SOFTWARE_VULKAN_ICD="$software_icd"
+          ./tested/image2x-model-tests \
+            --application-directory "$GITHUB_WORKSPACE/bundle" \
+            --input /tmp/image2x-model-input.png \
+            --cpu \
+            --json "$GITHUB_WORKSPACE/model-test-results.json"
+
+      - name: Upload release bundle and test evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: image2x-linux-release-bundle
+          path: |
+            bundle/
+            model-test-results.json
+
+      - name: Create GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=''
+          version="$(awk -F '"' '/QString VERSION/{print $2; exit}' src_code/image2x-Extension-QT/mainwindow.h)"
+          [[ "$version" == "${GITHUB_REF_NAME}" ]] || {
+            echo "Tag ${GITHUB_REF_NAME} does not match application version ${version}." >&2
+            exit 1
+          }
+          tar -czf image2x-Extension-GUI-linux.tar.gz -C bundle .
+          gh release create "$GITHUB_REF_NAME" image2x-Extension-GUI-linux.tar.gz \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "image2x-Extension-GUI $GITHUB_REF_NAME" \
+            --generate-notes

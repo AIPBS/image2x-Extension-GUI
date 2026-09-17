@@ -47,19 +47,25 @@ make -j$(nproc)
 
 ## Linux runtime
 
-The Qt executable needs an inference runtime in addition to Qt libraries.
-The first supported Linux workload is still-image upscaling with the
-open-source `waifu2x-ncnn-vulkan` engine. Install its pinned, checksum-verified
-runtime beside the executable after building or extracting a bundle:
+The Qt executable needs inference runtimes and public model files in addition
+to Qt libraries. Install the pinned, checksum-verified Linux runtime bundles
+for the complete public still-image matrix beside the executable:
 
 ```bash
 ./scripts/install_linux_runtime.sh /path/to/application-directory
 ```
 
-This creates `dependencies/engines/waifu2x-ncnn-vulkan/` beside the executable.
-The application detects that layout on Linux before a job starts and reports a
-repair command if it is missing. GIF, video, and other engines remain unavailable
-on Linux until their runtime dependencies are packaged and tested.
+This creates the `dependencies/engines/` tree beside the executable for
+Waifu2x, SRMD, RealSR, Real-ESRGAN, Real-CUGAN, and the separately tracked
+frame engines. The application validates the selected engine and exact model
+directory before processing and reports this same repair command when assets
+are missing.
+
+Run the complete public still-image matrix against an installed bundle with:
+
+```bash
+./scripts/test_linux_model_matrix.sh /path/to/application-directory /path/to/input.png
+```
 
 ## Models
 

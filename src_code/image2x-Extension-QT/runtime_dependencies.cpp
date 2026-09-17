@@ -146,7 +146,9 @@ QString RuntimeDependencies::installCommand(RuntimeEngine engine) const
         case RuntimeEngine::RealSrNcnnVulkan:
         case RuntimeEngine::RealESRGANNcnnVulkan:
         case RuntimeEngine::RealCUGANNcnnVulkan:
-            return QString();
+            return QStringLiteral(
+                "./scripts/install_linux_runtime.sh \"%1\"")
+                .arg(applicationDirectory);
     }
 
     return QString();

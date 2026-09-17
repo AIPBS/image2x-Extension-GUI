@@ -1,10 +1,11 @@
 # Change log
 
-## Unreleased
+## v0.6.0 (2026-09-17)
 
 ### Added
 - Install every public Linux engine runtime required by the still-image model
   matrix from pinned, checksum-verified upstream archives.
+- Add a reproducible 33-row Linux still-image model matrix runner.
 
 ## v0.5.0 (2026-09-17)
 

@@ -297,7 +297,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
                     << "-t" << "32"
                     << "-m" << "models-upconv_7_anime_style_art_rgb"
                     << "-j" << "1:1:1"
-                    << "-g" << "-1");
+                    << "-g" << "0");
             const bool cpuStarted = cpuProcess.waitForStarted(10000);
             const bool cpuFinished = cpuStarted && cpuProcess.waitForFinished(60000);
             if (!cpuFinished && cpuProcess.state() != QProcess::NotRunning)
@@ -399,7 +399,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
             return;
         }
         cpuResult = testEngine(name + " (CPU)", program,
-                               withGpuSelector(arguments, "-1"), resultPath, timeoutMs, false);
+                               withGpuSelector(arguments, "0"), resultPath, timeoutMs, false);
     };
 
     const QString realSrDirectory = enginesDirectory + "/realsr-ncnn-vulkan";
@@ -1443,19 +1443,31 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
             resultLines << tr("  Action: %1").arg(guidance);
         }
     };
+    const auto addGpuCpuResult = [&](const QString &name, bool gpuCompatible,
+                                     bool cpuCompatible, const QString &guidance) {
+        resultLines << tr("%1 (GPU): %2").arg(name, gpuCompatible ? tr("Compatible") : tr("Not compatible"));
+        resultLines << tr("%1 (CPU): %2").arg(name, cpuCompatible ? tr("Compatible") : tr("Not compatible"));
+        if (!gpuCompatible && !cpuCompatible && !guidance.isEmpty())
+        {
+            resultLines << tr("  Action: %1").arg(guidance);
+        }
+    };
     const auto packageGuidance = [&](const QString &program, const QString &package) {
         return QStandardPaths::findExecutable(program).isEmpty()
             ? tr("Install package '%1' with your package manager.").arg(package)
             : tr("The installed package '%1' failed its functional check.").arg(package);
     };
-    addResult("waifu2x-ncnn-vulkan (Latest)", isCompatible_Waifu2x_NCNN_Vulkan_NEW,
-              tr("Install the Linux runtime supplied with this application."));
+    addGpuCpuResult("waifu2x-ncnn-vulkan (Latest)",
+                    isCompatible_Waifu2x_NCNN_Vulkan_NEW,
+                    isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU,
+                    tr("Install the Linux runtime supplied with this application."));
     addResult("waifu2x-ncnn-vulkan (FP16)", isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P,
               tr("No separate Linux runtime is bundled; use Latest."));
     addResult("waifu2x-ncnn-vulkan (Legacy)", isCompatible_Waifu2x_NCNN_Vulkan_OLD,
               tr("No separate Linux runtime is bundled; use Latest."));
-    addResult("SRMD-NCNN-Vulkan", isCompatible_SRMD_NCNN_Vulkan,
-              tr("No Linux runtime is bundled for this option."));
+    addGpuCpuResult("SRMD-NCNN-Vulkan", isCompatible_SRMD_NCNN_Vulkan,
+                    isCompatible_SRMD_NCNN_Vulkan_CPU,
+                    tr("No Linux runtime is bundled for this option."));
     addResult("waifu2x-converter", isCompatible_Waifu2x_Converter,
               tr("No Linux runtime is bundled for this option."));
     addResult("Anime4K (CPU)", isCompatible_Anime4k_CPU,
@@ -1473,20 +1485,27 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
               tr("No Linux runtime is bundled for this option."));
     addResult("waifu2x-caffe (cuDNN)", isCompatible_Waifu2x_Caffe_cuDNN,
               tr("No Linux runtime is bundled for this option."));
-    addResult("RealSR-NCNN-Vulkan", isCompatible_Realsr_NCNN_Vulkan,
-              tr("Install the RealSR Linux runtime and models."));
-    addResult("RIFE-NCNN-Vulkan", isCompatible_RifeNcnnVulkan,
-              tr("Install the RIFE Linux runtime and models."));
-    addResult("CAIN-NCNN-Vulkan", isCompatible_CainNcnnVulkan,
-              tr("Install the CAIN Linux runtime and models."));
-    addResult("DAIN-NCNN-Vulkan", isCompatible_DainNcnnVulkan,
-              tr("Install the DAIN Linux runtime and models."));
-    addResult("Real-ESRGAN", isCompatible_RealESRGAN,
-              tr("Install the Real-ESRGAN Linux runtime and models."));
-    addResult("Real-CUGAN", isCompatible_RealCUGAN,
-              tr("Install the Real-CUGAN Linux runtime and models."));
-    addResult("IFRNet-NCNN-Vulkan", isCompatible_IFRNetNcnnVulkan,
-              tr("Install the IFRNet Linux runtime and models."));
+    addGpuCpuResult("RealSR-NCNN-Vulkan", isCompatible_Realsr_NCNN_Vulkan,
+                    isCompatible_Realsr_NCNN_Vulkan_CPU,
+                    tr("Install the RealSR Linux runtime and models."));
+    addGpuCpuResult("RIFE-NCNN-Vulkan", isCompatible_RifeNcnnVulkan,
+                    isCompatible_RifeNcnnVulkan_CPU,
+                    tr("Install the RIFE Linux runtime and models."));
+    addGpuCpuResult("CAIN-NCNN-Vulkan", isCompatible_CainNcnnVulkan,
+                    isCompatible_CainNcnnVulkan_CPU,
+                    tr("Install the CAIN Linux runtime and models."));
+    addGpuCpuResult("DAIN-NCNN-Vulkan", isCompatible_DainNcnnVulkan,
+                    isCompatible_DainNcnnVulkan_CPU,
+                    tr("Install the DAIN Linux runtime and models."));
+    addGpuCpuResult("Real-ESRGAN", isCompatible_RealESRGAN,
+                    isCompatible_RealESRGAN_CPU,
+                    tr("Install the Real-ESRGAN Linux runtime and models."));
+    addGpuCpuResult("Real-CUGAN", isCompatible_RealCUGAN,
+                    isCompatible_RealCUGAN_CPU,
+                    tr("Install the Real-CUGAN Linux runtime and models."));
+    addGpuCpuResult("IFRNet-NCNN-Vulkan", isCompatible_IFRNetNcnnVulkan,
+                    isCompatible_IFRNetNcnnVulkan_CPU,
+                    tr("Install the IFRNet Linux runtime and models."));
     addResult("RTX Super Resolution", isCompatible_RTXSuperRes,
               tr("Install compatible NVIDIA driver support."));
     addResult("NVIDIA Maxine", isCompatible_NvidiaMaxine,

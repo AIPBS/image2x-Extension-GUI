@@ -1,5 +1,10 @@
 # Change log
 
+## v0.6.1 (2026-09-17)
+
+### Fixed
+- Show GPU and CPU compatibility controls for every engine result row.
+
 ## v0.6.0 (2026-09-17)
 
 ### Added

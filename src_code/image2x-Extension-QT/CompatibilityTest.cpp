@@ -26,48 +26,53 @@
 
 void MainWindow::InitializeCompatibilityCpuCheckboxes()
 {
-    const auto addCpuCheckbox = [this](QCheckBox *gpuCheckbox) {
+    const auto findPosition = [this](QWidget *widget, int &row, int &column,
+                                     int &rowSpan, int &columnSpan) {
+        for (int index = 0; index < ui->gridLayout_20->count(); ++index)
+        {
+            QLayoutItem *item = ui->gridLayout_20->itemAt(index);
+            if (item->widget() != widget)
+            {
+                continue;
+            }
+            ui->gridLayout_20->getItemPosition(index, &row, &column, &rowSpan, &columnSpan);
+            return true;
+        }
+        return false;
+    };
+    const auto pairCheckboxes = [this, &findPosition](QCheckBox *gpuCheckbox,
+                                                      QCheckBox *cpuCheckbox) {
         if (gpuCheckbox == nullptr)
         {
             return;
         }
-        int itemIndex = -1;
         int row = 0;
         int column = 0;
         int rowSpan = 1;
         int columnSpan = 1;
-        for (int index = 0; index < ui->gridLayout_20->count(); ++index)
-        {
-            int candidateRow = 0;
-            int candidateColumn = 0;
-            int candidateRowSpan = 1;
-            int candidateColumnSpan = 1;
-            ui->gridLayout_20->getItemPosition(index, &candidateRow, &candidateColumn,
-                                               &candidateRowSpan, &candidateColumnSpan);
-            if (ui->gridLayout_20->itemAt(index)->widget() == gpuCheckbox)
-            {
-                itemIndex = index;
-                row = candidateRow;
-                column = candidateColumn;
-                rowSpan = candidateRowSpan;
-                columnSpan = candidateColumnSpan;
-                break;
-            }
-        }
-        if (itemIndex < 0)
+        if (!findPosition(gpuCheckbox, row, column, rowSpan, columnSpan))
         {
             return;
         }
 
         const QString gpuText = gpuCheckbox->text();
         ui->gridLayout_20->removeWidget(gpuCheckbox);
+        if (cpuCheckbox == nullptr)
+        {
+            cpuCheckbox = new QCheckBox(ui->groupBox_CompatibilityTestRes);
+        }
+        else
+        {
+            ui->gridLayout_20->removeWidget(cpuCheckbox);
+        }
         QWidget *container = new QWidget(ui->groupBox_CompatibilityTestRes);
         QHBoxLayout *layout = new QHBoxLayout(container);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(4);
         gpuCheckbox->setText(QStringLiteral("GPU: ") + gpuText);
         layout->addWidget(gpuCheckbox);
-        QCheckBox *cpuCheckbox = new QCheckBox(QStringLiteral("CPU"), container);
+        cpuCheckbox->setParent(container);
+        cpuCheckbox->setText(QStringLiteral("CPU"));
         cpuCheckbox->setFocusPolicy(Qt::NoFocus);
         cpuCheckbox->setToolTip(QStringLiteral("CPU fallback for ") + gpuText);
         cpuCheckbox->setStyleSheet(QStringLiteral("QCheckBox:disabled { color: rgb(140, 140, 140); }"));
@@ -76,15 +81,24 @@ void MainWindow::InitializeCompatibilityCpuCheckboxes()
         CompatibilityCpuCheckboxes.insert(gpuCheckbox, cpuCheckbox);
     };
 
-    addCpuCheckbox(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW);
-    addCpuCheckbox(ui->checkBox_isCompatible_SRMD_NCNN_Vulkan);
-    addCpuCheckbox(ui->checkBox_isCompatible_Realsr_NCNN_Vulkan);
-    addCpuCheckbox(ui->checkBox_isCompatible_RealESRGAN);
-    addCpuCheckbox(ui->checkBox_isCompatible_RealCUGAN);
-    addCpuCheckbox(ui->checkBox_isCompatible_RifeNcnnVulkan);
-    addCpuCheckbox(ui->checkBox_isCompatible_CainNcnnVulkan);
-    addCpuCheckbox(ui->checkBox_isCompatible_DainNcnnVulkan);
-    addCpuCheckbox(ui->checkBox_isCompatible_IFRNetNcnnVulkan);
+    pairCheckboxes(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_OLD, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_SRMD_NCNN_Vulkan, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_Anime4k_GPU, ui->checkBox_isCompatible_Anime4k_CPU);
+    pairCheckboxes(ui->checkBox_isCompatible_SRMD_CUDA, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_Waifu2x_Converter, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_Waifu2x_Caffe_GPU, ui->checkBox_isCompatible_Waifu2x_Caffe_CPU);
+    pairCheckboxes(ui->checkBox_isCompatible_Waifu2x_Caffe_cuDNN, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_Realsr_NCNN_Vulkan, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_RealESRGAN, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_RealCUGAN, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_RifeNcnnVulkan, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_CainNcnnVulkan, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_DainNcnnVulkan, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_IFRNetNcnnVulkan, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_RTXSuperRes, nullptr);
+    pairCheckboxes(ui->checkBox_isCompatible_NvidiaMaxine, nullptr);
 }
 
 void MainWindow::on_pushButton_compatibilityTest_clicked()
@@ -1399,9 +1413,25 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW,
                             isCompatible_Waifu2x_NCNN_Vulkan_NEW,
                             isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P,
+                            isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P, false);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_OLD,
+                            isCompatible_Waifu2x_NCNN_Vulkan_OLD, false);
     updateGpuCpuCheckboxes(ui->checkBox_isCompatible_SRMD_NCNN_Vulkan,
                             isCompatible_SRMD_NCNN_Vulkan,
                             isCompatible_SRMD_NCNN_Vulkan_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Anime4k_GPU,
+                            isCompatible_Anime4k_GPU,
+                            isCompatible_Anime4k_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_SRMD_CUDA,
+                            isCompatible_SRMD_CUDA, false);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Waifu2x_Converter,
+                            isCompatible_Waifu2x_Converter, false);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Waifu2x_Caffe_GPU,
+                            isCompatible_Waifu2x_Caffe_GPU,
+                            isCompatible_Waifu2x_Caffe_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Waifu2x_Caffe_cuDNN,
+                            isCompatible_Waifu2x_Caffe_cuDNN, false);
     updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Realsr_NCNN_Vulkan,
                             isCompatible_Realsr_NCNN_Vulkan,
                             isCompatible_Realsr_NCNN_Vulkan_CPU);
@@ -1423,6 +1453,10 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     updateGpuCpuCheckboxes(ui->checkBox_isCompatible_IFRNetNcnnVulkan,
                             isCompatible_IFRNetNcnnVulkan,
                             isCompatible_IFRNetNcnnVulkan_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_RTXSuperRes,
+                            isCompatible_RTXSuperRes, false);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_NvidiaMaxine,
+                            isCompatible_NvidiaMaxine, false);
     //解除界面管制
     Finish_progressBar_CompatibilityTest();
     ui->tab_Home->setEnabled(1);

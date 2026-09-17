@@ -20,7 +20,72 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "runtime_dependencies.h"
+#include <QHBoxLayout>
 #include <QPlainTextEdit>
+#include <QRegularExpression>
+
+void MainWindow::InitializeCompatibilityCpuCheckboxes()
+{
+    const auto addCpuCheckbox = [this](QCheckBox *gpuCheckbox) {
+        if (gpuCheckbox == nullptr)
+        {
+            return;
+        }
+        int itemIndex = -1;
+        int row = 0;
+        int column = 0;
+        int rowSpan = 1;
+        int columnSpan = 1;
+        for (int index = 0; index < ui->gridLayout_20->count(); ++index)
+        {
+            int candidateRow = 0;
+            int candidateColumn = 0;
+            int candidateRowSpan = 1;
+            int candidateColumnSpan = 1;
+            ui->gridLayout_20->getItemPosition(index, &candidateRow, &candidateColumn,
+                                               &candidateRowSpan, &candidateColumnSpan);
+            if (ui->gridLayout_20->itemAt(index)->widget() == gpuCheckbox)
+            {
+                itemIndex = index;
+                row = candidateRow;
+                column = candidateColumn;
+                rowSpan = candidateRowSpan;
+                columnSpan = candidateColumnSpan;
+                break;
+            }
+        }
+        if (itemIndex < 0)
+        {
+            return;
+        }
+
+        const QString gpuText = gpuCheckbox->text();
+        ui->gridLayout_20->removeWidget(gpuCheckbox);
+        QWidget *container = new QWidget(ui->groupBox_CompatibilityTestRes);
+        QHBoxLayout *layout = new QHBoxLayout(container);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(4);
+        gpuCheckbox->setText(QStringLiteral("GPU: ") + gpuText);
+        layout->addWidget(gpuCheckbox);
+        QCheckBox *cpuCheckbox = new QCheckBox(QStringLiteral("CPU"), container);
+        cpuCheckbox->setFocusPolicy(Qt::NoFocus);
+        cpuCheckbox->setToolTip(QStringLiteral("CPU fallback for ") + gpuText);
+        cpuCheckbox->setStyleSheet(QStringLiteral("QCheckBox:disabled { color: rgb(140, 140, 140); }"));
+        layout->addWidget(cpuCheckbox);
+        ui->gridLayout_20->addWidget(container, row, column, rowSpan, columnSpan);
+        CompatibilityCpuCheckboxes.insert(gpuCheckbox, cpuCheckbox);
+    };
+
+    addCpuCheckbox(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW);
+    addCpuCheckbox(ui->checkBox_isCompatible_SRMD_NCNN_Vulkan);
+    addCpuCheckbox(ui->checkBox_isCompatible_Realsr_NCNN_Vulkan);
+    addCpuCheckbox(ui->checkBox_isCompatible_RealESRGAN);
+    addCpuCheckbox(ui->checkBox_isCompatible_RealCUGAN);
+    addCpuCheckbox(ui->checkBox_isCompatible_RifeNcnnVulkan);
+    addCpuCheckbox(ui->checkBox_isCompatible_CainNcnnVulkan);
+    addCpuCheckbox(ui->checkBox_isCompatible_DainNcnnVulkan);
+    addCpuCheckbox(ui->checkBox_isCompatible_IFRNetNcnnVulkan);
+}
 
 void MainWindow::on_pushButton_compatibilityTest_clicked()
 {
@@ -42,6 +107,15 @@ int MainWindow::Waifu2x_Compatibility_Test()
     emit Send_TextBrowser_NewMessage(tr("Compatibility test is ongoing, please wait."));
 
     isCompatible_Waifu2x_NCNN_Vulkan_NEW = false;
+    isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU = false;
+    isCompatible_SRMD_NCNN_Vulkan_CPU = false;
+    isCompatible_Realsr_NCNN_Vulkan_CPU = false;
+    isCompatible_RealESRGAN_CPU = false;
+    isCompatible_RealCUGAN_CPU = false;
+    isCompatible_RifeNcnnVulkan_CPU = false;
+    isCompatible_CainNcnnVulkan_CPU = false;
+    isCompatible_DainNcnnVulkan_CPU = false;
+    isCompatible_IFRNetNcnnVulkan_CPU = false;
     RuntimeDependencies dependencies(Current_Path);
     const QString appDataDirectory = QStandardPaths::writableLocation(
         QStandardPaths::AppLocalDataLocation);
@@ -96,6 +170,30 @@ int MainWindow::Waifu2x_Compatibility_Test()
         QImage image;
         return image.load(path) && !image.isNull()
             && image.width() > 0 && image.height() > 0;
+    };
+    const auto reportedVulkanDevice = [](const QByteArray &standardOutput,
+                                         const QByteArray &standardError) {
+        const QString output = QString::fromUtf8(standardOutput + "\n" + standardError);
+        const QRegularExpression devicePattern(QStringLiteral("\\[\\d+\\s+([^\\]]+)\\]\\s+queueC="));
+        const QRegularExpressionMatch match = devicePattern.match(output);
+        if (!match.hasMatch())
+        {
+            return qMakePair(QString(), false);
+        }
+        const QString deviceName = match.captured(1).trimmed();
+        const QString normalizedName = deviceName.toLower();
+        const bool software = normalizedName.contains(QStringLiteral("llvmpipe"))
+            || normalizedName.contains(QStringLiteral("lavapipe"))
+            || normalizedName.contains(QStringLiteral("softpipe"))
+            || normalizedName.contains(QStringLiteral("swiftshader"));
+        return qMakePair(deviceName, !software);
+    };
+    const auto hardwareVulkanAdvice = [](const QString &deviceName) {
+        if (deviceName.isEmpty())
+        {
+            return QObject::tr("No Vulkan device was reported. Install the Vulkan driver for this machine with the system package manager.");
+        }
+        return QObject::tr("Vulkan selected the software renderer '%1'. Install the hardware Vulkan driver for this machine with the system package manager, then run the test again.").arg(deviceName);
     };
     const auto missingPackageAdvice = [&](const QString &program, const QString &package) {
         return QStandardPaths::findExecutable(program).isEmpty()
@@ -158,31 +256,74 @@ int MainWindow::Waifu2x_Compatibility_Test()
             process.kill();
             process.waitForFinished(5000);
         }
+        const QByteArray standardOutput = process.readAllStandardOutput();
+        const QByteArray standardError = process.readAllStandardError();
+        const QPair<QString, bool> vulkanDevice = reportedVulkanDevice(standardOutput, standardError);
         const bool completed = started
             && finished
             && process.exitStatus() == QProcess::NormalExit
             && process.exitCode() == 0
             && QFileInfo(outputPath).size() > 0
-            && isValidImage(outputPath);
+            && isValidImage(outputPath)
+            && vulkanDevice.second;
         if (!completed)
         {
             qWarning().noquote() << "[compat] Waifu2x failed:" << process.errorString()
                                  << "exit=" << process.exitCode()
-                                 << "stderr=" << process.readAllStandardError();
+                                 << "device=" << vulkanDevice.first
+                                 << "stderr=" << standardError;
         }
         isCompatible_Waifu2x_NCNN_Vulkan_NEW = completed;
 
         emit Send_TextBrowser_NewMessage(
             completed
-                ? tr("Compatible with waifu2x-ncnn-vulkan: Yes.")
-                : tr("Compatible with waifu2x-ncnn-vulkan: No. Check the Vulkan runtime and graphics driver."));
+                    ? tr("Compatible with waifu2x-ncnn-vulkan: Yes.")
+                    : (vulkanDevice.second
+                        ? tr("Compatible with waifu2x-ncnn-vulkan: No. Check the Vulkan runtime and graphics driver.")
+                        : tr("Compatible with waifu2x-ncnn-vulkan: No. %1").arg(hardwareVulkanAdvice(vulkanDevice.first))));
+
+        if (!completed)
+        {
+            QFile::remove(outputPath);
+            QProcess cpuProcess;
+            cpuProcess.setWorkingDirectory(dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan));
+            cpuProcess.start(
+                dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan),
+                QStringList()
+                    << "-i" << inputPath
+                    << "-o" << outputPath
+                    << "-s" << "2"
+                    << "-n" << "0"
+                    << "-t" << "32"
+                    << "-m" << "models-upconv_7_anime_style_art_rgb"
+                    << "-j" << "1:1:1"
+                    << "-g" << "-1");
+            const bool cpuStarted = cpuProcess.waitForStarted(10000);
+            const bool cpuFinished = cpuStarted && cpuProcess.waitForFinished(60000);
+            if (!cpuFinished && cpuProcess.state() != QProcess::NotRunning)
+            {
+                cpuProcess.kill();
+                cpuProcess.waitForFinished(5000);
+            }
+            isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU = cpuStarted
+                && cpuFinished
+                && cpuProcess.exitStatus() == QProcess::NormalExit
+                && cpuProcess.exitCode() == 0
+                && QFileInfo(outputPath).size() > 0
+                && isValidImage(outputPath);
+            emit Send_TextBrowser_NewMessage(
+                isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU
+                    ? tr("Compatible with waifu2x-ncnn-vulkan (CPU): Yes.")
+                    : tr("Compatible with waifu2x-ncnn-vulkan (CPU): No. %1")
+                        .arg(QString::fromUtf8(cpuProcess.readAllStandardError()).trimmed()));
+        }
     }
     emit Send_Add_progressBar_CompatibilityTest();
 
     const QString enginesDirectory = Current_Path + "/dependencies/engines";
     const auto testEngine = [&](const QString &name, const QString &program,
                                 const QStringList &arguments, const QString &resultPath,
-                                int timeoutMs = 30000) {
+                                int timeoutMs = 30000, bool requireHardwareVulkan = true) {
         QFile::remove(resultPath);
         QProcess process;
         const bool prerequisitesReady = testDirectoryReady
@@ -201,13 +342,21 @@ int MainWindow::Waifu2x_Compatibility_Test()
                 process.kill();
                 process.waitForFinished(5000);
             }
+            const QByteArray standardOutput = process.readAllStandardOutput();
+            const QByteArray standardError = process.readAllStandardError();
+            const QPair<QString, bool> vulkanDevice = reportedVulkanDevice(standardOutput, standardError);
             completed = started
                 && finished
                 && process.exitStatus() == QProcess::NormalExit
                 && process.exitCode() == 0
                 && QFileInfo(resultPath).size() > 0
-                && isValidImage(resultPath);
-            diagnostics = QString::fromUtf8(process.readAllStandardError()).trimmed();
+                && isValidImage(resultPath)
+                && (!requireHardwareVulkan || vulkanDevice.second);
+            diagnostics = QString::fromUtf8(standardError).trimmed();
+            if (!completed && requireHardwareVulkan && !vulkanDevice.second)
+            {
+                diagnostics = hardwareVulkanAdvice(vulkanDevice.first);
+            }
             if (!completed && diagnostics.isEmpty()
                 && process.exitStatus() == QProcess::NormalExit)
             {
@@ -235,63 +384,100 @@ int MainWindow::Waifu2x_Compatibility_Test()
             tr("Compatible with %1: No. %2").arg(name, advice));
         emit Send_Add_progressBar_CompatibilityTest();
     };
+    const auto withGpuSelector = [](QStringList arguments, const QString &selector) {
+        arguments << "-g" << selector;
+        return arguments;
+    };
+    const auto testGpuThenCpu = [&](const QString &name, const QString &program,
+                                    const QStringList &arguments, const QString &resultPath,
+                                    bool &gpuResult, bool &cpuResult, int timeoutMs = 30000) {
+        gpuResult = testEngine(name + " (GPU)", program,
+                               withGpuSelector(arguments, "0"), resultPath, timeoutMs, true);
+        if (gpuResult)
+        {
+            cpuResult = false;
+            return;
+        }
+        cpuResult = testEngine(name + " (CPU)", program,
+                               withGpuSelector(arguments, "-1"), resultPath, timeoutMs, false);
+    };
 
     const QString realSrDirectory = enginesDirectory + "/realsr-ncnn-vulkan";
-    isCompatible_Realsr_NCNN_Vulkan = testEngine(
+    testGpuThenCpu(
         "RealSR-NCNN-Vulkan", realSrDirectory + "/realsr-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "4"
                       << "-t" << "32" << "-m" << "models-DF2K",
-        outputPath, 60000);
+        outputPath, isCompatible_Realsr_NCNN_Vulkan,
+        isCompatible_Realsr_NCNN_Vulkan_CPU, 60000);
 
     const QString srmdDirectory = enginesDirectory + "/srmd-ncnn-vulkan";
-    isCompatible_SRMD_NCNN_Vulkan = testEngine(
+    testGpuThenCpu(
         "SRMD-NCNN-Vulkan", srmdDirectory + "/srmd-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
                       << "-n" << "0" << "-t" << "32" << "-m" << "models-srmd",
-        outputPath);
+        outputPath, isCompatible_SRMD_NCNN_Vulkan,
+        isCompatible_SRMD_NCNN_Vulkan_CPU);
 
     const QString realEsrganDirectory = enginesDirectory + "/realesrgan-ncnn-vulkan";
-    isCompatible_RealESRGAN = testEngine(
+    testGpuThenCpu(
         "Real-ESRGAN", realEsrganDirectory + "/realesrgan-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
                       << "-n" << "realesr-animevideov3-x2" << "-t" << "32"
                       << "-m" << "models",
-        outputPath);
+        outputPath, isCompatible_RealESRGAN,
+        isCompatible_RealESRGAN_CPU);
 
     const QString realCuganDirectory = enginesDirectory + "/realcugan-ncnn-vulkan";
-    isCompatible_RealCUGAN = testEngine(
+    testGpuThenCpu(
         "Real-CUGAN", realCuganDirectory + "/realcugan-ncnn-vulkan",
         QStringList() << "-i" << inputPath << "-o" << outputPath << "-s" << "2"
                       << "-n" << "0" << "-t" << "32" << "-m" << "models-se",
-        outputPath);
+        outputPath, isCompatible_RealCUGAN,
+        isCompatible_RealCUGAN_CPU);
 
     const QString rifeDirectory = enginesDirectory + "/rife-ncnn-vulkan";
-    isCompatible_RifeNcnnVulkan = frameInputImageReady && testEngine(
-        "RIFE-NCNN-Vulkan", rifeDirectory + "/rife-ncnn-vulkan",
-        QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
-                       << "-j" << "1:1:1" << "-m" << "rife-v4.6",
-        outputPath);
+    if (frameInputImageReady)
+    {
+        testGpuThenCpu(
+            "RIFE-NCNN-Vulkan", rifeDirectory + "/rife-ncnn-vulkan",
+            QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
+                           << "-j" << "1:1:1" << "-m" << "rife-v4.6",
+            outputPath, isCompatible_RifeNcnnVulkan,
+            isCompatible_RifeNcnnVulkan_CPU);
+    }
 
     const QString cainDirectory = enginesDirectory + "/cain-ncnn-vulkan";
-    isCompatible_CainNcnnVulkan = frameInputImageReady && testEngine(
-        "CAIN-NCNN-Vulkan", cainDirectory + "/cain-ncnn-vulkan",
-        QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
-                       << "-j" << "1:1:1" << "-m" << "cain",
-        outputPath, 60000);
+    if (frameInputImageReady)
+    {
+        testGpuThenCpu(
+            "CAIN-NCNN-Vulkan", cainDirectory + "/cain-ncnn-vulkan",
+            QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
+                           << "-j" << "1:1:1" << "-m" << "cain",
+            outputPath, isCompatible_CainNcnnVulkan,
+            isCompatible_CainNcnnVulkan_CPU, 60000);
+    }
 
     const QString dainDirectory = enginesDirectory + "/dain-ncnn-vulkan";
-    isCompatible_DainNcnnVulkan = frameInputImageReady && testEngine(
-        "DAIN-NCNN-Vulkan", dainDirectory + "/dain-ncnn-vulkan",
-        QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
-                       << "-j" << "1:1:1" << "-m" << "best",
-        outputPath);
+    if (frameInputImageReady)
+    {
+        testGpuThenCpu(
+            "DAIN-NCNN-Vulkan", dainDirectory + "/dain-ncnn-vulkan",
+            QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
+                           << "-j" << "1:1:1" << "-m" << "best",
+            outputPath, isCompatible_DainNcnnVulkan,
+            isCompatible_DainNcnnVulkan_CPU);
+    }
 
     const QString ifrnetDirectory = enginesDirectory + "/ifrnet-ncnn-vulkan";
-    isCompatible_IFRNetNcnnVulkan = frameInputImageReady && testEngine(
-        "IFRNet-NCNN-Vulkan", ifrnetDirectory + "/ifrnet-ncnn-vulkan",
-        QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
-                       << "-j" << "1:1:1" << "-m" << "IFRNet_Vimeo90K",
-        outputPath);
+    if (frameInputImageReady)
+    {
+        testGpuThenCpu(
+            "IFRNet-NCNN-Vulkan", ifrnetDirectory + "/ifrnet-ncnn-vulkan",
+            QStringList() << "-0" << inputPath << "-1" << frameInputPath << "-o" << outputPath
+                           << "-j" << "1:1:1" << "-m" << "IFRNet_Vimeo90K",
+            outputPath, isCompatible_IFRNetNcnnVulkan,
+            isCompatible_IFRNetNcnnVulkan_CPU);
+    }
 
     reportUnavailable("waifu2x-ncnn-vulkan (FP16)", isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P,
                       tr("No separate Linux runtime is bundled; use the Latest option."));
@@ -429,9 +615,11 @@ int MainWindow::Waifu2x_Compatibility_Test()
             tr("%1: %2").arg(name, compatible ? tr("Yes") : tr("No")));
     };
     reportSummary("waifu2x-ncnn-vulkan (Latest)", isCompatible_Waifu2x_NCNN_Vulkan_NEW);
+    reportSummary("waifu2x-ncnn-vulkan (Latest, CPU)", isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU);
     reportSummary("waifu2x-ncnn-vulkan (FP16)", isCompatible_Waifu2x_NCNN_Vulkan_NEW_FP16P);
     reportSummary("waifu2x-ncnn-vulkan (Legacy)", isCompatible_Waifu2x_NCNN_Vulkan_OLD);
     reportSummary("SRMD-NCNN-Vulkan", isCompatible_SRMD_NCNN_Vulkan);
+    reportSummary("SRMD-NCNN-Vulkan (CPU)", isCompatible_SRMD_NCNN_Vulkan_CPU);
     reportSummary("waifu2x-converter", isCompatible_Waifu2x_Converter);
     reportSummary("Anime4K (CPU)", isCompatible_Anime4k_CPU);
     reportSummary("Anime4K (GPU)", isCompatible_Anime4k_GPU);
@@ -444,12 +632,19 @@ int MainWindow::Waifu2x_Compatibility_Test()
     reportSummary("waifu2x-caffe (GPU)", isCompatible_Waifu2x_Caffe_GPU);
     reportSummary("waifu2x-caffe (cuDNN)", isCompatible_Waifu2x_Caffe_cuDNN);
     reportSummary("RealSR-NCNN-Vulkan", isCompatible_Realsr_NCNN_Vulkan);
+    reportSummary("RealSR-NCNN-Vulkan (CPU)", isCompatible_Realsr_NCNN_Vulkan_CPU);
     reportSummary("RIFE-NCNN-Vulkan", isCompatible_RifeNcnnVulkan);
+    reportSummary("RIFE-NCNN-Vulkan (CPU)", isCompatible_RifeNcnnVulkan_CPU);
     reportSummary("CAIN-NCNN-Vulkan", isCompatible_CainNcnnVulkan);
+    reportSummary("CAIN-NCNN-Vulkan (CPU)", isCompatible_CainNcnnVulkan_CPU);
     reportSummary("DAIN-NCNN-Vulkan", isCompatible_DainNcnnVulkan);
+    reportSummary("DAIN-NCNN-Vulkan (CPU)", isCompatible_DainNcnnVulkan_CPU);
     reportSummary("Real-ESRGAN", isCompatible_RealESRGAN);
+    reportSummary("Real-ESRGAN (CPU)", isCompatible_RealESRGAN_CPU);
     reportSummary("Real-CUGAN", isCompatible_RealCUGAN);
+    reportSummary("Real-CUGAN (CPU)", isCompatible_RealCUGAN_CPU);
     reportSummary("IFRNet-NCNN-Vulkan", isCompatible_IFRNetNcnnVulkan);
+    reportSummary("IFRNet-NCNN-Vulkan (CPU)", isCompatible_IFRNetNcnnVulkan_CPU);
     reportSummary("RTX Super Resolution", isCompatible_RTXSuperRes);
     reportSummary("NVIDIA Maxine", isCompatible_NvidiaMaxine);
     reportSummary("APNG Tools", isCompatible_APNG);
@@ -1191,6 +1386,43 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     ui->checkBox_isCompatible_RTXSuperRes->setChecked(isCompatible_RTXSuperRes);
     ui->checkBox_isCompatible_NvidiaMaxine->setChecked(isCompatible_NvidiaMaxine);
     ui->checkBox_isCompatible_APNG->setChecked(isCompatible_APNG);
+    const auto updateGpuCpuCheckboxes = [this](QCheckBox *gpuCheckbox, bool gpuResult, bool cpuResult) {
+        QCheckBox *cpuCheckbox = CompatibilityCpuCheckboxes.value(gpuCheckbox, nullptr);
+        if (cpuCheckbox == nullptr)
+        {
+            return;
+        }
+        gpuCheckbox->setChecked(gpuResult);
+        cpuCheckbox->setChecked(cpuResult);
+        cpuCheckbox->setEnabled(!gpuResult);
+    };
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Waifu2x_NCNN_Vulkan_NEW,
+                            isCompatible_Waifu2x_NCNN_Vulkan_NEW,
+                            isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_SRMD_NCNN_Vulkan,
+                            isCompatible_SRMD_NCNN_Vulkan,
+                            isCompatible_SRMD_NCNN_Vulkan_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_Realsr_NCNN_Vulkan,
+                            isCompatible_Realsr_NCNN_Vulkan,
+                            isCompatible_Realsr_NCNN_Vulkan_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_RealESRGAN,
+                            isCompatible_RealESRGAN,
+                            isCompatible_RealESRGAN_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_RealCUGAN,
+                            isCompatible_RealCUGAN,
+                            isCompatible_RealCUGAN_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_RifeNcnnVulkan,
+                            isCompatible_RifeNcnnVulkan,
+                            isCompatible_RifeNcnnVulkan_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_CainNcnnVulkan,
+                            isCompatible_CainNcnnVulkan,
+                            isCompatible_CainNcnnVulkan_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_DainNcnnVulkan,
+                            isCompatible_DainNcnnVulkan,
+                            isCompatible_DainNcnnVulkan_CPU);
+    updateGpuCpuCheckboxes(ui->checkBox_isCompatible_IFRNetNcnnVulkan,
+                            isCompatible_IFRNetNcnnVulkan,
+                            isCompatible_IFRNetNcnnVulkan_CPU);
     //解除界面管制
     Finish_progressBar_CompatibilityTest();
     ui->tab_Home->setEnabled(1);
@@ -1546,7 +1778,7 @@ void MainWindow::Init_progressBar_CompatibilityTest()
 {
     ui->progressBar_CompatibilityTest->setEnabled(1);
     ui->progressBar_CompatibilityTest->setVisible(1);
-    ui->progressBar_CompatibilityTest->setRange(0,26);
+    ui->progressBar_CompatibilityTest->setRange(0,34);
     ui->progressBar_CompatibilityTest->setValue(0);
 }
 //进度+1 -兼容性测试进度条

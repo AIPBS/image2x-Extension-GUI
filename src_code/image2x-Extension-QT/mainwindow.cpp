@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    InitializeCompatibilityCpuCheckboxes();
     connect(ui->pushButton_TileSize_Add_RealESRGAN, &QPushButton::clicked, this, &MainWindow::on_pushButton_Add_TileSize_RealESRGAN_clicked);
     connect(ui->pushButton_TileSize_Minus_RealESRGAN, &QPushButton::clicked, this, &MainWindow::on_pushButton_Minus_TileSize_RealESRGAN_clicked);
     connect(ui->checkBox_TTA_RealESRGAN, &QCheckBox::clicked, this, &MainWindow::on_checkBox_TTA_RealESRGAN_clicked);

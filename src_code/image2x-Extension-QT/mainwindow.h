@@ -22,6 +22,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QCheckBox>
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QStandardItemModel>
@@ -85,7 +86,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void changeEvent(QEvent *e);
     //=======================
-    QString VERSION = "v0.4.3";
+    QString VERSION = "v0.5.0";
     bool isBetaVer = false;
     QString LastStableVer = "v3.31.13";
     QString LastBetaVer = "v3.41.02-beta";
@@ -352,6 +353,8 @@ public:
     QString SaveImageAs_FormatAndQuality(QString OriginalSourceImage_fullPath,QString ScaledImage_fullPath,bool isDenoiseLevelEnabled,int DenoiseLevel);
     //================================================================
     int Waifu2x_Compatibility_Test();//引擎兼容性检测
+    void InitializeCompatibilityCpuCheckboxes();
+    QMap<QCheckBox *, QCheckBox *> CompatibilityCpuCheckboxes;
     //初始化 -兼容性测试进度条
     void Init_progressBar_CompatibilityTest();
     //兼容性测试完成后的操作 -兼容性测试进度条
@@ -380,6 +383,15 @@ public:
     bool isCompatible_RealESRGAN=false;
     bool isCompatible_RealCUGAN=false;
     bool isCompatible_IFRNetNcnnVulkan=false;
+    bool isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU=false;
+    bool isCompatible_SRMD_NCNN_Vulkan_CPU=false;
+    bool isCompatible_Realsr_NCNN_Vulkan_CPU=false;
+    bool isCompatible_RealESRGAN_CPU=false;
+    bool isCompatible_RealCUGAN_CPU=false;
+    bool isCompatible_RifeNcnnVulkan_CPU=false;
+    bool isCompatible_CainNcnnVulkan_CPU=false;
+    bool isCompatible_DainNcnnVulkan_CPU=false;
+    bool isCompatible_IFRNetNcnnVulkan_CPU=false;
     bool isCompatible_RTXSuperRes=false;
     bool isCompatible_NvidiaMaxine=false;
     bool isCompatible_APNG=false;

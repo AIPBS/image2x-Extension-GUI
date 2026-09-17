@@ -1,8 +1,11 @@
 # Change log
 
-## Unreleased
+## v0.5.0 (2026-09-17)
 
 ### Added
+- Show separate GPU and CPU compatibility results for Vulkan engines.
+- Fall back to a CPU compatibility check when the GPU check fails while
+  keeping the GPU result manually selectable.
 - Expose the staged Linux Real-ESRGAN and Real-CUGAN image engines.
 - Validate the selected Linux engine and exact model directory before processing.
 - Require all three Waifu2x NCNN Vulkan model directories during Linux installation.

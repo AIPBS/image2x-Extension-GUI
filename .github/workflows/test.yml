@@ -34,7 +34,7 @@ jobs:
             apngopt
 
       - name: Build application
-        working-directory: src_code/image2x-Extension-QT
+        working-directory: src/image2x-ui
         run: |
           qmake
           make -j"$(nproc)"
@@ -43,19 +43,19 @@ jobs:
           done
 
       - name: Build logic tests
-        working-directory: src_code/tests
+        working-directory: src/tests
         run: |
           mkdir -p "$RUNNER_TEMP/image2x-logic-tests"
           cd "$RUNNER_TEMP/image2x-logic-tests"
-          qmake "$GITHUB_WORKSPACE/src_code/tests/image2x_logic_tests.pro"
+          qmake "$GITHUB_WORKSPACE/src/tests/image2x_logic_tests.pro"
           make -j"$(nproc)"
 
       - name: Build model tests
-        working-directory: src_code/tests
+        working-directory: src/tests
         run: |
           mkdir -p "$RUNNER_TEMP/image2x-model-tests"
           cd "$RUNNER_TEMP/image2x-model-tests"
-          qmake "$GITHUB_WORKSPACE/src_code/tests/image2x_model_tests.pro"
+          qmake "$GITHUB_WORKSPACE/src/tests/image2x_model_tests.pro"
           make -j"$(nproc)"
 
       - name: Run logic and UI-policy tests
@@ -63,7 +63,7 @@ jobs:
           QT_QPA_PLATFORM=offscreen "$RUNNER_TEMP/image2x-logic-tests/image2x-logic-tests"
 
       - name: Verify application launches offscreen
-        working-directory: src_code/image2x-Extension-QT
+        working-directory: src/image2x-ui
         run: |
           set +e
           QT_QPA_PLATFORM=offscreen timeout 8 ./image2x-Extension-GUI >/tmp/image2x-app.log 2>&1
@@ -78,8 +78,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/image2x-tested-binaries"
-          cp src_code/image2x-Extension-QT/image2x-Extension-GUI "$RUNNER_TEMP/image2x-tested-binaries/"
-          cp src_code/image2x-Extension-QT/language_*.qm "$RUNNER_TEMP/image2x-tested-binaries/"
+          cp src/image2x-ui/image2x-Extension-GUI "$RUNNER_TEMP/image2x-tested-binaries/"
+          cp src/image2x-ui/language_*.qm "$RUNNER_TEMP/image2x-tested-binaries/"
           cp "$RUNNER_TEMP/image2x-model-tests/image2x-model-tests" "$RUNNER_TEMP/image2x-tested-binaries/"
 
       - name: Upload tested binaries artifact

@@ -38,6 +38,16 @@ CONFIG += c++17
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
+INCLUDEPATH += \
+    app \
+    presentation \
+    widgets \
+    media \
+    engine_legacy \
+    ipc \
+    services \
+    test_support
+
 # --- Cross-platform detection ---
 win32 {
     DEFINES += PLATFORM_WINDOWS
@@ -55,68 +65,67 @@ macx {
 
 # --- Source files ---
 SOURCES += \
-    AnimatedPNG.cpp \
-    backend_client.cpp \
-    Anime4K.cpp \
-    CompatibilityTest.cpp \
-    Current_File_Progress.cpp \
-    CustomResolution.cpp \
-    Donate.cpp \
-    Finish_Action.cpp \
-    Frame_Interpolation.cpp \
-    Right-click_Menu.cpp \
-    SystemTrayIcon.cpp \
-    Web_Activities.cpp \
-    checkupdate.cpp \
-    files.cpp \
-    gif.cpp \
-    image.cpp \
-    main.cpp \
-    mainwindow.cpp \
-    progressBar.cpp \
-    realsr_ncnn_vulkan.cpp \
-    settings.cpp \
-    srmd-cuda.cpp \
-    srmd_ncnn_vulkan.cpp \
-    table.cpp \
-    textBrowser.cpp \
-    topsupporterslist.cpp \
-    video.cpp \
-    waifu2x.cpp \
-    waifu2x_caffe.cpp \
-    waifu2x_converter.cpp \
-    waifu2x_ncnn_vulkan.cpp \
-    realesrgan_ncnn_vulkan.cpp \
-    realcugan_ncnn_vulkan.cpp \
-    rtx_superres.cpp \
-    ifrnet_ncnn_vulkan.cpp \
-    cain_ncnn_vulkan.cpp \
-    dain_ncnn_vulkan.cpp \
-    rife_v4_ncnn_vulkan.cpp \
-    nvidia_maxine.cpp \
-    runtime_dependencies.cpp \
-    engine_test_runner.cpp \
-    model_test_matrix.cpp
+    app/main.cpp \
+    app/mainwindow.cpp \
+    ipc/backend_client.cpp \
+    media/AnimatedPNG.cpp \
+    media/Frame_Interpolation.cpp \
+    media/gif.cpp \
+    media/image.cpp \
+    media/video.cpp \
+    presentation/CompatibilityTest.cpp \
+    presentation/CustomResolution.cpp \
+    presentation/Current_File_Progress.cpp \
+    presentation/Finish_Action.cpp \
+    presentation/Right-click_Menu.cpp \
+    presentation/settings.cpp \
+    presentation/table.cpp \
+    services/Donate.cpp \
+    services/Web_Activities.cpp \
+    services/checkupdate.cpp \
+    services/runtime_dependencies.cpp \
+    widgets/SystemTrayIcon.cpp \
+    widgets/progressBar.cpp \
+    widgets/textBrowser.cpp \
+    widgets/topsupporterslist.cpp \
+    engine_legacy/Anime4K.cpp \
+    engine_legacy/cain_ncnn_vulkan.cpp \
+    engine_legacy/dain_ncnn_vulkan.cpp \
+    engine_legacy/ifrnet_ncnn_vulkan.cpp \
+    engine_legacy/nvidia_maxine.cpp \
+    engine_legacy/realcugan_ncnn_vulkan.cpp \
+    engine_legacy/realesrgan_ncnn_vulkan.cpp \
+    engine_legacy/realsr_ncnn_vulkan.cpp \
+    engine_legacy/rife_v4_ncnn_vulkan.cpp \
+    engine_legacy/rtx_superres.cpp \
+    engine_legacy/srmd-cuda.cpp \
+    engine_legacy/srmd_ncnn_vulkan.cpp \
+    engine_legacy/waifu2x.cpp \
+    engine_legacy/waifu2x_caffe.cpp \
+    engine_legacy/waifu2x_converter.cpp \
+    engine_legacy/waifu2x_ncnn_vulkan.cpp \
+    test_support/engine_test_runner.cpp \
+    test_support/model_test_matrix.cpp
 
 HEADERS += \
-    mainwindow.h \
-    backend_client.h \
-    topsupporterslist.h \
-    platform_compat.h \
-    engine_registry.h \
-    runtime_dependencies.h \
-    engine_test_runner.h \
-    model_test_matrix.h \
-    compatibility_presentation.h \
-    ui_routing.h
+    app/mainwindow.h \
+    ipc/backend_client.h \
+    presentation/compatibility_presentation.h \
+    presentation/ui_routing.h \
+    widgets/topsupporterslist.h \
+    services/runtime_dependencies.h \
+    engine_legacy/engine_registry.h \
+    engine_legacy/platform_compat.h \
+    test_support/engine_test_runner.h \
+    test_support/model_test_matrix.h
 
 FORMS += \
-    mainwindow.ui \
-    topsupporterslist.ui
+    app/mainwindow.ui \
+    widgets/topsupporterslist.ui
 
-TRANSLATIONS += language_English.ts \
-               language_Chinese.ts \
-               language_TraditionalChinese.ts
+TRANSLATIONS += translations/language_English.ts \
+               translations/language_Chinese.ts \
+               translations/language_TraditionalChinese.ts
 
 TARGET = image2x-Extension-GUI
 
@@ -126,6 +135,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    OtherPic.qrc \
-    donate.qrc \
-    icon.qrc
+    resources/OtherPic.qrc \
+    resources/backgroundImage.qrc \
+    resources/donate.qrc \
+    resources/icon.qrc

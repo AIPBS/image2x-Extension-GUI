@@ -20,7 +20,7 @@ Created because w2x does not work well on linux.
 ├── src/                             ← Our project
 │   ├── image2x-core/                ← Rust business core (in migration)
 │   ├── image2x-ui/                  ← Qt presentation client (in migration)
-│   ├── image2x-Extension-QT/        ← Existing Qt source during migration
+│   ├── image2x-ui/                  ← Qt presentation client
 │   │   ├── MODELS.md               ← Model license boundaries & inventory
 │   │   ├── engine_registry.h       ← 179+ model weight mappings
 │   │   ├── platform_compat.h       ← Linux / Windows / macOS
@@ -43,7 +43,7 @@ cd src
 
 # Build:
 mkdir build && cd build
-qmake ../image2x-Extension-QT/Waifu2x-Extension-QT.pro
+qmake ../image2x-ui/Waifu2x-Extension-QT.pro
 make -j$(nproc)
 ```
 

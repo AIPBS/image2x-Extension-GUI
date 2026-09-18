@@ -125,14 +125,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/image2x-runtime-cache
-          key: image2x-runtime-${{ hashFiles('src_code/scripts/install_linux_runtime.sh') }}
+           key: image2x-runtime-${{ hashFiles('src/scripts/install_linux_runtime.sh') }}
 
       - name: Install public engines and models
         env:
           MODEL_CACHE_DIRECTORY: ${{ runner.temp }}/image2x-runtime-cache/models
           RUNTIME_CACHE_DIRECTORY: ${{ runner.temp }}/image2x-runtime-cache/runtimes
         run: |
-          bash src_code/scripts/install_linux_runtime.sh "$GITHUB_WORKSPACE/bundle"
+           bash src/scripts/install_linux_runtime.sh "$GITHUB_WORKSPACE/bundle"
 
       - name: Create runtime manifest
         run: |
@@ -176,7 +176,7 @@ jobs:
         run: |
           set -euo pipefail
           version=''
-          version="$(awk -F '"' '/QString VERSION/{print $2; exit}' src_code/image2x-Extension-QT/mainwindow.h)"
+           version="$(awk -F '"' '/QString VERSION/{print $2; exit}' src/image2x-ui/mainwindow.h)"
           [[ "$version" == "${GITHUB_REF_NAME}" ]] || {
             echo "Tag ${GITHUB_REF_NAME} does not match application version ${version}." >&2
             exit 1

@@ -29,6 +29,13 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    backendClient = new BackendClient(this);
+    connect(backendClient, &BackendClient::unavailable, this, [](const QString &message) {
+        qWarning().noquote() << "[core]" << message;
+    });
+    backendClient->start(QDir(QCoreApplication::applicationDirPath())
+                             .filePath(QStringLiteral("image2x-core")),
+                         QCoreApplication::applicationDirPath());
     InitializeCompatibilityCpuCheckboxes();
     connect(ui->pushButton_TileSize_Add_RealESRGAN, &QPushButton::clicked, this, &MainWindow::on_pushButton_Add_TileSize_RealESRGAN_clicked);
     connect(ui->pushButton_TileSize_Minus_RealESRGAN, &QPushButton::clicked, this, &MainWindow::on_pushButton_Minus_TileSize_RealESRGAN_clicked);

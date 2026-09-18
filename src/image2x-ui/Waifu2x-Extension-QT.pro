@@ -30,6 +30,7 @@
 QT       += core gui
 QT       += concurrent
 QT       += multimedia
+QT       += network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -55,6 +56,7 @@ macx {
 # --- Source files ---
 SOURCES += \
     AnimatedPNG.cpp \
+    backend_client.cpp \
     Anime4K.cpp \
     CompatibilityTest.cpp \
     Current_File_Progress.cpp \
@@ -98,6 +100,7 @@ SOURCES += \
 
 HEADERS += \
     mainwindow.h \
+    backend_client.h \
     topsupporterslist.h \
     platform_compat.h \
     engine_registry.h \

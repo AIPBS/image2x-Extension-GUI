@@ -61,6 +61,7 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include "platform_compat.h"
+#include "backend_client.h"
 #include <QMetaType>
 #include <QRandomGenerator>
 #include <QScrollBar>
@@ -92,6 +93,7 @@ public:
     QString LastBetaVer = "v3.41.02-beta";
     //=======================
     QTranslator * translator;
+    BackendClient *backendClient = nullptr;
     QIcon *MainIcon_QIcon = new QIcon(":/new/prefix1/icon/icon_main.png");
     TopSupportersList *TopSupportersList_widget;
     //=======

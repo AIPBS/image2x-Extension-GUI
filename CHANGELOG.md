@@ -1,5 +1,13 @@
 # Change log
 
+## v0.8.1 (2026-09-18)
+
+### Fixed
+- Track the real `ui_routing.h` source instead of excluding it as a generated
+  Qt header.
+- Cache Rust build output and support private helper-release credentials in the
+  release workflow.
+
 ## v0.8.0 (2026-09-17)
 
 ### Added

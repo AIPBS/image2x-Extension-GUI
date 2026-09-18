@@ -9,6 +9,7 @@ vendor/models-non-free/
 *.obj
 moc_*.cpp
 ui_*.h
+!image2x-Extension-QT/ui_routing.h
 qrc_*.cpp
 Makefile
 Makefile.*

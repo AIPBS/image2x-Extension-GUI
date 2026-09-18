@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GPU_HELPER_REPOSITORY: AIPEACM/gpu-driver-helper
+      GH_TOKEN: ${{ secrets.GPU_HELPER_TOKEN || github.token }}
     steps:
       - name: Checkout tagged source
         uses: actions/checkout@v4
@@ -53,8 +54,6 @@ jobs:
 
       - name: Resolve latest GPU helper release
         id: gpu-helper-release
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           tag="$(gh release view --repo "$GPU_HELPER_REPOSITORY" --json tagName --jq .tagName)"
           test -n "$tag"
@@ -70,7 +69,6 @@ jobs:
       - name: Download GPU helper on cache miss
         if: steps.gpu-helper-cache.outputs.cache-hit != 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
           GPU_HELPER_TAG: ${{ steps.gpu-helper-release.outputs.tag }}
         run: |
           mkdir -p "$RUNNER_TEMP/gpu-driver-helper"

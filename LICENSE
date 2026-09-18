@@ -664,28 +664,6 @@ For more information on this, and how to apply and follow the GNU AGPL, see
 <https://www.gnu.org/licenses/>.
 
 
----
-
-ADDITIONAL PERMISSION — FILES CREATED BY AIPEAC (2026 Reconstruction)
-
-Under section 7 of the GNU AGPL version 3, the following additional
-permission is granted for files explicitly marked with the notice:
-
-    "ADDITIONAL PERMISSION under GNU AGPL version 3 section 7:
-     As a special exception, the copyright holder of this file gives you
-     permission to use, copy, modify, merge, publish, distribute, sublicense,
-     and/or sell this file without restriction, as though it were licensed
-     under a permissive license."
-
-Files bearing this notice are dual-licensed: AGPLv3+ with the above
-permissive exception. You may choose either:
-
-  (a) The terms of the GNU AGPL version 3 (or any later version), or
-  (b) The terms of the permissive exception above.
-
-Files NOT bearing this notice are licensed strictly under AGPLv3
-(original Aaron Feng files, all files under vendor/w2x-v3.41.01-beta/).
-
 Waifu2x-Extension-GUI Reconstructed
 Copyright (C) 2026 AIPEAC (new files)
 Copyright (C) 2020-2021 Aaron Feng (original files)

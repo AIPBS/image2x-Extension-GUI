@@ -1,5 +1,14 @@
 # Change log
 
+## [Unreleased]
+
+### Changed
+- Remove the project-level permissive license exception. New files created by
+  the Rust migration use standard GNU AGPLv3 headers without an additional
+  permissive exception.
+- Preserve existing Aaron Feng and AIPEAC header notices in inherited Qt files
+  during the migration.
+
 ## v0.8.2 (2026-09-18)
 
 ### Fixed

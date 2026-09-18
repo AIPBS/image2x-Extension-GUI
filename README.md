@@ -8,7 +8,7 @@ Created because w2x does not work well on linux.
 
 | What | Version | License |
 |------|---------|---------|
-| **This project** |  | AGPLv3 + permissive exception |
+| **This project** |  | GNU AGPLv3 |
 | Aaron Feng original source | v3.41.01-beta | AGPLv3 |
 | Aaron Feng latest binary | v3.139.01 | Proprietary |
 
@@ -17,8 +17,10 @@ Created because w2x does not work well on linux.
 ```
 ├── vendor/                          ← Upstream baseline (not our code)
 │   └── w2x-v3.41.01-beta/          ← Pristine original source (diff baseline)
-├── src_code/                        ← Our project
-│   ├── image2x-Extension-QT/       ← Reconstructed source + new engines
+├── src/                             ← Our project
+│   ├── image2x-core/                ← Rust business core (in migration)
+│   ├── image2x-ui/                  ← Qt presentation client (in migration)
+│   ├── image2x-Extension-QT/        ← Existing Qt source during migration
 │   │   ├── MODELS.md               ← Model license boundaries & inventory
 │   │   ├── engine_registry.h       ← 179+ model weight mappings
 │   │   ├── platform_compat.h       ← Linux / Windows / macOS
@@ -34,7 +36,7 @@ Created because w2x does not work well on linux.
 ## Building
 
 ```bash
-cd src_code
+cd src
 
 # Download open-source models (one-time):
 ./scripts/download_models.sh
@@ -87,8 +89,9 @@ from Aaron Feng's repo and extracts only the model files.
 | Files | License |
 |-------|---------|
 | Original Aaron Feng files (`vendor/w2x-v3.41.01-beta/`) | GNU AGPL v3 |
-| New/reconstructed files | AGPL v3 + permissive exception |
+| New Rust and UI files | GNU AGPLv3 |
 
-Files with `ADDITIONAL PERMISSION` in their header can be used freely.
-Files without it are strict AGPLv3.
-> Check out the last section of [LICENSE](LICENSE) for more information.
+Existing inherited Qt files retain their original copyright and header notices.
+New files created during the Rust migration use the standard GNU AGPLv3 header
+without an additional permissive exception.
+> Check out [LICENSE](LICENSE) for the governing license text.

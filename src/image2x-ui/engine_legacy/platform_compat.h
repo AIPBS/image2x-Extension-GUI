@@ -27,12 +27,6 @@
     by the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    ADDITIONAL PERMISSION under GNU AGPL version 3 section 7:
-    As a special exception, the copyright holder of this file gives you
-    permission to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell this file without restriction, as though it were licensed
-    under a permissive license. This additional permission applies only to
-    this specific file and files explicitly marked with this notice.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of

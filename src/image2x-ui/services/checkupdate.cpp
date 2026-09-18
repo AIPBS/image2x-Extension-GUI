@@ -14,11 +14,6 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-    ADDITIONAL PERMISSION under GNU AGPL version 3 section 7:
-    As a special exception, the copyright holder of this file gives you
-    permission to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell this file without restriction, as though it were licensed
-    under a permissive license.
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"

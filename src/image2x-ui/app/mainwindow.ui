@@ -11164,8 +11164,8 @@ https://github.com/nihui/waifu2x-ncnn-vulkan</string>
               </property>
              </widget>
             </item>
-            <item row="7" column="2">
-             <widget class="QCheckBox" name="checkBox_isCompatible_Gifsicle">
+             <item row="7" column="2">
+              <widget class="QCheckBox" name="checkBox_isCompatible_Gifsicle">
               <property name="toolTip">
                <string notr="true">https://www.lcdf.org/gifsicle/</string>
               </property>
@@ -11267,7 +11267,7 @@ https://github.com/lltcggie/waifu2x-caffe</string>
                </size>
               </property>
               <property name="text">
-               <string>Plugins:</string>
+                <string>Plugins and external tools:</string>
               </property>
              </widget>
             </item>
@@ -11298,7 +11298,7 @@ https://github.com/lltcggie/waifu2x-caffe</string>
                </size>
               </property>
               <property name="text">
-               <string>Super-Resolution Engines:</string>
+                <string>Open-weight / redistributable super-resolution engines:</string>
               </property>
              </widget>
             </item>
@@ -11458,12 +11458,25 @@ https://github.com/MrZihan/Super-resolution-SR-CUDA</string>
                </property>
               </widget>
              </item>
+             <item row="7" column="0" colspan="2">
+              <widget class="QLabel" name="label_CompatibilityProprietaryWeights">
+               <property name="styleSheet">
+                <string notr="true">font-weight: bold; color: rgb(160, 70, 40);</string>
+               </property>
+               <property name="text">
+                <string>Proprietary weights: W2xEX models are not included or tested in this public compatibility report.</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
              <item row="5" column="0">
               <widget class="QCheckBox" name="checkBox_isCompatible_RealESRGAN">
                <property name="toolTip">
                 <string notr="true">Real-ESRGAN-NCNN-Vulkan by @xinntao (nihui port)</string>
                </property>
-               <property name="text"><string>Real-ESRGAN</string></property>
+                <property name="text"><string>Real-ESRGAN (open weights)</string></property>
               </widget>
              </item>
              <item row="5" column="1">

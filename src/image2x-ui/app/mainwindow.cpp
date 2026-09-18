@@ -33,6 +33,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(backendClient, &BackendClient::unavailable, this, [](const QString &message) {
         qWarning().noquote() << "[core]" << message;
     });
+    connect(backendClient, &BackendClient::ready, this, [this] {
+        backendClient->validateRuntime();
+    });
+    connect(backendClient, &BackendClient::eventReceived, this, [](const QJsonObject &event) {
+        if (event.value(QStringLiteral("event")).toString() == QStringLiteral("runtime"))
+        {
+            qInfo().noquote() << "[core] runtime discovery completed";
+        }
+    });
     backendClient->start(QDir(QCoreApplication::applicationDirPath())
                              .filePath(QStringLiteral("image2x-core")),
                          QCoreApplication::applicationDirPath());

@@ -30,6 +30,7 @@ public:
 
     bool start(const QString &executablePath, const QString &applicationDirectory);
     void stop();
+    void validateRuntime();
     bool isConnected() const;
 
 signals:

@@ -95,6 +95,12 @@ bool BackendClient::isConnected() const
     return socket.state() == QLocalSocket::ConnectedState;
 }
 
+void BackendClient::validateRuntime()
+{
+    send(QJsonObject{{QStringLiteral("type"), QStringLiteral("validate_runtime")},
+                     {QStringLiteral("id"), QString::number(nextRequestId++)}});
+}
+
 void BackendClient::connectSocket()
 {
     socket.connectToServer(socketPath);

@@ -15,7 +15,7 @@ pub struct ModelRecord {
     pub distribution: &'static str,
 }
 
-pub fn model_records() -> Vec<ModelRecord> {
+pub fn public_model_records() -> Vec<ModelRecord> {
     let mut records = vec![
         ModelRecord {
             name: "waifu2x-cunet",
@@ -102,12 +102,36 @@ pub fn model_records() -> Vec<ModelRecord> {
     records
 }
 
+pub fn model_records() -> Vec<ModelRecord> {
+    let mut records = public_model_records();
+    for name in [
+        "Anime-HQ-W4xEX",
+        "AnimeVideo-MiniV1.8-W2xEX",
+        "Omni-MiniV2-W2xEX",
+        "Omni-Smallv2-W2xEX",
+        "Omni-TurboV1.5-W2xEX",
+        "Photo-HQ-W4xEX",
+        "Photo-Small-W2xEX",
+        "Universal-FastV2-W2xEX",
+        "Photo-Conservative-x4",
+    ] {
+        records.push(ModelRecord {
+            name,
+            engine: "realesrgan-ncnn-vulkan",
+            model: name,
+            distribution: "proprietary",
+        });
+    }
+    records
+}
+
 #[cfg(test)]
 mod tests {
-    use super::model_records;
+    use super::{model_records, public_model_records};
 
     #[test]
     fn public_matrix_has_thirty_three_records() {
-        assert_eq!(model_records().len(), 33);
+        assert_eq!(public_model_records().len(), 33);
+        assert_eq!(model_records().len(), 42);
     }
 }

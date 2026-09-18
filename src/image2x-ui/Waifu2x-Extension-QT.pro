@@ -71,6 +71,7 @@ SOURCES += \
     presentation/CustomResolution.cpp \
     presentation/Current_File_Progress.cpp \
     presentation/Finish_Action.cpp \
+    presentation/files.cpp \
     presentation/Right-click_Menu.cpp \
     presentation/settings.cpp \
     presentation/table.cpp \

@@ -11164,7 +11164,7 @@ https://github.com/nihui/waifu2x-ncnn-vulkan</string>
               </property>
              </widget>
             </item>
-             <item row="7" column="2">
+             <item row="9" column="2">
               <widget class="QCheckBox" name="checkBox_isCompatible_Gifsicle">
               <property name="toolTip">
                <string notr="true">https://www.lcdf.org/gifsicle/</string>
@@ -11458,7 +11458,7 @@ https://github.com/MrZihan/Super-resolution-SR-CUDA</string>
                </property>
               </widget>
              </item>
-             <item row="7" column="0" colspan="2">
+             <item row="7" column="0" colspan="3">
               <widget class="QLabel" name="label_CompatibilityProprietaryWeights">
                <property name="styleSheet">
                 <string notr="true">font-weight: bold; color: rgb(160, 70, 40);</string>

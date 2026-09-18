@@ -8,6 +8,7 @@
 pub mod manifest;
 pub mod process;
 pub mod protocol;
+pub mod runtime;
 
 use std::path::Path;
 
@@ -17,6 +18,7 @@ use thiserror::Error;
 use manifest::{model_records, ModelRecord};
 use process::run_command;
 use protocol::{Request, Response};
+use runtime::{runtime_records, RuntimeRecord};
 
 #[derive(Debug, Error)]
 pub enum CoreError {
@@ -36,13 +38,17 @@ pub fn handle_line(line: &str, application_directory: &Path) -> Result<String, C
             "hello",
             serde_json::json!({
                 "protocol": protocol::PROTOCOL_VERSION,
-                "capabilities": ["hello", "ping", "list_models", "run"],
+            "capabilities": ["hello", "ping", "list_models", "validate_runtime", "run"],
             }),
         ),
         Request::Ping { id } => Response::ok(id, "pong", serde_json::json!({})),
         Request::ListModels { id } => {
             let models: Vec<ModelRecord> = model_records();
             Response::ok(id, "models", serde_json::json!({ "models": models }))
+        }
+        Request::ValidateRuntime { id } => {
+            let runtimes: Vec<RuntimeRecord> = runtime_records(application_directory);
+            Response::ok(id, "runtime", serde_json::json!({ "runtimes": runtimes }))
         }
         Request::Run {
             id,

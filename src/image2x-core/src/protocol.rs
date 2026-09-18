@@ -22,6 +22,9 @@ pub enum Request {
     ListModels {
         id: String,
     },
+    ValidateRuntime {
+        id: String,
+    },
     Run {
         id: String,
         program: String,

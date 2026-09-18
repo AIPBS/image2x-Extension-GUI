@@ -1,5 +1,11 @@
 # Change log
 
+## v0.8.0 (2026-09-17)
+
+### Added
+- Bundle the native GPU support helper and offer Linux/WSL GPU diagnosis after
+  a failed compatibility report.
+
 ## v0.7.0 (2026-09-17)
 
 ### Added

@@ -1544,6 +1544,7 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     resultsDialog->show();
     resultsDialog->raise();
     resultsDialog->activateWindow();
+    ShowGpuSupportPanel();
     if (isCompatible_Waifu2x_NCNN_Vulkan_NEW)
     {
         ui->comboBox_Engine_Image->setCurrentIndex(0);
@@ -1804,6 +1805,71 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     }
     //===============
     return 0;
+}
+
+void MainWindow::ShowGpuSupportPanel()
+{
+#ifdef PLATFORM_LINUX
+    const bool gpuFailed = !isCompatible_Waifu2x_NCNN_Vulkan_NEW
+        || !isCompatible_SRMD_NCNN_Vulkan
+        || !isCompatible_Realsr_NCNN_Vulkan
+        || !isCompatible_RealESRGAN
+        || !isCompatible_RealCUGAN;
+    if (!gpuFailed)
+    {
+        return;
+    }
+
+    QDialog *supportDialog = new QDialog(this);
+    supportDialog->setAttribute(Qt::WA_DeleteOnClose);
+    supportDialog->setWindowTitle(tr("GPU support diagnosis"));
+    supportDialog->resize(760, 460);
+    QVBoxLayout *layout = new QVBoxLayout(supportDialog);
+    QPlainTextEdit *diagnosis = new QPlainTextEdit(supportDialog);
+    diagnosis->setReadOnly(true);
+    diagnosis->setPlainText(tr(
+        "The GPU compatibility checks did not pass.\n\n"
+        "Run the bundled GPU support helper to inspect the Linux/WSL Vulkan driver state.\n"
+        "The helper only diagnoses this panel; it does not change the compatibility result."));
+    layout->addWidget(diagnosis);
+    QPushButton *diagnoseButton = new QPushButton(tr("Run GPU support diagnosis"), supportDialog);
+    QPushButton *closeButton = new QPushButton(tr("Close"), supportDialog);
+    layout->addWidget(diagnoseButton);
+    layout->addWidget(closeButton, 0, Qt::AlignRight);
+    connect(closeButton, &QPushButton::clicked, supportDialog, &QDialog::accept);
+    connect(diagnoseButton, &QPushButton::clicked, this,
+            [this, supportDialog, diagnosis, diagnoseButton]() {
+        const QString helperPath = Current_Path + "/tools/gpu-driver-helper";
+        const QFileInfo helperInfo(helperPath);
+        if (!helperInfo.isFile() || !helperInfo.isExecutable())
+        {
+            diagnosis->setPlainText(tr("The bundled gpu-driver-helper executable is unavailable."));
+            return;
+        }
+        diagnoseButton->setEnabled(false);
+        QProcess *process = new QProcess(supportDialog);
+        process->setProgram(helperPath);
+        process->setArguments(QStringList() << "diagnose" << "--json");
+        connect(process,
+                QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+                supportDialog,
+                [process, diagnosis, diagnoseButton](int exitCode, QProcess::ExitStatus) {
+            const QByteArray standardOutput = process->readAllStandardOutput();
+            const QByteArray standardError = process->readAllStandardError();
+            const QByteArray output = standardOutput.isEmpty() ? standardError : standardOutput;
+            diagnosis->setPlainText(
+                QString::fromUtf8(output).trimmed().isEmpty()
+                    ? QObject::tr("GPU support diagnosis exited with code %1.").arg(exitCode)
+                    : QString::fromUtf8(output));
+            diagnoseButton->setEnabled(true);
+            process->deleteLater();
+        });
+        process->start();
+    });
+    supportDialog->show();
+    supportDialog->raise();
+    supportDialog->activateWindow();
+#endif
 }
 
 //初始化 -兼容性测试进度条

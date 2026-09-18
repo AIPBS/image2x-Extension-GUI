@@ -86,7 +86,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void changeEvent(QEvent *e);
     //=======================
-    QString VERSION = "v0.7.0";
+    QString VERSION = "v0.8.0";
     bool isBetaVer = false;
     QString LastStableVer = "v3.31.13";
     QString LastBetaVer = "v3.41.02-beta";
@@ -354,6 +354,7 @@ public:
     //================================================================
     int Waifu2x_Compatibility_Test();//引擎兼容性检测
     void InitializeCompatibilityCpuCheckboxes();
+    void ShowGpuSupportPanel();
     QMap<QCheckBox *, QCheckBox *> CompatibilityCpuCheckboxes;
     //初始化 -兼容性测试进度条
     void Init_progressBar_CompatibilityTest();

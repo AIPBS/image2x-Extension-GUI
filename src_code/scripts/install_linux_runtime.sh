@@ -15,6 +15,7 @@ MODEL_ARCHIVE="w2x-models-v3.139.01-open-source.tar.gz"
 MODEL_URL="https://github.com/AIPBS/image2x-Extension-GUI/releases/download/open-model-set-3.139.01/${MODEL_ARCHIVE}"
 MODEL_SHA256="0fcf7a934977959523a0ea02ec88d707cabd7e96d52407b4a472775ba0e925e3"
 MODEL_DIRECTORY="${WORK_DIRECTORY}/open-source-models"
+MODEL_CACHE_DIRECTORY="${MODEL_CACHE_DIRECTORY:-}"
 
 for command in curl sha256sum unzip tar; do
     command -v "$command" >/dev/null 2>&1 || {
@@ -34,8 +35,16 @@ if [[ -n "${MODEL_SOURCE_DIRECTORY:-}" ]]; then
 else
     MODEL_ARCHIVE_PATH="${WORK_DIRECTORY}/${MODEL_ARCHIVE}"
     printf 'Downloading public model bundle...\n'
-    curl --fail --location --retry 3 --progress-bar --output "$MODEL_ARCHIVE_PATH" "$MODEL_URL"
+    if [[ -n "$MODEL_CACHE_DIRECTORY" && -f "$MODEL_CACHE_DIRECTORY/$MODEL_ARCHIVE" ]]; then
+        cp "$MODEL_CACHE_DIRECTORY/$MODEL_ARCHIVE" "$MODEL_ARCHIVE_PATH"
+    else
+        curl --fail --location --retry 3 --progress-bar --output "$MODEL_ARCHIVE_PATH" "$MODEL_URL"
+    fi
     printf '%s  %s\n' "$MODEL_SHA256" "$MODEL_ARCHIVE_PATH" | sha256sum --check --status
+    if [[ -n "$MODEL_CACHE_DIRECTORY" && ! -f "$MODEL_CACHE_DIRECTORY/$MODEL_ARCHIVE" ]]; then
+        mkdir -p "$MODEL_CACHE_DIRECTORY"
+        cp "$MODEL_ARCHIVE_PATH" "$MODEL_CACHE_DIRECTORY/$MODEL_ARCHIVE"
+    fi
     tar -xzf "$MODEL_ARCHIVE_PATH" -C "$MODEL_DIRECTORY" --strip-components=1
 fi
 
@@ -71,6 +80,10 @@ install_archive() {
         curl --fail --location --retry 3 --progress-bar --output "$archive_path" "$url"
     fi
     printf '%s  %s\n' "$sha256" "$archive_path" | sha256sum --check --status
+    if [[ -n "${RUNTIME_CACHE_DIRECTORY:-}" && ! -f "${RUNTIME_CACHE_DIRECTORY}/${archive}" ]]; then
+        mkdir -p "$RUNTIME_CACHE_DIRECTORY"
+        cp "$archive_path" "${RUNTIME_CACHE_DIRECTORY}/${archive}"
+    fi
 
     mkdir -p "$extract_directory"
     unzip -q "$archive_path" -d "$extract_directory"

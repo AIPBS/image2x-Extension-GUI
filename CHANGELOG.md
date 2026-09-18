@@ -7,6 +7,7 @@
   Qt header.
 - Cache Rust build output and support private helper-release credentials in the
   release workflow.
+- Cache downloaded public runtime and model archives during release packaging.
 
 ## v0.8.0 (2026-09-17)
 

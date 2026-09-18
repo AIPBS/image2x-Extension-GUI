@@ -8,7 +8,7 @@ Created because w2x does not work well on linux.
 
 | What | Version | License |
 |------|---------|---------|
-| **This project** |  | GNU AGPLv3 |
+| **This project** |  | AGPLv3 |
 | Aaron Feng original source | v3.41.01-beta | AGPLv3 |
 | Aaron Feng latest binary | v3.139.01 | Proprietary |
 

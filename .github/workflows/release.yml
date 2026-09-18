@@ -52,6 +52,9 @@ jobs:
           name: image2x-tested-binaries
           path: tested/
 
+      - name: Restore executable permissions
+        run: chmod +x tested/image2x-Extension-GUI tested/image2x-model-tests
+
       - name: Resolve latest GPU helper release
         id: gpu-helper-release
         run: |

@@ -1,5 +1,11 @@
 # Change log
 
+## v0.8.2 (2026-09-18)
+
+### Fixed
+- Restore executable permissions on tested binaries before packaged release
+  model validation.
+
 ## v0.8.1 (2026-09-18)
 
 ### Fixed

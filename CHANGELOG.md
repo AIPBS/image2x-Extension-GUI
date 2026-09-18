@@ -9,6 +9,10 @@
 - Preserve existing Aaron Feng and AIPEAC header notices in inherited Qt files
   during the migration.
 
+### Fixed
+- Pin the regenerated public model archive checksum used by the Linux runtime
+  installer.
+
 ## v0.8.2 (2026-09-18)
 
 ### Fixed

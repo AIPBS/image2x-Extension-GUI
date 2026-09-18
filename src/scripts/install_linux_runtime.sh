@@ -13,7 +13,7 @@ WORK_DIRECTORY="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIRECTORY"' EXIT
 MODEL_ARCHIVE="w2x-models-v3.139.01-open-source.tar.gz"
 MODEL_URL="https://github.com/AIPBS/image2x-Extension-GUI/releases/download/open-model-set-3.139.01/${MODEL_ARCHIVE}"
-MODEL_SHA256="0fcf7a934977959523a0ea02ec88d707cabd7e96d52407b4a472775ba0e925e3"
+MODEL_SHA256="338788588bdc352cbbc9a0ca49ede2dd2ba833d8a9a54dff103708412966fae3"
 MODEL_DIRECTORY="${WORK_DIRECTORY}/open-source-models"
 MODEL_CACHE_DIRECTORY="${MODEL_CACHE_DIRECTORY:-}"
 

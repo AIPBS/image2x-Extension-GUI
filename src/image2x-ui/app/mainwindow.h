@@ -94,7 +94,7 @@ public:
     //=======================
     QTranslator * translator;
     BackendClient *backendClient = nullptr;
-    QIcon *MainIcon_QIcon = new QIcon(":/new/prefix1/icon/icon_main.png");
+    QIcon *MainIcon_QIcon = new QIcon();
     TopSupportersList *TopSupportersList_widget;
     //=======
     QString Current_Path = qApp->applicationDirPath();//当前路径

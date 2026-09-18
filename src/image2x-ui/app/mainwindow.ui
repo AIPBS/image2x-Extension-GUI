@@ -36,8 +36,7 @@
    <string notr="true">image2x-Extension-GUI</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icon.qrc">
-    <normaloff>:/new/prefix1/icon/icon_main.png</normaloff>:/new/prefix1/icon/icon_main.png</iconset>
+     <iconset/>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -233,8 +232,7 @@ padding:10px;
               <string notr="true"> PayPal</string>
              </property>
              <property name="icon">
-              <iconset resource="icon.qrc">
-               <normaloff>:/new/prefix1/icon/paypal.png</normaloff>:/new/prefix1/icon/paypal.png</iconset>
+               <iconset/>
              </property>
              <property name="iconSize">
               <size>
@@ -299,8 +297,7 @@ padding:10px;
               <string> Get Premium version on Patreon</string>
              </property>
              <property name="icon">
-              <iconset resource="icon.qrc">
-               <normaloff>:/new/prefix1/icon/patreon.png</normaloff>:/new/prefix1/icon/patreon.png</iconset>
+              <iconset/>
              </property>
              <property name="iconSize">
               <size>
@@ -344,7 +341,7 @@ padding:10px;
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">image: url(:/new/prefix1/donate/Donate_QRCode.jpg);</string>
+             <string notr="true"/>
            </property>
            <property name="frameShape">
             <enum>QFrame::NoFrame</enum>
@@ -535,8 +532,7 @@ padding:10px;
          </font>
         </property>
         <attribute name="icon">
-         <iconset resource="icon.qrc">
-          <normaloff>:/new/prefix1/icon/Home.png</normaloff>:/new/prefix1/icon/Home.png</iconset>
+          <iconset/>
         </attribute>
         <attribute name="title">
          <string>Home</string>
@@ -647,8 +643,7 @@ padding:10px;
                <string>Start</string>
               </property>
               <property name="icon">
-               <iconset resource="icon.qrc">
-                <normaloff>:/new/prefix1/icon/icon_main.png</normaloff>:/new/prefix1/icon/icon_main.png</iconset>
+                 <iconset/>
               </property>
               <property name="iconSize">
                <size>
@@ -787,8 +782,7 @@ padding:10px;
                <string>Force retry</string>
               </property>
               <property name="icon">
-               <iconset resource="icon.qrc">
-                <normaloff>:/new/prefix1/icon/refresh.png</normaloff>:/new/prefix1/icon/refresh.png</iconset>
+                 <iconset/>
               </property>
               <property name="iconSize">
                <size>
@@ -846,8 +840,7 @@ padding:10px;
                <string>Pause</string>
               </property>
               <property name="icon">
-               <iconset resource="icon.qrc">
-                <normaloff>:/new/prefix1/icon/pause-button.png</normaloff>:/new/prefix1/icon/pause-button.png</iconset>
+                 <iconset/>
               </property>
               <property name="iconSize">
                <size>
@@ -1402,25 +1395,21 @@ software into a directory that can run normally without administrator rights.</s
                   </property>
                   <property name="styleSheet">
                    <string notr="true">QPushButton{
-image: url(:/new/prefix1/icon/Read_FileList.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:hover{
-image: url(:/new/prefix1/icon/Read_FileList_hover.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:pressed{
-image: url(:/new/prefix1/icon/Read_FileList.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:disabled{
-image: url(:/new/prefix1/icon/Read_FileList_disabled.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
@@ -1476,25 +1465,21 @@ padding:0px;
                   </property>
                   <property name="styleSheet">
                    <string notr="true">QPushButton{
-image: url(:/new/prefix1/icon/ResizeFilesListSplitter.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:hover{
-image: url(:/new/prefix1/icon/ResizeFilesListSplitter_hover.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:pressed{
-image: url(:/new/prefix1/icon/ResizeFilesListSplitter.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:disabled{
-image: url(:/new/prefix1/icon/ResizeFilesListSplitter_disabled.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
@@ -1535,25 +1520,21 @@ padding:0px;
                   </property>
                   <property name="styleSheet">
                    <string notr="true">QPushButton{
-image: url(:/new/prefix1/icon/RemoveItem.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:hover{
-image: url(:/new/prefix1/icon/RemoveItem_hover.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:pressed{
-image: url(:/new/prefix1/icon/RemoveItem.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:disabled{
-image: url(:/new/prefix1/icon/RemoveItem_disabled.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
@@ -1583,25 +1564,21 @@ padding:0px;
                   </property>
                   <property name="styleSheet">
                    <string notr="true">QPushButton{
-image: url(:/new/prefix1/icon/AddNewFile.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:hover{
-image: url(:/new/prefix1/icon/AddNewFile_hover.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:pressed{
-image: url(:/new/prefix1/icon/AddNewFile.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:disabled{
-image: url(:/new/prefix1/icon/AddNewFile_disabled.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
@@ -1644,25 +1621,21 @@ padding:0px;
                   </property>
                   <property name="styleSheet">
                    <string notr="true">QPushButton{
-image: url(:/new/prefix1/icon/ClearList.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:hover{
-image: url(:/new/prefix1/icon/ClearList_hover.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:pressed{
-image: url(:/new/prefix1/icon/ClearList.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:disabled{
-image: url(:/new/prefix1/icon/ClearList_disabled.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
@@ -1692,25 +1665,21 @@ padding:0px;
                   </property>
                   <property name="styleSheet">
                    <string notr="true">QPushButton{
-image: url(:/new/prefix1/icon/Save_FileList.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:hover{
-image: url(:/new/prefix1/icon/Save_FileList_hover.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:pressed{
-image: url(:/new/prefix1/icon/Save_FileList.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:disabled{
-image: url(:/new/prefix1/icon/Save_FileList_disabled.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
@@ -1756,25 +1725,21 @@ the software is running.</string>
                   </property>
                   <property name="styleSheet">
                    <string notr="true">QPushButton{
-image: url(:/new/prefix1/icon/TurnOffScreen.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:hover{
-image: url(:/new/prefix1/icon/TurnOffScreen_hover.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:pressed{
-image: url(:/new/prefix1/icon/TurnOffScreen.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
 }
 QPushButton:disabled{
-image: url(:/new/prefix1/icon/TurnOffScreen_disabled.png);
 border-style:transparent;
 border-radius:0px;
 padding:0px;
@@ -2014,7 +1979,7 @@ padding:10px;
                        </size>
                       </property>
                       <property name="toolTip">
-                       <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/new/prefix1/OtherPic/AspectRatioStrategy.jpg&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>Choose the aspect-ratio strategy.</string>
                       </property>
                       <property name="text">
                        <string>Aspect Ratio:</string>
@@ -2033,7 +1998,7 @@ padding:10px;
                         </size>
                       </property>
                       <property name="toolTip">
-                       <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/new/prefix1/OtherPic/AspectRatioStrategy.jpg&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                       <string>Choose the aspect-ratio strategy.</string>
                       </property>
                       <property name="currentIndex">
                        <number>1</number>
@@ -3453,8 +3418,7 @@ then the result video will be 120 fps.</string>
        </widget>
        <widget class="QWidget" name="tab_EngineSettings">
         <attribute name="icon">
-         <iconset resource="icon.qrc">
-          <normaloff>:/new/prefix1/icon/EngineSettings.png</normaloff>:/new/prefix1/icon/EngineSettings.png</iconset>
+           <iconset/>
         </attribute>
         <attribute name="title">
          <string>Engine settings</string>
@@ -7990,8 +7954,7 @@ padding:10px;
         </widget>
         <widget class="QWidget" name="tab_VideoSettings">
         <attribute name="icon">
-         <iconset resource="icon.qrc">
-          <normaloff>:/new/prefix1/icon/VideoSettings.png</normaloff>:/new/prefix1/icon/VideoSettings.png</iconset>
+           <iconset/>
         </attribute>
         <attribute name="title">
          <string>Video settings</string>
@@ -9531,8 +9494,7 @@ will increase the time required to process video.</string>
        </widget>
        <widget class="QWidget" name="tab_AdditionalSettings">
         <attribute name="icon">
-         <iconset resource="icon.qrc">
-          <normaloff>:/new/prefix1/icon/AddSetting.png</normaloff>:/new/prefix1/icon/AddSetting.png</iconset>
+           <iconset/>
         </attribute>
         <attribute name="title">
          <string>Additional settings</string>
@@ -10868,8 +10830,7 @@ the language for the language settings to fully take effect.</string>
         </widget>
         <widget class="QWidget" name="tab_ImageSettings">
          <attribute name="icon">
-          <iconset resource="icon.qrc">
-           <normaloff>:/new/prefix1/icon/ImageSettings.png</normaloff>:/new/prefix1/icon/ImageSettings.png</iconset>
+            <iconset/>
          </attribute>
          <attribute name="title">
           <string>Image settings</string>
@@ -10964,8 +10925,7 @@ the language for the language settings to fully take effect.</string>
         </widget>
         <widget class="QWidget" name="tab_CompatibilityTest">
         <attribute name="icon">
-         <iconset resource="icon.qrc">
-          <normaloff>:/new/prefix1/icon/CompatibilityTest.png</normaloff>:/new/prefix1/icon/CompatibilityTest.png</iconset>
+           <iconset/>
         </attribute>
         <attribute name="title">
          <string>Compatibility test</string>

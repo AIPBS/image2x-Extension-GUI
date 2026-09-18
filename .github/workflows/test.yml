@@ -38,7 +38,7 @@ jobs:
         run: |
           qmake
           make -j"$(nproc)"
-          for ts in language_*.ts; do
+          for ts in translations/language_*.ts; do
             lrelease "$ts" -qm "${ts%.ts}.qm"
           done
 

@@ -33,36 +33,27 @@ https://www.jianshu.com/p/a000044f1f4a
 void MainWindow::Init_SystemTrayIcon()
 {
     //初始化图标
-    systemTray->setIcon(*MainIcon_QIcon);
     systemTray->setToolTip(tr("Waifu2x-Extension-GUI\nRight-click to show the menu."));
     //初始化点击动作
     connect(systemTray,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason)),Qt::UniqueConnection);
     //初始化菜单动作
     minimumAct_SystemTrayIcon->setText(tr("Hide"));
     minimumAct_SystemTrayIcon->setToolTip(tr("Use the middle mouse button to click the\ntaskbar icon to quickly hide the window."));
-    minimumAct_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/Minimize.png"));
     //===
     restoreAct_SystemTrayIcon->setText(tr("Show"));
     restoreAct_SystemTrayIcon->setToolTip(tr("Use the left mouse button to click the taskbar icon to quickly\ndisplay the window, double-click to maximize the window."));
-    restoreAct_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/ShowWindow.png"));
     //===
     quitAct_SystemTrayIcon->setText(tr("Exit"));
-    quitAct_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/Exit.png"));
     //===
     BackgroundModeAct_SystemTrayIcon->setText(tr("Background mode"));
     BackgroundModeAct_SystemTrayIcon->setToolTip(tr("Set the number of threads to \"1\" to reduce background resource usage."));
-    BackgroundModeAct_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/BackgroudMode.png"));
     //===
     SendFeedback_SystemTrayIcon->setText(tr("Send feedback"));
-    SendFeedback_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/SendFeedback.png"));
     About_SystemTrayIcon->setText(tr("About"));
-    About_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/About.png"));
     //===
     Pause_SystemTrayIcon->setText(tr("Pause"));
-    Pause_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/Pause_SysTray.png"));
     //===
     Start_SystemTrayIcon->setText(tr("Start"));
-    Start_SystemTrayIcon->setIcon(QIcon(":/new/prefix1/icon/Start_SysTray.png"));
     //===
     connect(minimumAct_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(SystemTray_hide_self()),Qt::UniqueConnection);
     connect(restoreAct_SystemTrayIcon, SIGNAL(triggered()), this, SLOT(SystemTray_showNormal_self()),Qt::UniqueConnection);
@@ -135,7 +126,7 @@ void MainWindow::EnableBackgroundMode_SystemTray()
 */
 void MainWindow::SystemTray_NewMessage(QString message)
 {
-    systemTray->showMessage(tr("Notification"),message,*MainIcon_QIcon,5000);
+    systemTray->showMessage(tr("Notification"), message, QSystemTrayIcon::Information, 5000);
 }
 
 void MainWindow::SystemTray_hide_self()

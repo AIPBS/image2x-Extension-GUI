@@ -126,10 +126,8 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlp
     QString file_path = file_getFolderPath(fileinfo);
     QString OutPut_Path = file_path + "/" + file_name + "_waifu2x_"+QString::number(ScaleRatio, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
     //============================== 放大 =======================================
-    QProcess *Waifu2x = new QProcess();
     QString program = resolveEnginePath(Current_Path, "realcugan-ncnn-vulkan", "realcugan-ncnn-vulkan");
-    Waifu2x->setWorkingDirectory(
-        resolveEngineDirectory(Current_Path, "realcugan-ncnn-vulkan"));
+    const QString workingDirectory = resolveEngineDirectory(Current_Path, "realcugan-ncnn-vulkan");
     //==========
     QMap<QString,int> result_map = Calculate_ScaleRatio_RealCUGAN_NCNNVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];
@@ -150,67 +148,37 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlp
             //==========
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " " + RealCUGAN_NCNN_Vulkan_ReadSettings();
-            qWarning().noquote() << "[image2x] launching realcugan-ncnn-vulkan:" << cmd;
-            QElapsedTimer engineTimer;
-            engineTimer.start();
-            Waifu2x->start(cmd);
-            if (!Waifu2x->waitForStarted(10000))
+            const QStringList commandParts = QProcess::splitCommand(cmd);
+            const BackendProcessResult result = backendClient->runCommandBlocking(
+                commandParts.first(), commandParts.mid(1), workingDirectory,
+                OutputPath_tmp, 120000);
+            ErrorMSG = result.standardError.toLower();
+            StanderMSG = result.standardOutput.toLower();
+            waifu2x_qprocess_failed = !result.succeeded()
+                || ErrorMSG.contains("failed") || StanderMSG.contains("failed");
+            if (waifu2x_qprocess_failed)
             {
-                waifu2x_qprocess_failed = true;
-                qWarning().noquote() << "[image2x] realcugan-ncnn-vulkan failed to start:"
-                                     << Waifu2x->errorString();
-                break;
-            }
-            qWarning().noquote() << "[image2x] realcugan-ncnn-vulkan started with pid"
-                                 << Waifu2x->processId();
-            while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
-            {
-                LogEngineProgress(QStringLiteral("realcugan-ncnn-vulkan"), Waifu2x,
-                                  OutputPath_tmp, &engineTimer);
-                if(waifu2x_STOP)
-                {
-                    Waifu2x->close();
-                    if(i>Initial_ScaleRatio)
-                    {
-                        QFile::remove(InputPath_tmp);
-                    }
-                    QFile::remove(OutputPath_tmp);
-                    emit Send_Table_image_ChangeStatus_rowNumInt_statusQString(rowNum, "Interrupted");
-                    mutex_ThreadNumRunning.lock();
-                    ThreadNumRunning--;
-                    mutex_ThreadNumRunning.unlock();
-                    return 0;
-                }
-                ErrorMSG.append(Waifu2x->readAllStandardError().toLower());
-                StanderMSG.append(Waifu2x->readAllStandardOutput().toLower());
-                if(ErrorMSG.contains("failed")||StanderMSG.contains("failed"))
-                {
-                    waifu2x_qprocess_failed = true;
-                    Waifu2x->close();
-                    if(i>Initial_ScaleRatio)
-                    {
-                        QFile::remove(InputPath_tmp);
-                    }
-                    QFile::remove(OutputPath_tmp);
-                    break;
-                }
-            }
-            qWarning().noquote() << "[image2x] realcugan-ncnn-vulkan finished with exit code"
-                                 << Waifu2x->exitCode() << "and status" << Waifu2x->exitStatus();
-            //===============
-            if(waifu2x_qprocess_failed)break;
-            //===============
-            ErrorMSG.append(Waifu2x->readAllStandardError().toLower());
-            StanderMSG.append(Waifu2x->readAllStandardOutput().toLower());
-            if(ErrorMSG.contains("failed")||StanderMSG.contains("failed"))
-            {
-                waifu2x_qprocess_failed = true;
-                if(i>Initial_ScaleRatio)
+                qWarning().noquote() << "[image2x] realcugan-ncnn-vulkan failed:"
+                                     << result.diagnostic;
+                if (i > Initial_ScaleRatio)
                 {
                     QFile::remove(InputPath_tmp);
                 }
                 QFile::remove(OutputPath_tmp);
                 break;
+            }
+            if(waifu2x_STOP)
+            {
+                if(i>Initial_ScaleRatio)
+                {
+                    QFile::remove(InputPath_tmp);
+                }
+                QFile::remove(OutputPath_tmp);
+                emit Send_Table_image_ChangeStatus_rowNumInt_statusQString(rowNum, "Interrupted");
+                mutex_ThreadNumRunning.lock();
+                ThreadNumRunning--;
+                mutex_ThreadNumRunning.unlock();
+                return 0;
             }
             //===============
             if(i>Initial_ScaleRatio)

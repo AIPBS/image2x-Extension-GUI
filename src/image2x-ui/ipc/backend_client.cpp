@@ -19,7 +19,9 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
+#include <QJsonArray>
 #include <QElapsedTimer>
+#include <QRandomGenerator>
 #include <QStandardPaths>
 
 BackendClient::BackendClient(QObject *parent)
@@ -164,6 +166,47 @@ QJsonObject BackendClient::runRequestBlocking(const QJsonObject &request, int ti
                        {QStringLiteral("data"),
                         QJsonObject{{QStringLiteral("message"),
                                      QStringLiteral("Rust backend request timed out.")}}}};
+}
+
+BackendProcessResult BackendClient::runCommandBlocking(const QString &program,
+                                                       const QStringList &arguments,
+                                                       const QString &workingDirectory,
+                                                       const QString &outputPath,
+                                                       int timeoutMs) const
+{
+    QJsonArray jsonArguments;
+    for (const QString &argument : arguments)
+    {
+        jsonArguments.append(argument);
+    }
+    const QJsonObject request{
+        {QStringLiteral("type"), QStringLiteral("run")},
+        {QStringLiteral("id"), QStringLiteral("run-%1").arg(QRandomGenerator::global()->generate())},
+        {QStringLiteral("program"), program},
+        {QStringLiteral("args"), jsonArguments},
+        {QStringLiteral("cwd"), workingDirectory},
+        {QStringLiteral("output_path"), outputPath},
+        {QStringLiteral("timeout_ms"), timeoutMs},
+    };
+    const QJsonObject response = runRequestBlocking(request, timeoutMs + 5000);
+    const QJsonObject data = response.value(QStringLiteral("data")).toObject();
+    BackendProcessResult result;
+    result.started = data.value(QStringLiteral("started")).toBool();
+    result.finished = data.value(QStringLiteral("finished")).toBool();
+    result.exitCode = data.value(QStringLiteral("exit_code")).toInt(-1);
+    result.timedOut = data.value(QStringLiteral("timed_out")).toBool();
+    result.outputValid = data.value(QStringLiteral("output_valid")).toBool();
+    result.standardOutput = data.value(QStringLiteral("stdout")).toString().toUtf8();
+    result.standardError = data.value(QStringLiteral("stderr")).toString().toUtf8();
+    result.diagnostic = data.value(QStringLiteral("diagnostic")).toString();
+    if (!response.value(QStringLiteral("ok")).toBool())
+    {
+        result.diagnostic = response.value(QStringLiteral("data"))
+                                .toObject()
+                                .value(QStringLiteral("message"))
+                                .toString();
+    }
+    return result;
 }
 
 void BackendClient::validateRuntime()

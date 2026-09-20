@@ -23,6 +23,7 @@
 #include "runtime_dependencies.h"
 
 #include <cstdio>
+#include <QScrollArea>
 #include <QSignalBlocker>
 
 namespace
@@ -49,6 +50,18 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    QScrollArea *compatibilityResultsScrollArea = new QScrollArea(ui->tab_CompatibilityTest);
+    compatibilityResultsScrollArea->setObjectName(
+        QStringLiteral("compatibilityResultsScrollArea"));
+    compatibilityResultsScrollArea->setWidgetResizable(true);
+    compatibilityResultsScrollArea->setFrameShape(QFrame::NoFrame);
+    compatibilityResultsScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->gridLayout_32->removeWidget(ui->groupBox_CompatibilityTestRes);
+    compatibilityResultsScrollArea->setWidget(ui->groupBox_CompatibilityTestRes);
+    ui->gridLayout_32->addWidget(compatibilityResultsScrollArea, 0, 0);
+    ui->gridLayout_32->setRowStretch(0, 1);
+    ui->gridLayout_32->setRowStretch(1, 0);
+    ui->gridLayout_32->setRowStretch(2, 0);
     backendClient = new BackendClient(this);
     connect(backendClient, &BackendClient::unavailable, this, [](const QString &message) {
         qWarning().noquote() << "[core]" << message;

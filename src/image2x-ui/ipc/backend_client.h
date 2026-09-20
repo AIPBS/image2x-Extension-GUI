@@ -19,6 +19,24 @@
 #include <QLocalSocket>
 #include <QProcess>
 #include <QString>
+#include <QStringList>
+
+struct BackendProcessResult
+{
+    bool started = false;
+    bool finished = false;
+    int exitCode = -1;
+    bool timedOut = false;
+    bool outputValid = false;
+    QByteArray standardOutput;
+    QByteArray standardError;
+    QString diagnostic;
+
+    bool succeeded() const
+    {
+        return started && finished && exitCode == 0 && !timedOut && outputValid;
+    }
+};
 
 class BackendClient final : public QObject
 {
@@ -34,6 +52,11 @@ public:
     void validateRuntime();
     bool isConnected() const;
     QJsonObject runRequestBlocking(const QJsonObject &request, int timeoutMs) const;
+    BackendProcessResult runCommandBlocking(const QString &program,
+                                            const QStringList &arguments,
+                                            const QString &workingDirectory,
+                                            const QString &outputPath,
+                                            int timeoutMs) const;
 
 signals:
     void ready();

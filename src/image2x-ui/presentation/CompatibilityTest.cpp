@@ -160,10 +160,13 @@ void MainWindow::InitializeProprietaryCompatibilityModels()
         checkbox->setEnabled(false);
         checkbox->setFocusPolicy(Qt::NoFocus);
         checkbox->setToolTip(tr("Proprietary W2xEX model. It is tested only when its model files are installed."));
-        modelLayout->addWidget(checkbox, index / 2, index % 2);
+        modelLayout->addWidget(checkbox, index / 3, index % 3);
         proprietaryCompatibilityCheckboxes.insert(model.name, checkbox);
     }
     groupLayout->addLayout(modelLayout);
+    modelLayout->setColumnStretch(0, 1);
+    modelLayout->setColumnStretch(1, 1);
+    modelLayout->setColumnStretch(2, 1);
     ui->gridLayout_20->addWidget(proprietaryCompatibilityGroup, 7, 0, 1, 3);
 }
 
@@ -378,43 +381,30 @@ int MainWindow::Waifu2x_Compatibility_Test()
     }
     else
     {
-        QProcess process;
-        process.setWorkingDirectory(dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan));
-        process.start(
-            dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan),
-            QStringList()
-                << "-i" << inputPath
-                << "-o" << outputPath
-                << "-s" << "2"
-                << "-n" << "0"
-                << "-t" << "32"
-                << "-m" << "models-upconv_7_anime_style_art_rgb"
-                << "-j" << "1:1:1"
-                << "-g" << "0");
-
-        const bool started = process.waitForStarted(10000);
-        const bool finished = started && process.waitForFinished(60000);
-        if (!finished && process.state() != QProcess::NotRunning)
-        {
-            process.kill();
-            process.waitForFinished(5000);
-        }
-        const QByteArray standardOutput = process.readAllStandardOutput();
-        const QByteArray standardError = process.readAllStandardError();
-        const QPair<QString, bool> vulkanDevice = reportedVulkanDevice(standardOutput, standardError);
-        const bool completed = started
-            && finished
-            && process.exitStatus() == QProcess::NormalExit
-            && process.exitCode() == 0
+        const QStringList engineArguments{
+            QStringLiteral("-i"), inputPath,
+            QStringLiteral("-o"), outputPath,
+            QStringLiteral("-s"), QStringLiteral("2"),
+            QStringLiteral("-n"), QStringLiteral("0"),
+            QStringLiteral("-t"), QStringLiteral("32"),
+            QStringLiteral("-m"), QStringLiteral("models-upconv_7_anime_style_art_rgb"),
+            QStringLiteral("-j"), QStringLiteral("1:1:1"),
+            QStringLiteral("-g"), QStringLiteral("0")};
+        const BackendProcessResult gpuResult = backendClient->runCommandBlocking(
+            dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan), engineArguments,
+            dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan), outputPath, 60000);
+        const QPair<QString, bool> vulkanDevice = reportedVulkanDevice(
+            gpuResult.standardOutput, gpuResult.standardError);
+        const bool completed = gpuResult.succeeded()
             && QFileInfo(outputPath).size() > 0
             && isValidImage(outputPath)
             && vulkanDevice.second;
         if (!completed)
         {
-            qWarning().noquote() << "[compat] Waifu2x failed:" << process.errorString()
-                                 << "exit=" << process.exitCode()
+            qWarning().noquote() << "[compat] Waifu2x failed:" << gpuResult.diagnostic
+                                 << "exit=" << gpuResult.exitCode
                                  << "device=" << vulkanDevice.first
-                                 << "stderr=" << standardError;
+                                 << "stderr=" << gpuResult.standardError;
         }
         isCompatible_Waifu2x_NCNN_Vulkan_NEW = completed;
 
@@ -428,37 +418,17 @@ int MainWindow::Waifu2x_Compatibility_Test()
         if (!completed)
         {
             QFile::remove(outputPath);
-            QProcess cpuProcess;
-            cpuProcess.setWorkingDirectory(dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan));
-            cpuProcess.start(
-                dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan),
-                QStringList()
-                    << "-i" << inputPath
-                    << "-o" << outputPath
-                    << "-s" << "2"
-                    << "-n" << "0"
-                    << "-t" << "32"
-                    << "-m" << "models-upconv_7_anime_style_art_rgb"
-                    << "-j" << "1:1:1"
-                    << "-g" << "0");
-            const bool cpuStarted = cpuProcess.waitForStarted(10000);
-            const bool cpuFinished = cpuStarted && cpuProcess.waitForFinished(60000);
-            if (!cpuFinished && cpuProcess.state() != QProcess::NotRunning)
-            {
-                cpuProcess.kill();
-                cpuProcess.waitForFinished(5000);
-            }
-            isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU = cpuStarted
-                && cpuFinished
-                && cpuProcess.exitStatus() == QProcess::NormalExit
-                && cpuProcess.exitCode() == 0
+            const BackendProcessResult cpuResult = backendClient->runCommandBlocking(
+                dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan), engineArguments,
+                dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan), outputPath, 60000);
+            isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU = cpuResult.succeeded()
                 && QFileInfo(outputPath).size() > 0
                 && isValidImage(outputPath);
             emit Send_TextBrowser_NewMessage(
                 isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU
                     ? tr("Compatible with waifu2x-ncnn-vulkan (CPU): Yes.")
                     : tr("Compatible with waifu2x-ncnn-vulkan (CPU): No. %1")
-                        .arg(QString::fromUtf8(cpuProcess.readAllStandardError()).trimmed()));
+                        .arg(QString::fromUtf8(cpuResult.standardError).trimmed()));
         }
     }
     emit Send_Add_progressBar_CompatibilityTest();

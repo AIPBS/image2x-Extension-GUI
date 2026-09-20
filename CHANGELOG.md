@@ -1,5 +1,18 @@
 # Change log
 
+## v0.9.3 (2026-09-20)
+
+### Changed
+- Keep compatibility results scrollable so the progress bar and Start button
+  remain visible.
+- Align optional proprietary W2xEX model rows in three columns with the public
+  compatibility results.
+- Route Rust-owned CPU compatibility checks through the installed software
+  Vulkan ICD while keeping llvmpipe and other software devices out of GPU
+  results.
+- Parse the whitespace used by Vulkan engine device reports so GPU and CPU
+  compatibility results are not falsely reported as missing a device.
+
 ## v0.9.2 (2026-09-20)
 
 ### Fixed

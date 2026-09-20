@@ -6,6 +6,7 @@
 // (at your option) any later version.
 
 use serde::Serialize;
+use std::path::Path;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ModelRecord {
@@ -13,6 +14,7 @@ pub struct ModelRecord {
     pub engine: &'static str,
     pub model: &'static str,
     pub distribution: &'static str,
+    pub available: bool,
 }
 
 pub fn public_model_records() -> Vec<ModelRecord> {
@@ -22,36 +24,42 @@ pub fn public_model_records() -> Vec<ModelRecord> {
             engine: "waifu2x-ncnn-vulkan",
             model: "models-cunet",
             distribution: "open-weight",
+            available: false,
         },
         ModelRecord {
             name: "waifu2x-upconv-anime",
             engine: "waifu2x-ncnn-vulkan",
             model: "models-upconv_7_anime_style_art_rgb",
             distribution: "open-weight",
+            available: false,
         },
         ModelRecord {
             name: "waifu2x-upconv-photo",
             engine: "waifu2x-ncnn-vulkan",
             model: "models-upconv_7_photo",
             distribution: "open-weight",
+            available: false,
         },
         ModelRecord {
             name: "srmd",
             engine: "srmd-ncnn-vulkan",
             model: "models-srmd",
             distribution: "open-weight",
+            available: false,
         },
         ModelRecord {
             name: "realsr-df2k",
             engine: "realsr-ncnn-vulkan",
             model: "models-DF2K",
             distribution: "open-weight",
+            available: false,
         },
         ModelRecord {
             name: "realsr-df2k-jpeg",
             engine: "realsr-ncnn-vulkan",
             model: "models-DF2K_JPEG",
             distribution: "open-weight",
+            available: false,
         },
     ];
     for name in [
@@ -70,6 +78,7 @@ pub fn public_model_records() -> Vec<ModelRecord> {
             engine: "realesrgan-ncnn-vulkan",
             model: name,
             distribution: "open-weight",
+            available: false,
         });
     }
     for (name, model) in [
@@ -97,12 +106,13 @@ pub fn public_model_records() -> Vec<ModelRecord> {
             engine: "realcugan-ncnn-vulkan",
             model,
             distribution: "open-weight",
+            available: false,
         });
     }
     records
 }
 
-pub fn model_records() -> Vec<ModelRecord> {
+pub fn model_records(application_directory: &Path) -> Vec<ModelRecord> {
     let mut records = public_model_records();
     for name in [
         "Anime-HQ-W4xEX",
@@ -120,18 +130,71 @@ pub fn model_records() -> Vec<ModelRecord> {
             engine: "realesrgan-ncnn-vulkan",
             model: name,
             distribution: "proprietary",
+            available: proprietary_model_available(application_directory, name),
         });
     }
+    for record in &mut records {
+        if record.distribution == "open-weight" {
+            record.available = public_model_available(application_directory, record);
+        }
+    }
     records
+}
+
+fn public_model_available(application_directory: &Path, record: &ModelRecord) -> bool {
+    let engine_directory = application_directory
+        .join("dependencies/engines")
+        .join(record.engine);
+    let model_path = if record.engine == "realesrgan-ncnn-vulkan" {
+        engine_directory.join("models").join(record.model)
+    } else {
+        engine_directory.join(record.model)
+    };
+    model_path.is_dir()
+        || (model_path.with_extension("param").is_file()
+            && model_path.with_extension("bin").is_file())
+}
+
+fn proprietary_model_available(application_directory: &Path, model: &str) -> bool {
+    let roots = [
+        application_directory.join("vendor/models-non-free"),
+        application_directory.join("../vendor/models-non-free"),
+        application_directory.join("dependencies/models-non-free"),
+    ];
+    roots.iter().any(|root| {
+        let model_path = root.join("realesrgan-ncnn-vulkan/models").join(model);
+        model_path.with_extension("param").is_file() && model_path.with_extension("bin").is_file()
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::{model_records, public_model_records};
+    use std::path::Path;
 
     #[test]
     fn public_matrix_has_thirty_three_records() {
         assert_eq!(public_model_records().len(), 33);
-        assert_eq!(model_records().len(), 42);
+        assert_eq!(model_records(Path::new("/tmp/does-not-exist")).len(), 42);
+    }
+
+    #[test]
+    fn proprietary_models_report_filesystem_availability() {
+        let root =
+            std::env::temp_dir().join(format!("image2x-manifest-test-{}", std::process::id()));
+        let model_directory = root.join("vendor/models-non-free/realesrgan-ncnn-vulkan/models");
+        std::fs::create_dir_all(&model_directory).expect("model directory should be created");
+        std::fs::write(model_directory.join("Anime-HQ-W4xEX.param"), b"param")
+            .expect("param file should be created");
+        std::fs::write(model_directory.join("Anime-HQ-W4xEX.bin"), b"weights")
+            .expect("weight file should be created");
+
+        let records = model_records(&root);
+        let record = records
+            .iter()
+            .find(|record| record.name == "Anime-HQ-W4xEX")
+            .expect("proprietary model should be listed");
+        assert!(record.available);
+        std::fs::remove_dir_all(root).expect("temporary model directory should be removed");
     }
 }

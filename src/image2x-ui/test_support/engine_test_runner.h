@@ -17,6 +17,8 @@
 #include <QString>
 #include <QStringList>
 
+class BackendClient;
+
 enum class EngineTestDevice
 {
     HardwareGpu,
@@ -52,6 +54,8 @@ class EngineTestRunner
 {
 public:
     static EngineTestResult run(const EngineTestRequest &request);
+    static EngineTestResult run(const EngineTestRequest &request,
+                                const BackendClient *backendClient);
     static bool isSoftwareDevice(const QString &deviceName);
     static bool isValidImage(const QString &path);
     static QString reportedDevice(const QByteArray &standardOutput,

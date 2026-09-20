@@ -30,8 +30,10 @@ public:
 
     bool start(const QString &executablePath, const QString &applicationDirectory);
     void stop();
+    void listModels();
     void validateRuntime();
     bool isConnected() const;
+    QJsonObject runRequestBlocking(const QJsonObject &request, int timeoutMs) const;
 
 signals:
     void ready();

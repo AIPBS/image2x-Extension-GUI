@@ -16,7 +16,7 @@ use serde_json::Value;
 use thiserror::Error;
 
 use manifest::{model_records, ModelRecord};
-use process::run_command;
+use process::{run_command, run_engine_test};
 use protocol::{Request, Response};
 use runtime::{runtime_records, RuntimeRecord};
 
@@ -43,7 +43,7 @@ pub fn handle_line(line: &str, application_directory: &Path) -> Result<String, C
         ),
         Request::Ping { id } => Response::ok(id, "pong", serde_json::json!({})),
         Request::ListModels { id } => {
-            let models: Vec<ModelRecord> = model_records();
+            let models: Vec<ModelRecord> = model_records(application_directory);
             Response::ok(id, "models", serde_json::json!({ "models": models }))
         }
         Request::ValidateRuntime { id } => {
@@ -73,6 +73,31 @@ pub fn handle_line(line: &str, application_directory: &Path) -> Result<String, C
                 "run_result",
                 serde_json::to_value(result).unwrap_or_else(
                     |_| serde_json::json!({ "error": "failed to serialize process result" }),
+                ),
+            )
+        }
+        Request::TestEngine {
+            id,
+            program,
+            args,
+            cwd,
+            output_path,
+            timeout_ms,
+            device,
+        } => {
+            let result = run_engine_test(
+                &program,
+                &args,
+                Path::new(&cwd),
+                timeout_ms,
+                Path::new(&output_path),
+                &device,
+            );
+            Response::ok(
+                id,
+                "engine_result",
+                serde_json::to_value(result).unwrap_or_else(
+                    |_| serde_json::json!({ "error": "failed to serialize engine result" }),
                 ),
             )
         }

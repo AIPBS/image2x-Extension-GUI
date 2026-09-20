@@ -44,8 +44,10 @@ jobs:
         run: |
           qmake
           make -j"$(nproc)"
+          rm -f language_*.qm
           for ts in translations/language_*.ts; do
-            lrelease "$ts" -qm "${ts%.ts}.qm"
+            qm="$(basename "${ts%.ts}.qm")"
+            lrelease "$ts" -qm "$qm"
           done
 
       - name: Build logic tests

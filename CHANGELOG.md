@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 ### Changed
+- Separate public and proprietary compatibility sections. Proprietary W2xEX
+  rows now appear only when their authorized model files are detected and are
+  tested through the installed Linux Real-ESRGAN runtime.
+- Grey out unavailable proprietary rows and show the command needed to obtain
+  the optional model files without bundling or redistributing them.
+- Load translation catalogs from both standard build layouts and fall back to
+  English without repeatedly showing a missing-file modal.
+- Route generic Linux compatibility-engine checks through the Rust backend over
+  the private Unix-socket JSON Lines protocol, while retaining Qt image decoding
+  as the final artifact check.
 - Remove the project-level permissive license exception. New files created by
   the Rust migration use standard GNU AGPLv3 headers without an additional
   permissive exception.

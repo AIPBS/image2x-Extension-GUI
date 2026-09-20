@@ -11298,7 +11298,7 @@ https://github.com/lltcggie/waifu2x-caffe</string>
                </size>
               </property>
               <property name="text">
-                <string>Open-weight / redistributable super-resolution engines:</string>
+                <string>Public / redistributable super-resolution engines:</string>
               </property>
              </widget>
             </item>
@@ -11464,7 +11464,7 @@ https://github.com/MrZihan/Super-resolution-SR-CUDA</string>
                 <string notr="true">font-weight: bold; color: rgb(160, 70, 40);</string>
                </property>
                <property name="text">
-                <string>Proprietary weights: W2xEX models are not included or tested in this public compatibility report.</string>
+                 <string>Proprietary W2xEX models (optional):</string>
                </property>
                <property name="wordWrap">
                 <bool>true</bool>

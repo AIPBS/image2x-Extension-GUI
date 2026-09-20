@@ -23,6 +23,26 @@
 #include "runtime_dependencies.h"
 
 #include <cstdio>
+#include <QSignalBlocker>
+
+namespace
+{
+QString translationFilePath(const QString &applicationDirectory, const QString &fileName)
+{
+    const QStringList candidates{
+        QDir(applicationDirectory).filePath(fileName),
+        QDir(applicationDirectory).filePath(QStringLiteral("translations/") + fileName),
+    };
+    for (const QString &candidate : candidates)
+    {
+        if (QFileInfo(candidate).isFile())
+        {
+            return candidate;
+        }
+    }
+    return QString();
+}
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -34,18 +54,24 @@ MainWindow::MainWindow(QWidget *parent)
         qWarning().noquote() << "[core]" << message;
     });
     connect(backendClient, &BackendClient::ready, this, [this] {
+        backendClient->listModels();
         backendClient->validateRuntime();
     });
-    connect(backendClient, &BackendClient::eventReceived, this, [](const QJsonObject &event) {
+    connect(backendClient, &BackendClient::eventReceived, this, [this](const QJsonObject &event) {
         if (event.value(QStringLiteral("event")).toString() == QStringLiteral("runtime"))
         {
             qInfo().noquote() << "[core] runtime discovery completed";
         }
+        else if (event.value(QStringLiteral("event")).toString() == QStringLiteral("models"))
+        {
+            UpdateProprietaryModelAvailability(event);
+        }
     });
+    InitializeCompatibilityCpuCheckboxes();
+    InitializeProprietaryCompatibilityModels();
     backendClient->start(QDir(QCoreApplication::applicationDirPath())
                              .filePath(QStringLiteral("image2x-core")),
                          QCoreApplication::applicationDirPath());
-    InitializeCompatibilityCpuCheckboxes();
     connect(ui->pushButton_TileSize_Add_RealESRGAN, &QPushButton::clicked, this, &MainWindow::on_pushButton_Add_TileSize_RealESRGAN_clicked);
     connect(ui->pushButton_TileSize_Minus_RealESRGAN, &QPushButton::clicked, this, &MainWindow::on_pushButton_Minus_TileSize_RealESRGAN_clicked);
     connect(ui->checkBox_TTA_RealESRGAN, &QCheckBox::clicked, this, &MainWindow::on_checkBox_TTA_RealESRGAN_clicked);
@@ -801,34 +827,35 @@ void MainWindow::on_comboBox_language_currentIndexChanged(int index)
         }
     }
     //==============
-    QString qmFilename="";
-    switch(ui->comboBox_language->currentIndex())
+    QString qmFileName;
+    switch(index)
     {
         case 0:
             {
-                qmFilename = Current_Path + "/language_English.qm";
+                qmFileName = QStringLiteral("language_English.qm");
                 break;
             }
         case 1:
             {
-                qmFilename = Current_Path + "/language_Chinese.qm";
+                qmFileName = QStringLiteral("language_Chinese.qm");
                 break;
             }
         case 2:
             {
-                qmFilename = Current_Path + "/language_TraditionalChinese.qm";
+                qmFileName = QStringLiteral("language_TraditionalChinese.qm");
                 break;
             }
     }
-    //判断文件是否存在
-    if(QFile::exists(qmFilename)==false)
+    const QString qmFilename = translationFilePath(Current_Path, qmFileName);
+    if(qmFilename.isEmpty())
     {
-        QMessageBox *MSG_languageFile404 = new QMessageBox();
-        MSG_languageFile404->setWindowTitle(tr("Error"));
-        MSG_languageFile404->setText(tr("Language file is missing, please reinstall this program."));
-        MSG_languageFile404->setIcon(QMessageBox::Warning);
-        MSG_languageFile404->setModal(true);
-        MSG_languageFile404->show();
+        qWarning().noquote() << "[translation] catalog unavailable:" << qmFileName
+                             << "under" << Current_Path;
+        if (index != 0)
+        {
+            const QSignalBlocker blocker(ui->comboBox_language);
+            ui->comboBox_language->setCurrentIndex(0);
+        }
         return;
     }
     //加载语言文件

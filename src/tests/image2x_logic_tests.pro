@@ -1,4 +1,4 @@
-QT += core gui testlib widgets
+QT += core gui network testlib widgets
 CONFIG += testcase c++17
 TEMPLATE = app
 
@@ -11,11 +11,13 @@ INCLUDEPATH += \
 
 SOURCES += \
     image2x_logic_tests.cpp \
+    ../image2x-ui/ipc/backend_client.cpp \
     ../image2x-ui/test_support/engine_test_runner.cpp \
     ../image2x-ui/test_support/model_test_matrix.cpp \
     ../image2x-ui/services/runtime_dependencies.cpp
 
 HEADERS += \
+    ../image2x-ui/ipc/backend_client.h \
     ../image2x-ui/test_support/engine_test_runner.h \
     ../image2x-ui/test_support/model_test_matrix.h \
     ../image2x-ui/services/runtime_dependencies.h \

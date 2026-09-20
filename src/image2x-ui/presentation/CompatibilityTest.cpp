@@ -21,11 +21,36 @@
 #include "ui_mainwindow.h"
 #include "compatibility_presentation.h"
 #include "engine_test_runner.h"
+#include "model_test_matrix.h"
 #include "runtime_dependencies.h"
 #include "ui_routing.h"
 #include <QHBoxLayout>
+#include <QJsonArray>
 #include <QPlainTextEdit>
 #include <QRegularExpression>
+#include <QVBoxLayout>
+
+namespace
+{
+QString proprietaryModelRoot(const QString &applicationDirectory)
+{
+    const QStringList candidates{
+        QDir(applicationDirectory).filePath(QStringLiteral("vendor/models-non-free")),
+        QDir(applicationDirectory).filePath(QStringLiteral("../vendor/models-non-free")),
+        QDir(applicationDirectory).filePath(QStringLiteral("dependencies/models-non-free")),
+    };
+    for (const QString &candidate : candidates)
+    {
+        if (QFileInfo(QDir(candidate).filePath(
+                          QStringLiteral("realesrgan-ncnn-vulkan/models")))
+                .isDir())
+        {
+            return candidate;
+        }
+    }
+    return QString();
+}
+}
 
 void MainWindow::InitializeCompatibilityCpuCheckboxes()
 {
@@ -102,6 +127,98 @@ void MainWindow::InitializeCompatibilityCpuCheckboxes()
     pairCheckboxes(ui->checkBox_isCompatible_IFRNetNcnnVulkan, nullptr);
     pairCheckboxes(ui->checkBox_isCompatible_RTXSuperRes, nullptr);
     pairCheckboxes(ui->checkBox_isCompatible_NvidiaMaxine, nullptr);
+}
+
+void MainWindow::InitializeProprietaryCompatibilityModels()
+{
+    ui->gridLayout_20->removeWidget(ui->label_CompatibilityProprietaryWeights);
+    ui->label_CompatibilityProprietaryWeights->hide();
+
+    proprietaryCompatibilityGroup = new QGroupBox(
+        tr("Proprietary W2xEX models (optional)"), ui->groupBox_CompatibilityTestRes);
+    proprietaryCompatibilityGroup->setEnabled(false);
+    QVBoxLayout *groupLayout = new QVBoxLayout(proprietaryCompatibilityGroup);
+    proprietaryCompatibilityStatus = new QLabel(
+        tr("Checking for proprietary model files..."), proprietaryCompatibilityGroup);
+    proprietaryCompatibilityStatus->setWordWrap(true);
+    groupLayout->addWidget(proprietaryCompatibilityStatus);
+
+    QGridLayout *modelLayout = new QGridLayout;
+    const QList<ModelTestCase> cases = proprietaryModelTestMatrix();
+    for (int index = 0; index < cases.size(); ++index)
+    {
+        const ModelTestCase &model = cases.at(index);
+        QCheckBox *checkbox = new QCheckBox(model.name, proprietaryCompatibilityGroup);
+        checkbox->setEnabled(false);
+        checkbox->setFocusPolicy(Qt::NoFocus);
+        checkbox->setToolTip(tr("Proprietary W2xEX model. It is tested only when its model files are installed."));
+        modelLayout->addWidget(checkbox, index / 2, index % 2);
+        proprietaryCompatibilityCheckboxes.insert(model.name, checkbox);
+    }
+    groupLayout->addLayout(modelLayout);
+    ui->gridLayout_20->addWidget(proprietaryCompatibilityGroup, 7, 0, 1, 3);
+}
+
+void MainWindow::UpdateProprietaryModelAvailability(const QJsonObject &event)
+{
+    proprietaryModelAvailability.clear();
+    const QJsonArray models = event.value(QStringLiteral("data"))
+                                  .toObject()
+                                  .value(QStringLiteral("models"))
+                                  .toArray();
+    for (const QJsonValue &value : models)
+    {
+        const QJsonObject model = value.toObject();
+        if (model.value(QStringLiteral("distribution")).toString()
+            != QStringLiteral("proprietary"))
+        {
+            continue;
+        }
+        proprietaryModelAvailability.insert(
+            model.value(QStringLiteral("name")).toString(),
+            model.value(QStringLiteral("available")).toBool());
+    }
+
+    const RuntimeDependencies dependencies(Current_Path);
+    const bool runtimeAvailable = QFileInfo(
+        dependencies.executable(RuntimeEngine::RealESRGANNcnnVulkan)).isExecutable();
+    int availableCount = 0;
+    for (auto iterator = proprietaryCompatibilityCheckboxes.cbegin();
+         iterator != proprietaryCompatibilityCheckboxes.cend(); ++iterator)
+    {
+        const bool available = proprietaryModelAvailability.value(iterator.key(), false);
+        iterator.value()->setEnabled(runtimeAvailable && available);
+        iterator.value()->setChecked(false);
+        if (available)
+        {
+            ++availableCount;
+        }
+    }
+
+    if (!runtimeAvailable)
+    {
+        proprietaryCompatibilityGroup->setEnabled(false);
+        proprietaryCompatibilityStatus->setText(tr(
+            "The proprietary model files may be present, but the Linux Real-ESRGAN runtime is missing. "
+            "Install it with:\n%1")
+            .arg(dependencies.installCommand(RuntimeEngine::RealESRGANNcnnVulkan)));
+    }
+    else if (availableCount == 0)
+    {
+        proprietaryCompatibilityGroup->setEnabled(false);
+        proprietaryCompatibilityStatus->setText(tr(
+            "Proprietary model files are not downloaded. To enable these tests, run "
+            "./scripts/download_non_free_models.sh --latest from the src directory."));
+    }
+    else
+    {
+        proprietaryCompatibilityGroup->setEnabled(true);
+        proprietaryCompatibilityStatus->setText(
+            tr("Installed proprietary models available for testing: %1/%2."
+               " Missing rows remain disabled.")
+                .arg(availableCount)
+                .arg(proprietaryCompatibilityCheckboxes.size()));
+    }
 }
 
 void MainWindow::on_pushButton_compatibilityTest_clicked()
@@ -341,11 +458,14 @@ int MainWindow::Waifu2x_Compatibility_Test()
     const QString enginesDirectory = Current_Path + "/dependencies/engines";
     const auto testEngine = [&](const QString &name, const QString &program,
                                 const QStringList &arguments, const QString &resultPath,
-                                int timeoutMs = 30000, bool requireHardwareVulkan = true) {
+                                int timeoutMs = 30000, bool requireHardwareVulkan = true,
+                                const QString &workingDirectory = QString()) {
         EngineTestRequest request;
         request.name = name;
         request.executable = program;
-        request.workingDirectory = QFileInfo(program).absolutePath();
+        request.workingDirectory = workingDirectory.isEmpty()
+            ? QFileInfo(program).absolutePath()
+            : workingDirectory;
         request.arguments = arguments;
         request.outputPath = resultPath;
         request.timeoutMs = timeoutMs;
@@ -355,7 +475,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
             ? EngineTestResult{false, false, false, false, false, -1, QString(),
                                tr("The executable, test image, or writable test directory is unavailable."),
                                QByteArray(), QByteArray()}
-            : EngineTestRunner::run(request);
+            : EngineTestRunner::run(request, backendClient);
         const bool completed = result.passed;
         QString diagnostics = result.diagnostic;
         if (!completed && requireHardwareVulkan && !result.deviceAccepted
@@ -382,16 +502,19 @@ int MainWindow::Waifu2x_Compatibility_Test()
     };
     const auto testGpuThenCpu = [&](const QString &name, const QString &program,
                                     const QStringList &arguments, const QString &resultPath,
-                                    bool &gpuResult, bool &cpuResult, int timeoutMs = 30000) {
+                                    bool &gpuResult, bool &cpuResult, int timeoutMs = 30000,
+                                    const QString &workingDirectory = QString()) {
         gpuResult = testEngine(name + " (GPU)", program,
-                               withGpuSelector(arguments, "0"), resultPath, timeoutMs, true);
+                               withGpuSelector(arguments, "0"), resultPath, timeoutMs, true,
+                               workingDirectory);
         if (gpuResult)
         {
             cpuResult = false;
             return;
         }
         cpuResult = testEngine(name + " (CPU)", program,
-                               withGpuSelector(arguments, "0"), resultPath, timeoutMs, false);
+                               withGpuSelector(arguments, "0"), resultPath, timeoutMs, false,
+                               workingDirectory);
     };
 
     const QString realSrDirectory = enginesDirectory + "/realsr-ncnn-vulkan";
@@ -418,6 +541,39 @@ int MainWindow::Waifu2x_Compatibility_Test()
                       << "-m" << "models",
         outputPath, isCompatible_RealESRGAN,
         isCompatible_RealESRGAN_CPU);
+
+    const QString installedProprietaryRoot = proprietaryModelRoot(Current_Path);
+    const QString proprietaryEngineDirectory = QDir(installedProprietaryRoot).filePath(
+        QStringLiteral("realesrgan-ncnn-vulkan"));
+    for (const ModelTestCase &model : proprietaryModelTestMatrix())
+    {
+        if (!proprietaryModelAvailability.value(model.name, false))
+        {
+            continue;
+        }
+        const QString modelOutputPath = QDir(testDirectory).filePath(
+            QStringLiteral("proprietary-%1.png").arg(model.name));
+        bool gpuResult = false;
+        bool cpuResult = false;
+        testGpuThenCpu(
+            model.name + " (proprietary)",
+            realEsrganDirectory + "/realesrgan-ncnn-vulkan",
+            QStringList() << "-i" << inputPath << "-o" << modelOutputPath
+                           << "-s" << QString::number(model.scale)
+                           << "-n" << model.model << "-t" << "32"
+                           << "-m" << "models",
+            modelOutputPath, gpuResult, cpuResult, 60000, proprietaryEngineDirectory);
+        QCheckBox *checkbox = proprietaryCompatibilityCheckboxes.value(model.name, nullptr);
+        if (checkbox != nullptr)
+        {
+            checkbox->setChecked(gpuResult || cpuResult);
+            checkbox->setToolTip(
+                tr("GPU: %1; CPU fallback: %2")
+                    .arg(gpuResult ? tr("pass") : tr("fail"),
+                         cpuResult ? tr("pass") : tr("fail")));
+        }
+        QFile::remove(modelOutputPath);
+    }
 
     const QString realCuganDirectory = enginesDirectory + "/realcugan-ncnn-vulkan";
     testGpuThenCpu(
@@ -1877,7 +2033,16 @@ void MainWindow::Init_progressBar_CompatibilityTest()
 {
     ui->progressBar_CompatibilityTest->setEnabled(1);
     ui->progressBar_CompatibilityTest->setVisible(1);
-    ui->progressBar_CompatibilityTest->setRange(0,34);
+    int proprietaryModelCount = 0;
+    for (auto iterator = proprietaryModelAvailability.cbegin();
+         iterator != proprietaryModelAvailability.cend(); ++iterator)
+    {
+        if (iterator.value())
+        {
+            ++proprietaryModelCount;
+        }
+    }
+    ui->progressBar_CompatibilityTest->setRange(0, 34 + proprietaryModelCount * 2);
     ui->progressBar_CompatibilityTest->setValue(0);
 }
 //进度+1 -兼容性测试进度条

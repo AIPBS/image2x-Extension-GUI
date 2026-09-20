@@ -45,6 +45,12 @@ cd src
 mkdir build && cd build
 qmake ../image2x-ui/Waifu2x-Extension-QT.pro
 make -j$(nproc)
+
+# Generate catalogs beside the executable.
+for ts in ../image2x-ui/translations/language_*.ts; do
+  qm="$(basename "${ts%.ts}.qm")"
+  lrelease "$ts" -qm "$qm"
+done
 ```
 
 ## Linux runtime

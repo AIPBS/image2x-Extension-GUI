@@ -19,6 +19,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
+#include <QElapsedTimer>
 #include <QStandardPaths>
 
 BackendClient::BackendClient(QObject *parent)
@@ -95,9 +96,85 @@ bool BackendClient::isConnected() const
     return socket.state() == QLocalSocket::ConnectedState;
 }
 
+QJsonObject BackendClient::runRequestBlocking(const QJsonObject &request, int timeoutMs) const
+{
+    if (socketPath.isEmpty())
+    {
+        return QJsonObject{{QStringLiteral("ok"), false},
+                           {QStringLiteral("event"), QStringLiteral("error")},
+                           {QStringLiteral("data"),
+                            QJsonObject{{QStringLiteral("message"),
+                                         QStringLiteral("Rust backend socket is unavailable.")}}}};
+    }
+
+    QLocalSocket requestSocket;
+    requestSocket.connectToServer(socketPath);
+    if (!requestSocket.waitForConnected(1000))
+    {
+        return QJsonObject{{QStringLiteral("ok"), false},
+                           {QStringLiteral("event"), QStringLiteral("error")},
+                           {QStringLiteral("data"),
+                            QJsonObject{{QStringLiteral("message"),
+                                         requestSocket.errorString()}}}};
+    }
+
+    requestSocket.write(QJsonDocument(request).toJson(QJsonDocument::Compact) + '\n');
+    if (!requestSocket.waitForBytesWritten(1000))
+    {
+        return QJsonObject{{QStringLiteral("ok"), false},
+                           {QStringLiteral("event"), QStringLiteral("error")},
+                           {QStringLiteral("data"),
+                            QJsonObject{{QStringLiteral("message"),
+                                         requestSocket.errorString()}}}};
+    }
+
+    const QString requestId = request.value(QStringLiteral("id")).toString();
+    QByteArray pendingData;
+    QElapsedTimer timer;
+    timer.start();
+    while (timer.elapsed() < timeoutMs)
+    {
+        if (!requestSocket.bytesAvailable()
+            && !requestSocket.waitForReadyRead(qMax(1, timeoutMs - int(timer.elapsed()))))
+        {
+            break;
+        }
+        pendingData.append(requestSocket.readAll());
+        const qsizetype newline = pendingData.indexOf('\n');
+        if (newline < 0)
+        {
+            continue;
+        }
+        const QJsonDocument document = QJsonDocument::fromJson(
+            pendingData.left(newline).trimmed());
+        if (!document.isObject())
+        {
+            break;
+        }
+        const QJsonObject response = document.object();
+        if (response.value(QStringLiteral("id")).toString() == requestId)
+        {
+            return response;
+        }
+        pendingData.remove(0, newline + 1);
+    }
+
+    return QJsonObject{{QStringLiteral("ok"), false},
+                       {QStringLiteral("event"), QStringLiteral("error")},
+                       {QStringLiteral("data"),
+                        QJsonObject{{QStringLiteral("message"),
+                                     QStringLiteral("Rust backend request timed out.")}}}};
+}
+
 void BackendClient::validateRuntime()
 {
     send(QJsonObject{{QStringLiteral("type"), QStringLiteral("validate_runtime")},
+                     {QStringLiteral("id"), QString::number(nextRequestId++)}});
+}
+
+void BackendClient::listModels()
+{
+    send(QJsonObject{{QStringLiteral("type"), QStringLiteral("list_models")},
                      {QStringLiteral("id"), QString::number(nextRequestId++)}});
 }
 

@@ -34,6 +34,16 @@ pub enum Request {
         output_path: Option<String>,
         timeout_ms: Option<u64>,
     },
+    TestEngine {
+        id: String,
+        program: String,
+        #[serde(default)]
+        args: Vec<String>,
+        cwd: String,
+        output_path: String,
+        timeout_ms: u64,
+        device: String,
+    },
 }
 
 #[derive(Debug, Serialize)]

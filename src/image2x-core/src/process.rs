@@ -24,6 +24,20 @@ pub struct ProcessResult {
     pub diagnostic: String,
 }
 
+#[derive(Debug, Serialize)]
+pub struct EngineTestResult {
+    pub started: bool,
+    pub finished: bool,
+    pub output_valid: bool,
+    pub device_accepted: bool,
+    pub passed: bool,
+    pub exit_code: Option<i32>,
+    pub device_name: String,
+    pub diagnostic: String,
+    pub stdout: String,
+    pub stderr: String,
+}
+
 pub fn run_command(
     program: &str,
     args: &[String],
@@ -123,6 +137,75 @@ pub fn run_command(
     }
 }
 
+pub fn run_engine_test(
+    program: &str,
+    args: &[String],
+    cwd: &Path,
+    timeout_ms: u64,
+    output_path: &Path,
+    device: &str,
+) -> EngineTestResult {
+    let _ = std::fs::remove_file(output_path);
+    let process = run_command(program, args, cwd, timeout_ms, Some(output_path));
+    let device_name = reported_device(&process.stdout, &process.stderr);
+    let software_device = is_software_device(&device_name);
+    let device_accepted = match device {
+        "hardware_gpu" => !device_name.is_empty() && !software_device,
+        "software_cpu" => !device_name.is_empty() && software_device,
+        _ => false,
+    };
+    let mut diagnostic = process.diagnostic.clone();
+    if diagnostic.is_empty() && device_name.is_empty() {
+        diagnostic = "the engine did not report a Vulkan device".to_owned();
+    } else if diagnostic.is_empty() && !device_accepted {
+        diagnostic = format!("unexpected Vulkan device: {device_name}");
+    }
+    EngineTestResult {
+        started: process.started,
+        finished: process.finished,
+        output_valid: process.output_valid,
+        device_accepted,
+        passed: process.started
+            && process.finished
+            && process.exit_code == Some(0)
+            && process.output_valid
+            && device_accepted,
+        exit_code: process.exit_code,
+        device_name,
+        diagnostic,
+        stdout: process.stdout,
+        stderr: process.stderr,
+    }
+}
+
+fn reported_device(stdout: &str, stderr: &str) -> String {
+    for line in stdout.lines().chain(stderr.lines()) {
+        let Some(start) = line.find('[') else {
+            continue;
+        };
+        let rest = &line[start + 1..];
+        let Some(space) = rest.find(' ') else {
+            continue;
+        };
+        let device = &rest[space + 1..];
+        let Some(end) = device.find("] queueC=") else {
+            continue;
+        };
+        let device = device[..end].trim();
+        if !device.is_empty() {
+            return device.to_owned();
+        }
+    }
+    String::new()
+}
+
+fn is_software_device(device_name: &str) -> bool {
+    let normalized = device_name.to_ascii_lowercase();
+    ["llvmpipe", "lavapipe", "softpipe", "swiftshader"]
+        .iter()
+        .any(|name| normalized.contains(name))
+}
+
 fn is_nonempty_file(path: &Path) -> bool {
     std::fs::metadata(path)
         .map(|metadata| metadata.is_file() && metadata.len() > 0)
@@ -131,7 +214,7 @@ fn is_nonempty_file(path: &Path) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::run_command;
+    use super::{reported_device, run_command, run_engine_test};
     use std::path::Path;
 
     #[test]
@@ -145,5 +228,28 @@ mod tests {
         );
         assert!(!result.started);
         assert!(!result.diagnostic.is_empty());
+    }
+
+    #[test]
+    fn parses_vulkan_device_from_engine_output() {
+        let device = reported_device("[0 llvmpipe (LLVM 18.1.3)] queueC=0", "");
+        assert_eq!(device, "llvmpipe (LLVM 18.1.3)");
+    }
+
+    #[test]
+    fn engine_test_requires_the_requested_device_class() {
+        let result = run_engine_test(
+            "/bin/sh",
+            &[
+                "-c".to_owned(),
+                "printf '[0 llvmpipe] queueC=0\\n'; printf x > output.png".to_owned(),
+            ],
+            Path::new("/tmp"),
+            1000,
+            Path::new("/tmp/output.png"),
+            "software_cpu",
+        );
+        assert!(result.passed);
+        let _ = std::fs::remove_file("/tmp/output.png");
     }
 }

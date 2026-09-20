@@ -23,6 +23,8 @@
 
 #include <QMainWindow>
 #include <QCheckBox>
+#include <QGroupBox>
+#include <QLabel>
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QStandardItemModel>
@@ -94,6 +96,10 @@ public:
     //=======================
     QTranslator * translator;
     BackendClient *backendClient = nullptr;
+    QGroupBox *proprietaryCompatibilityGroup = nullptr;
+    QLabel *proprietaryCompatibilityStatus = nullptr;
+    QMap<QString, QCheckBox *> proprietaryCompatibilityCheckboxes;
+    QMap<QString, bool> proprietaryModelAvailability;
     QIcon *MainIcon_QIcon = new QIcon();
     TopSupportersList *TopSupportersList_widget;
     //=======
@@ -356,6 +362,8 @@ public:
     //================================================================
     int Waifu2x_Compatibility_Test();//引擎兼容性检测
     void InitializeCompatibilityCpuCheckboxes();
+    void InitializeProprietaryCompatibilityModels();
+    void UpdateProprietaryModelAvailability(const QJsonObject &event);
     void ShowGpuSupportPanel();
     QMap<QCheckBox *, QCheckBox *> CompatibilityCpuCheckboxes;
     //初始化 -兼容性测试进度条

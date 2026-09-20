@@ -10,6 +10,7 @@ use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
+use std::thread;
 
 use anyhow::Result;
 use clap::Parser;
@@ -35,7 +36,10 @@ fn main() -> Result<()> {
     fs::set_permissions(&arguments.socket, fs::Permissions::from_mode(0o600))?;
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => handle_connection(stream, &arguments.application_directory),
+            Ok(stream) => {
+                let application_directory = arguments.application_directory.clone();
+                thread::spawn(move || handle_connection(stream, &application_directory));
+            }
             Err(error) => eprintln!("image2x-core: socket accept failed: {error}"),
         }
     }

@@ -11,10 +11,15 @@
 */
 
 #include "engine_test_runner.h"
+#include "../ipc/backend_client.h"
 
 #include <QFile>
 #include <QFileInfo>
 #include <QImage>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QRandomGenerator>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
@@ -123,6 +128,63 @@ EngineTestResult EngineTestRunner::run(const EngineTestRequest &request)
         {
             result.diagnostic = QStringLiteral("The engine did not create a valid output image.");
         }
+    }
+    return result;
+}
+
+EngineTestResult EngineTestRunner::run(const EngineTestRequest &request,
+                                       const BackendClient *backendClient)
+{
+    if (backendClient == nullptr)
+    {
+        return run(request);
+    }
+
+    QJsonArray arguments;
+    for (const QString &argument : request.arguments)
+    {
+        arguments.append(argument);
+    }
+    const QString device = request.device == EngineTestDevice::SoftwareCpu
+        ? QStringLiteral("software_cpu")
+        : QStringLiteral("hardware_gpu");
+    const QJsonObject requestObject{
+        {QStringLiteral("type"), QStringLiteral("test_engine")},
+        {QStringLiteral("id"), QStringLiteral("engine-test-%1").arg(QRandomGenerator::global()->generate())},
+        {QStringLiteral("program"), request.executable},
+        {QStringLiteral("args"), arguments},
+        {QStringLiteral("cwd"), request.workingDirectory},
+        {QStringLiteral("output_path"), request.outputPath},
+        {QStringLiteral("timeout_ms"), request.timeoutMs},
+        {QStringLiteral("device"), device},
+    };
+    const QJsonObject response = backendClient->runRequestBlocking(
+        requestObject, request.timeoutMs + 5000);
+    EngineTestResult result;
+    const QJsonObject data = response.value(QStringLiteral("data")).toObject();
+    result.started = data.value(QStringLiteral("started")).toBool();
+    result.finished = data.value(QStringLiteral("finished")).toBool();
+    result.outputValid = data.value(QStringLiteral("output_valid")).toBool();
+    result.deviceAccepted = data.value(QStringLiteral("device_accepted")).toBool();
+    result.passed = data.value(QStringLiteral("passed")).toBool();
+    result.exitCode = data.value(QStringLiteral("exit_code")).toInt(-1);
+    result.deviceName = data.value(QStringLiteral("device_name")).toString();
+    result.diagnostic = data.value(QStringLiteral("diagnostic")).toString();
+    result.standardOutput = data.value(QStringLiteral("stdout")).toString().toUtf8();
+    result.standardError = data.value(QStringLiteral("stderr")).toString().toUtf8();
+    if (!response.value(QStringLiteral("ok")).toBool())
+    {
+        result.passed = false;
+        result.diagnostic = response.value(QStringLiteral("data"))
+                                .toObject()
+                                .value(QStringLiteral("message"))
+                                .toString();
+    }
+    if (result.passed && !isValidImage(request.outputPath))
+    {
+        result.outputValid = false;
+        result.passed = false;
+        result.diagnostic = QStringLiteral("The engine did not create a valid output image.");
     }
     return result;
 }

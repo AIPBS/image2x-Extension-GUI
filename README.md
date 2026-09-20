@@ -94,6 +94,14 @@ The application scans `vendor/models-non-free/` next to the source tree. For a
 build stored elsewhere, set `IMAGE2X_PROPRIETARY_MODEL_ROOT` to that directory
 before launching the application.
 
+To store proprietary models in the persistent model cache instead, set
+`MODEL_OUTPUT_DIRECTORY` when running the downloader:
+
+```bash
+MODEL_OUTPUT_DIRECTORY=/var/cache/image2x-models/non-free \
+  ./scripts/download_non_free_models.sh --latest
+```
+
 ## License
 
 | Files | License |

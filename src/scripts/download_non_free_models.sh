@@ -20,7 +20,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MODELS_DIR="$SCRIPT_DIR/../vendor/models-non-free"
+MODELS_DIR="${MODEL_OUTPUT_DIRECTORY:-$SCRIPT_DIR/../vendor/models-non-free}"
 UPSTREAM_REPO="${UPSTREAM_REPO:-AaronFeng753/Waifu2x-Extension-GUI}"
 
 # ---- proprietary model manifest ----

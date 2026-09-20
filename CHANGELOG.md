@@ -1,5 +1,11 @@
 # Change log
 
+## v0.9.2 (2026-09-20)
+
+### Fixed
+- Allow the proprietary downloader to write directly to the persistent
+  model cache instead of requiring model files in the source tree.
+
 ## v0.9.1 (2026-09-20)
 
 ### Fixed

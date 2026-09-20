@@ -94,6 +94,17 @@ The application scans `vendor/models-non-free/` next to the source tree. For a
 build stored elsewhere, set `IMAGE2X_PROPRIETARY_MODEL_ROOT` to that directory
 before launching the application.
 
+For WSL GPU matrix tests, prepare Comet's machine-local GPU cache once and
+load its environment before running the matrix. The cache is not part of the
+portable application bundle:
+
+```bash
+eval "$(comet gpu-cache env)"
+./scripts/test_linux_model_matrix.sh /path/to/application-directory /path/to/input.png
+```
+
+Native Linux uses the system Vulkan driver instead of the WSL DZN cache.
+
 To store proprietary models in the persistent model cache instead, set
 `MODEL_OUTPUT_DIRECTORY` when running the downloader:
 

@@ -1,5 +1,11 @@
 # Change log
 
+## v0.9.1 (2026-09-20)
+
+### Fixed
+- Keep the proprietary model section interactive when only some model files
+  are missing; disable only unavailable model rows.
+
 ## v0.9.0 (2026-09-20)
 
 ### Changed
@@ -20,8 +26,6 @@
   during the migration.
 
 ### Fixed
-- Keep the proprietary model section interactive when only some model files
-  are missing; disable only unavailable model rows.
 - Pin the regenerated public model archive checksum used by the Linux runtime
   installer.
 

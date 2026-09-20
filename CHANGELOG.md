@@ -20,6 +20,8 @@
   during the migration.
 
 ### Fixed
+- Keep the proprietary model section interactive when only some model files
+  are missing; disable only unavailable model rows.
 - Pin the regenerated public model archive checksum used by the Linux runtime
   installer.
 

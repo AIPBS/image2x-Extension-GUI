@@ -213,7 +213,7 @@ void MainWindow::UpdateProprietaryModelAvailability(const QJsonObject &event)
     }
     else if (availableCount == 0)
     {
-        proprietaryCompatibilityGroup->setEnabled(false);
+        proprietaryCompatibilityGroup->setEnabled(true);
         proprietaryCompatibilityStatus->setText(tr(
             "Proprietary model files are not downloaded. To enable these tests, run "
             "./scripts/download_non_free_models.sh --latest from the src directory."));

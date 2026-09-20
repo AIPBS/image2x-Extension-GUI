@@ -6,7 +6,7 @@
 // (at your option) any later version.
 
 use serde::Serialize;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ModelRecord {
@@ -156,11 +156,18 @@ fn public_model_available(application_directory: &Path, record: &ModelRecord) ->
 }
 
 fn proprietary_model_available(application_directory: &Path, model: &str) -> bool {
-    let roots = [
+    let mut roots = Vec::<PathBuf>::new();
+    if let Ok(root) = std::env::var("IMAGE2X_PROPRIETARY_MODEL_ROOT") {
+        if !root.is_empty() {
+            roots.push(PathBuf::from(root));
+        }
+    }
+    roots.extend([
         application_directory.join("vendor/models-non-free"),
         application_directory.join("../vendor/models-non-free"),
+        application_directory.join("../../vendor/models-non-free"),
         application_directory.join("dependencies/models-non-free"),
-    ];
+    ]);
     roots.iter().any(|root| {
         let model_path = root.join("realesrgan-ncnn-vulkan/models").join(model);
         model_path.with_extension("param").is_file() && model_path.with_extension("bin").is_file()

@@ -34,11 +34,19 @@ namespace
 {
 QString proprietaryModelRoot(const QString &applicationDirectory)
 {
-    const QStringList candidates{
+    QStringList candidates;
+    const QString configuredRoot = qEnvironmentVariable(
+        "IMAGE2X_PROPRIETARY_MODEL_ROOT");
+    if (!configuredRoot.isEmpty())
+    {
+        candidates.append(configuredRoot);
+    }
+    candidates.append({
         QDir(applicationDirectory).filePath(QStringLiteral("vendor/models-non-free")),
         QDir(applicationDirectory).filePath(QStringLiteral("../vendor/models-non-free")),
+        QDir(applicationDirectory).filePath(QStringLiteral("../../vendor/models-non-free")),
         QDir(applicationDirectory).filePath(QStringLiteral("dependencies/models-non-free")),
-    };
+    });
     for (const QString &candidate : candidates)
     {
         if (QFileInfo(QDir(candidate).filePath(

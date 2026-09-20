@@ -102,6 +102,9 @@ vendor/models-open-source/
 
 ## Where the proprietary models are NOT
 
-The proprietary W2xEX models (16 files, ~166 MB) were **explicitly excluded**
+The proprietary W2xEX models (18 files, ~166 MB) are **explicitly excluded**
 during the copy. They are NOT in this repository. The engine code references
-them by name but will skip them gracefully if absent.
+them by name. Run `scripts/download_non_free_models.sh --latest` from `src`
+to install them into `vendor/models-non-free/`; the application then detects
+and tests the installed models. If the models are stored elsewhere, set
+`IMAGE2X_PROPRIETARY_MODEL_ROOT` to that directory.

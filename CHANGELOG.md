@@ -1,6 +1,6 @@
 # Change log
 
-## [Unreleased]
+## v0.9.0 (2026-09-20)
 
 ### Changed
 - Separate public and proprietary compatibility sections. Proprietary W2xEX

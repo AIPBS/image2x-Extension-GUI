@@ -8,7 +8,7 @@ Created because w2x does not work well on linux.
 
 | What | Version | License |
 |------|---------|---------|
-| **This project** |  | AGPLv3 |
+| **This project** | v0.9.0 | AGPLv3 |
 | Aaron Feng original source | v3.41.01-beta | AGPLv3 |
 | Aaron Feng latest binary | v3.139.01 | Proprietary |
 
@@ -89,6 +89,10 @@ Auto-detects the latest `open-model-set-*` release from `AIPBS/image2x-Extension
 ```
 These are NOT redistributed. The script downloads the official release directly
 from Aaron Feng's repo and extracts only the model files.
+
+The application scans `vendor/models-non-free/` next to the source tree. For a
+build stored elsewhere, set `IMAGE2X_PROPRIETARY_MODEL_ROOT` to that directory
+before launching the application.
 
 ## License
 

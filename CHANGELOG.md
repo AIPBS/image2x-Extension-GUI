@@ -1,5 +1,11 @@
 # Change log
 
+## v0.9.4 (2026-09-20)
+
+### Changed
+- Use the persistent machine-local GPU cache for the public Linux model matrix
+  when running under WSL, while leaving native Linux on its system Vulkan driver.
+
 ## v0.9.3 (2026-09-20)
 
 ### Changed

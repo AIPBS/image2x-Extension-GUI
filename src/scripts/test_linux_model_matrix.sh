@@ -18,6 +18,18 @@ trap 'rm -rf "$OUTPUT_DIRECTORY"' EXIT
 [[ -d "$APPLICATION_DIRECTORY" ]] || { printf 'Application directory does not exist: %s\n' "$APPLICATION_DIRECTORY" >&2; exit 1; }
 [[ -f "$INPUT_IMAGE" ]] || { printf 'Input image does not exist: %s\n' "$INPUT_IMAGE" >&2; exit 1; }
 
+# The GPU runtime is machine-local, not part of the portable application bundle.
+# `comet gpu-cache env` exports these variables for the persistent DZN cache.
+GPU_CACHE_DIRECTORY="${COMET_GPU_CACHE_DIRECTORY:-${FIREFIRE_GPU_CACHE:-}}"
+if [[ -n "$GPU_CACHE_DIRECTORY" ]]; then
+    [[ -f "$GPU_CACHE_DIRECTORY/icd.json" ]] || {
+        printf 'GPU cache ICD does not exist: %s\n' "$GPU_CACHE_DIRECTORY/icd.json" >&2
+        exit 1
+    }
+    export VK_ICD_FILENAMES="$GPU_CACHE_DIRECTORY/icd.json"
+    export LD_LIBRARY_PATH="$GPU_CACHE_DIRECTORY/lib:/usr/lib/wsl/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
 valid_png() {
     python3 - "$1" <<'PY'
 import struct

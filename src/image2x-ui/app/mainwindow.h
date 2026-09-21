@@ -89,7 +89,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void changeEvent(QEvent *e);
     //=======================
-    QString VERSION = "v0.9.4";
+    QString VERSION = "v0.9.5";
     bool isBetaVer = false;
     QString LastStableVer = "v3.31.13";
     QString LastBetaVer = "v3.41.02-beta";
@@ -100,6 +100,7 @@ public:
     QLabel *proprietaryCompatibilityStatus = nullptr;
     QMap<QString, QCheckBox *> proprietaryCompatibilityCheckboxes;
     QMap<QString, bool> proprietaryModelAvailability;
+    QJsonObject latestModelsEvent;
     QIcon *MainIcon_QIcon = new QIcon();
     TopSupportersList *TopSupportersList_widget;
     //=======

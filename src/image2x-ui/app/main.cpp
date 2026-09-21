@@ -37,6 +37,51 @@ int main(int argc, char *argv[])
     a.setQuitOnLastWindowClosed(false);//隐藏无窗口时保持运行
     MainWindow *w = new MainWindow;
     w->show();
+    if (qEnvironmentVariableIsSet("IMAGE2X_AUTORUN_COMPATIBILITY_TEST"))
+    {
+        const auto runCompatibilityTest = [w] {
+            QMetaObject::invokeMethod(
+                w, "on_pushButton_compatibilityTest_clicked", Qt::QueuedConnection);
+        };
+        if (w->backendClient->hasRuntimeRecords())
+        {
+            runCompatibilityTest();
+        }
+        else
+        {
+            QObject::connect(w->backendClient, &BackendClient::runtimeReady, w,
+                             runCompatibilityTest);
+        }
+    }
+    if (qEnvironmentVariableIsSet("IMAGE2X_AUTORUN_STILL_IMAGE"))
+    {
+        const auto runStillImage = [w] {
+            w->Read_Input_paths_BrowserFile({QStringLiteral("/tmp/manual-input.png")});
+            QMetaObject::invokeMethod(
+                w, "on_pushButton_Start_clicked", Qt::QueuedConnection);
+        };
+        if (w->backendClient->hasRuntimeRecords() && w->backendClient->hasModelRecords())
+        {
+            runStillImage();
+        }
+        else
+        {
+            QObject::connect(w->backendClient, &BackendClient::modelsReady, w,
+                             [w, runStillImage] {
+                                 if (w->backendClient->hasRuntimeRecords())
+                                 {
+                                     runStillImage();
+                                 }
+                             });
+            QObject::connect(w->backendClient, &BackendClient::runtimeReady, w,
+                             [w, runStillImage] {
+                                 if (w->backendClient->hasModelRecords())
+                                 {
+                                     runStillImage();
+                                 }
+                             });
+        }
+    }
     return a.exec();
 }
 

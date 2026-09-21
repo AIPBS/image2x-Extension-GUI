@@ -126,8 +126,10 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAl
     QString file_path = file_getFolderPath(fileinfo);
     QString OutPut_Path = file_path + "/" + file_name + "_waifu2x_"+QString::number(ScaleRatio, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
     //============================== 放大 =======================================
-    QString program = resolveEnginePath(Current_Path, "realesrgan-ncnn-vulkan", "realesrgan-ncnn-vulkan");
-    const QString workingDirectory = resolveEngineDirectory(Current_Path, "realesrgan-ncnn-vulkan");
+    QString program = backendClient->runtimeExecutable(
+        QStringLiteral("realesrgan-ncnn-vulkan"));
+    const QString workingDirectory = backendClient->runtimeDirectory(
+        QStringLiteral("realesrgan-ncnn-vulkan"));
     //==========
     QMap<QString,int> result_map = Calculate_ScaleRatio_RealESRGAN_NCNNVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];

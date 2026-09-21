@@ -27,7 +27,6 @@
 #include <QHBoxLayout>
 #include <QJsonArray>
 #include <QPlainTextEdit>
-#include <QRegularExpression>
 #include <QVBoxLayout>
 
 namespace
@@ -191,8 +190,8 @@ void MainWindow::UpdateProprietaryModelAvailability(const QJsonObject &event)
     }
 
     const RuntimeDependencies dependencies(Current_Path);
-    const bool runtimeAvailable = QFileInfo(
-        dependencies.executable(RuntimeEngine::RealESRGANNcnnVulkan)).isExecutable();
+    const bool runtimeAvailable = backendClient->runtimeAvailable(
+        QStringLiteral("realesrgan-ncnn-vulkan"));
     int availableCount = 0;
     for (auto iterator = proprietaryCompatibilityCheckboxes.cbegin();
          iterator != proprietaryCompatibilityCheckboxes.cend(); ++iterator)
@@ -280,59 +279,16 @@ int MainWindow::Waifu2x_Compatibility_Test()
     const QString soxInputPath = testDirectory + "/CompatibilityTest_Sound.wav";
     const QString soxProfilePath = testDirectory + "/TestTemp_DenoiseProfile.dp";
 
-    const auto runProcess = [](const QString &program, const QStringList &arguments) {
-        QProcess process;
-        process.start(program, arguments);
-        const bool started = process.waitForStarted(10000);
-        const bool finished = started && process.waitForFinished(30000);
-        if (!finished && process.state() != QProcess::NotRunning)
-        {
-            process.kill();
-            process.waitForFinished(5000);
-        }
-        return started
-            && finished
-            && process.exitStatus() == QProcess::NormalExit
-            && process.exitCode() == 0;
+    const auto runProcess = [this](const QString &program, const QStringList &arguments) {
+        const BackendProcessResult result = backendClient->runCommandBlocking(
+            program, arguments, QDir::currentPath(), QString(), 30000);
+        return result.succeeded();
     };
-    const auto runProcessInDirectory = [](const QString &program, const QStringList &arguments,
+    const auto runProcessInDirectory = [this](const QString &program, const QStringList &arguments,
                                           const QString &workingDirectory) {
-        QProcess process;
-        process.setWorkingDirectory(workingDirectory);
-        process.start(program, arguments);
-        const bool started = process.waitForStarted(10000);
-        const bool finished = started && process.waitForFinished(30000);
-        if (!finished && process.state() != QProcess::NotRunning)
-        {
-            process.kill();
-            process.waitForFinished(5000);
-        }
-        return started
-            && finished
-            && process.exitStatus() == QProcess::NormalExit
-            && process.exitCode() == 0;
-    };
-    const auto isValidImage = [](const QString &path) {
-        QImage image;
-        return image.load(path) && !image.isNull()
-            && image.width() > 0 && image.height() > 0;
-    };
-    const auto reportedVulkanDevice = [](const QByteArray &standardOutput,
-                                         const QByteArray &standardError) {
-        const QString output = QString::fromUtf8(standardOutput + "\n" + standardError);
-        const QRegularExpression devicePattern(QStringLiteral("\\[\\d+\\s+([^\\]]+)\\]\\s+queueC="));
-        const QRegularExpressionMatch match = devicePattern.match(output);
-        if (!match.hasMatch())
-        {
-            return qMakePair(QString(), false);
-        }
-        const QString deviceName = match.captured(1).trimmed();
-        const QString normalizedName = deviceName.toLower();
-        const bool software = normalizedName.contains(QStringLiteral("llvmpipe"))
-            || normalizedName.contains(QStringLiteral("lavapipe"))
-            || normalizedName.contains(QStringLiteral("softpipe"))
-            || normalizedName.contains(QStringLiteral("swiftshader"));
-        return qMakePair(deviceName, !software);
+        const BackendProcessResult result = backendClient->runCommandBlocking(
+            program, arguments, workingDirectory, QString(), 30000);
+        return result.succeeded();
     };
     const auto hardwareVulkanAdvice = [](const QString &deviceName) {
         if (deviceName.isEmpty())
@@ -367,11 +323,12 @@ int MainWindow::Waifu2x_Compatibility_Test()
         emit Send_TextBrowser_NewMessage(
             tr("Compatible with waifu2x-ncnn-vulkan: No. Unable to create the writable compatibility-test directory."));
     }
-    else if (!dependencies.isAvailable(RuntimeEngine::Waifu2xNcnnVulkan))
+    else if (!backendClient->runtimeAvailable(QStringLiteral("waifu2x-ncnn-vulkan")))
     {
         qWarning().noquote() << "[compat] Waifu2x runtime unavailable at"
-                             << dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan)
-                             << "missing:" << dependencies.missingFiles(RuntimeEngine::Waifu2xNcnnVulkan);
+                             << backendClient->runtimeDirectory(QStringLiteral("waifu2x-ncnn-vulkan"))
+                             << "missing:" << backendClient->runtimeMissing(
+                                    QStringLiteral("waifu2x-ncnn-vulkan"));
         emit Send_TextBrowser_NewMessage(tr(
             "Compatible with waifu2x-ncnn-vulkan: No. Install the Linux runtime supplied with this application."));
     }
@@ -390,45 +347,37 @@ int MainWindow::Waifu2x_Compatibility_Test()
             QStringLiteral("-m"), QStringLiteral("models-upconv_7_anime_style_art_rgb"),
             QStringLiteral("-j"), QStringLiteral("1:1:1"),
             QStringLiteral("-g"), QStringLiteral("0")};
-        const BackendProcessResult gpuResult = backendClient->runCommandBlocking(
-            dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan), engineArguments,
-            dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan), outputPath, 60000);
-        const QPair<QString, bool> vulkanDevice = reportedVulkanDevice(
-            gpuResult.standardOutput, gpuResult.standardError);
-        const bool completed = gpuResult.succeeded()
-            && QFileInfo(outputPath).size() > 0
-            && isValidImage(outputPath)
-            && vulkanDevice.second;
-        if (!completed)
-        {
-            qWarning().noquote() << "[compat] Waifu2x failed:" << gpuResult.diagnostic
-                                 << "exit=" << gpuResult.exitCode
-                                 << "device=" << vulkanDevice.first
-                                 << "stderr=" << gpuResult.standardError;
-        }
-        isCompatible_Waifu2x_NCNN_Vulkan_NEW = completed;
-
+        EngineTestRequest request;
+        request.name = QStringLiteral("waifu2x-ncnn-vulkan (Latest)");
+        request.executable = backendClient->runtimeExecutable(
+            QStringLiteral("waifu2x-ncnn-vulkan"));
+        request.workingDirectory = backendClient->runtimeDirectory(
+            QStringLiteral("waifu2x-ncnn-vulkan"));
+        request.arguments = engineArguments;
+        request.outputPath = outputPath;
+        request.timeoutMs = 60000;
+        request.device = EngineTestDevice::HardwareGpu;
+        const EngineTestResult gpuResult = EngineTestRunner::run(request, backendClient);
+        isCompatible_Waifu2x_NCNN_Vulkan_NEW = gpuResult.passed;
         emit Send_TextBrowser_NewMessage(
-            completed
-                    ? tr("Compatible with waifu2x-ncnn-vulkan: Yes.")
-                    : (vulkanDevice.second
-                        ? tr("Compatible with waifu2x-ncnn-vulkan: No. Check the Vulkan runtime and graphics driver.")
-                        : tr("Compatible with waifu2x-ncnn-vulkan: No. %1").arg(hardwareVulkanAdvice(vulkanDevice.first))));
+            gpuResult.passed
+                ? tr("Compatible with waifu2x-ncnn-vulkan: Yes.")
+                : tr("Compatible with waifu2x-ncnn-vulkan: No. %1")
+                    .arg(gpuResult.deviceName.isEmpty()
+                             ? gpuResult.diagnostic
+                             : hardwareVulkanAdvice(gpuResult.deviceName)));
 
-        if (!completed)
+        if (!gpuResult.passed)
         {
             QFile::remove(outputPath);
-            const BackendProcessResult cpuResult = backendClient->runCommandBlocking(
-                dependencies.executable(RuntimeEngine::Waifu2xNcnnVulkan), engineArguments,
-                dependencies.engineDirectory(RuntimeEngine::Waifu2xNcnnVulkan), outputPath, 60000);
-            isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU = cpuResult.succeeded()
-                && QFileInfo(outputPath).size() > 0
-                && isValidImage(outputPath);
+            request.device = EngineTestDevice::SoftwareCpu;
+            const EngineTestResult cpuResult = EngineTestRunner::run(request, backendClient);
+            isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU = cpuResult.passed;
             emit Send_TextBrowser_NewMessage(
-                isCompatible_Waifu2x_NCNN_Vulkan_NEW_CPU
+                cpuResult.passed
                     ? tr("Compatible with waifu2x-ncnn-vulkan (CPU): Yes.")
                     : tr("Compatible with waifu2x-ncnn-vulkan (CPU): No. %1")
-                        .arg(QString::fromUtf8(cpuResult.standardError).trimmed()));
+                        .arg(cpuResult.diagnostic));
         }
     }
     emit Send_Add_progressBar_CompatibilityTest();
@@ -675,17 +624,14 @@ int MainWindow::Waifu2x_Compatibility_Test()
                 : tr("Compatible with FFmpeg: No. %1").arg(missingPackageAdvice("ffmpeg", "ffmpeg")));
         emit Send_Add_progressBar_CompatibilityTest();
 
-        QProcess ffprobeProcess;
-        ffprobeProcess.start(
+        const BackendProcessResult ffprobeResult = backendClient->runCommandBlocking(
             "ffprobe",
             QStringList()
                 << "-v" << "error" << "-show_entries" << "format=duration"
-                << "-of" << "default=noprint_wrappers=1:nokey=1" << videoPath);
-        isCompatible_FFprobe = ffprobeProcess.waitForStarted(30000)
-            && ffprobeProcess.waitForFinished(120000)
-            && ffprobeProcess.exitStatus() == QProcess::NormalExit
-            && ffprobeProcess.exitCode() == 0
-            && !ffprobeProcess.readAllStandardOutput().trimmed().isEmpty();
+                << "-of" << "default=noprint_wrappers=1:nokey=1" << videoPath,
+            QDir::currentPath(), QString(), 120000);
+        isCompatible_FFprobe = ffprobeResult.succeeded()
+            && !ffprobeResult.standardOutput.trimmed().isEmpty();
         emit Send_TextBrowser_NewMessage(
             isCompatible_FFprobe
                 ? tr("Compatible with FFprobe: Yes.")

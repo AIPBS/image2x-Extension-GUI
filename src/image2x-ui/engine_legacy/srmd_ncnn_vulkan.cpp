@@ -103,8 +103,10 @@ int MainWindow::SRMD_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaCha
     QString file_path = file_getFolderPath(fileinfo);
     QString OutPut_Path = file_path + "/" + file_name + "_waifu2x_"+QString::number(ScaleRatio, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
     //============================== 放大 =======================================
-    QString Waifu2x_folder_path = resolveEngineDirectory(Current_Path, "srmd-ncnn-vulkan");
-    QString program = resolveEnginePath(Current_Path, "srmd-ncnn-vulkan", "srmd-ncnn-vulkan");
+    QString Waifu2x_folder_path = backendClient->runtimeDirectory(
+        QStringLiteral("srmd-ncnn-vulkan"));
+    QString program = backendClient->runtimeExecutable(
+        QStringLiteral("srmd-ncnn-vulkan"));
     //==========
     QMap<QString,int> result_map = Calculate_ScaleRatio_SrmdNcnnVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];

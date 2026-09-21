@@ -74,9 +74,14 @@ MainWindow::MainWindow(QWidget *parent)
         if (event.value(QStringLiteral("event")).toString() == QStringLiteral("runtime"))
         {
             qInfo().noquote() << "[core] runtime discovery completed";
+            if (!latestModelsEvent.isEmpty())
+            {
+                UpdateProprietaryModelAvailability(latestModelsEvent);
+            }
         }
         else if (event.value(QStringLiteral("event")).toString() == QStringLiteral("models"))
         {
+            latestModelsEvent = event;
             UpdateProprietaryModelAvailability(event);
         }
     });
@@ -1312,6 +1317,11 @@ void MainWindow::on_pushButton_encodersList_clicked()
 
 void MainWindow::Tip_FirstTimeStart()
 {
+    if (qEnvironmentVariableIsSet("IMAGE2X_AUTORUN_COMPATIBILITY_TEST")
+        || qEnvironmentVariableIsSet("IMAGE2X_AUTORUN_STILL_IMAGE"))
+    {
+        return;
+    }
     QString FirstTimeStart = Current_Path+"/FirstTimeStart";
     if(QFile::exists(FirstTimeStart))
     {
@@ -1740,37 +1750,59 @@ bool MainWindow::ValidateRuntimeDependencies()
         return false;
     }
 
+    if (!backendClient->hasRuntimeRecords())
+    {
+        const QString message = tr(
+            "The Rust runtime discovery service is not ready. Wait for runtime discovery to finish and try again.");
+        emit Send_TextBrowser_NewMessage(message);
+        QMessageBox::warning(this, tr("Runtime discovery unavailable"), message);
+        return false;
+    }
+
     const int imageEngine = ui->comboBox_Engine_Image->currentIndex();
     RuntimeEngine runtimeEngine = RuntimeEngine::Waifu2xNcnnVulkan;
     QString engineName;
-    QString executableName;
-    QString modelRelativePath;
+    QString backendEngineName;
+    QString modelRecordName;
     switch (imageEngine)
     {
         case 0:
             {
                 runtimeEngine = RuntimeEngine::Waifu2xNcnnVulkan;
+                backendEngineName = QStringLiteral("waifu2x-ncnn-vulkan");
+                if (ui->comboBox_model_vulkan->currentIndex() == 1)
+                {
+                    modelRecordName = QStringLiteral("waifu2x-cunet");
+                }
+                else if (ui->comboBox_ImageStyle->currentIndex() == 0)
+                {
+                    modelRecordName = QStringLiteral("waifu2x-upconv-anime");
+                }
+                else
+                {
+                    modelRecordName = QStringLiteral("waifu2x-upconv-photo");
+                }
                 break;
             }
         case 2:
             runtimeEngine = RuntimeEngine::SrmdNcnnVulkan;
+            backendEngineName = QStringLiteral("srmd-ncnn-vulkan");
+            modelRecordName = QStringLiteral("srmd");
             engineName = QStringLiteral("srmd-ncnn-vulkan");
-            executableName = QStringLiteral("srmd-ncnn-vulkan");
-            modelRelativePath = QStringLiteral("models-srmd");
             break;
         case 5:
             runtimeEngine = RuntimeEngine::RealSrNcnnVulkan;
+            backendEngineName = QStringLiteral("realsr-ncnn-vulkan");
+            modelRecordName = ui->comboBox_Model_RealsrNCNNVulkan->currentIndex() == 0
+                ? QStringLiteral("realsr-df2k-jpeg")
+                : QStringLiteral("realsr-df2k");
             engineName = QStringLiteral("realsr-ncnn-vulkan");
-            executableName = QStringLiteral("realsr-ncnn-vulkan");
-            modelRelativePath = ui->comboBox_Model_RealsrNCNNVulkan->currentIndex() == 0
-                ? QStringLiteral("models-DF2K_JPEG")
-                : QStringLiteral("models-DF2K");
             break;
         case 7:
             {
                 runtimeEngine = RuntimeEngine::RealESRGANNcnnVulkan;
+                backendEngineName = QStringLiteral("realesrgan-ncnn-vulkan");
                 engineName = QStringLiteral("realesrgan-ncnn-vulkan");
-                executableName = QStringLiteral("realesrgan-ncnn-vulkan");
                 const QStringList animeModels = {
                     QStringLiteral("realesr-animevideov3-x2"),
                     QStringLiteral("realesr-animevideov3-x3"),
@@ -1789,20 +1821,18 @@ bool MainWindow::ValidateRuntimeDependencies()
                     : ui->comboBox_Model_3D_RealESRGAN->currentIndex();
                 if (modelIndex >= 0 && modelIndex < models.size())
                 {
-                    modelRelativePath = QStringLiteral("models/%1").arg(models.at(modelIndex));
+                    modelRecordName = models.at(modelIndex);
                 }
                 break;
             }
         case 8:
             runtimeEngine = RuntimeEngine::RealCUGANNcnnVulkan;
+            backendEngineName = QStringLiteral("realcugan-ncnn-vulkan");
             engineName = QStringLiteral("realcugan-ncnn-vulkan");
-            executableName = QStringLiteral("realcugan-ncnn-vulkan");
-            modelRelativePath = QStringLiteral("models-%1").arg(
-                ui->comboBox_ModelVariant_RealCUGAN->currentIndex() == 1
-                    ? QStringLiteral("pro")
-                    : ui->comboBox_ModelVariant_RealCUGAN->currentIndex() == 2
-                        ? QStringLiteral("nose")
-                        : QStringLiteral("se"));
+            modelRecordName = QStringLiteral("realcugan-%1-up%2x-%3")
+                .arg(ui->comboBox_ModelVariant_RealCUGAN->currentText().mid(7))
+                .arg(qRound(ui->doubleSpinBox_ScaleRatio_image->value()))
+                .arg(ui->comboBox_Denoise_RealCUGAN->currentText());
             break;
         default:
             {
@@ -1814,13 +1844,17 @@ bool MainWindow::ValidateRuntimeDependencies()
             }
     }
 
-    RuntimeDependencies dependencies(Current_Path);
-    const QStringList missing = dependencies.missingFiles(runtimeEngine, modelRelativePath);
-    if (!missing.isEmpty())
+    QString message;
+    if (!backendClient->hasModelRecords())
     {
-        QString message;
+        message = tr("Rust model discovery is not ready. Wait for discovery to finish and try again.");
+    }
+    else if (!backendClient->runtimeAvailable(backendEngineName))
+    {
+        const QStringList missing = backendClient->runtimeMissing(backendEngineName);
         if (runtimeEngine == RuntimeEngine::Waifu2xNcnnVulkan)
         {
+            const RuntimeDependencies dependencies(Current_Path);
             message = tr(
                 "The Linux waifu2x runtime is not installed. Run:\n%1\n\nMissing:\n%2")
                 .arg(dependencies.installCommand(runtimeEngine),
@@ -1828,9 +1862,17 @@ bool MainWindow::ValidateRuntimeDependencies()
         }
         else
         {
-            message = tr("The Linux %1 runtime or selected model is missing:\n%2")
+            message = tr("The Linux %1 runtime is missing:\n%2")
                 .arg(engineName, missing.join(QStringLiteral("\n")));
         }
+    }
+    else if (!backendClient->modelAvailable(modelRecordName))
+    {
+        message = tr("The selected Linux model is unavailable: %1").arg(modelRecordName);
+    }
+
+    if (!message.isEmpty())
+    {
         emit Send_TextBrowser_NewMessage(message);
         QMessageBox::warning(this, tr("Linux runtime missing"), message);
         return false;

@@ -167,10 +167,14 @@ fn proprietary_model_available(application_directory: &Path, model: &str) -> boo
         application_directory.join("../vendor/models-non-free"),
         application_directory.join("../../vendor/models-non-free"),
         application_directory.join("dependencies/models-non-free"),
+        PathBuf::from("/var/cache/image2x-models/non-free"),
     ]);
     roots.iter().any(|root| {
         let model_path = root.join("realesrgan-ncnn-vulkan/models").join(model);
-        model_path.with_extension("param").is_file() && model_path.with_extension("bin").is_file()
+        model_path
+            .with_file_name(format!("{model}.param"))
+            .is_file()
+            && model_path.with_file_name(format!("{model}.bin")).is_file()
     })
 }
 
@@ -195,6 +199,16 @@ mod tests {
             .expect("param file should be created");
         std::fs::write(model_directory.join("Anime-HQ-W4xEX.bin"), b"weights")
             .expect("weight file should be created");
+        std::fs::write(
+            model_directory.join("AnimeVideo-MiniV1.8-W2xEX.param"),
+            b"param",
+        )
+        .expect("dotted param file should be created");
+        std::fs::write(
+            model_directory.join("AnimeVideo-MiniV1.8-W2xEX.bin"),
+            b"weights",
+        )
+        .expect("dotted weight file should be created");
 
         let records = model_records(&root);
         let record = records
@@ -202,6 +216,11 @@ mod tests {
             .find(|record| record.name == "Anime-HQ-W4xEX")
             .expect("proprietary model should be listed");
         assert!(record.available);
+        let dotted_record = records
+            .iter()
+            .find(|record| record.name == "AnimeVideo-MiniV1.8-W2xEX")
+            .expect("dotted proprietary model should be listed");
+        assert!(dotted_record.available);
         std::fs::remove_dir_all(root).expect("temporary model directory should be removed");
     }
 }

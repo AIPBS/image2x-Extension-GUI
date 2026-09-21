@@ -17,6 +17,8 @@
 
 #include <QJsonObject>
 #include <QLocalSocket>
+#include <QMap>
+#include <QMutex>
 #include <QProcess>
 #include <QString>
 #include <QStringList>
@@ -51,6 +53,13 @@ public:
     void listModels();
     void validateRuntime();
     bool isConnected() const;
+    bool hasRuntimeRecords() const;
+    bool runtimeAvailable(const QString &engine) const;
+    QString runtimeDirectory(const QString &engine) const;
+    QString runtimeExecutable(const QString &engine) const;
+    QStringList runtimeMissing(const QString &engine) const;
+    bool hasModelRecords() const;
+    bool modelAvailable(const QString &model) const;
     QJsonObject runRequestBlocking(const QJsonObject &request, int timeoutMs) const;
     BackendProcessResult runCommandBlocking(const QString &program,
                                             const QStringList &arguments,
@@ -60,6 +69,8 @@ public:
 
 signals:
     void ready();
+    void runtimeReady();
+    void modelsReady();
     void eventReceived(const QJsonObject &event);
     void unavailable(const QString &message);
 
@@ -69,12 +80,17 @@ private slots:
 
 private:
     void send(const QJsonObject &request);
+    QJsonObject runtimeRecord(const QString &engine) const;
 
     QProcess backendProcess;
     QLocalSocket socket;
     QString socketPath;
     QByteArray pendingData;
     quint64 nextRequestId = 1;
+    mutable QMutex runtimeMutex;
+    QMap<QString, QJsonObject> runtimeRecords;
+    mutable QMutex modelMutex;
+    QMap<QString, QJsonObject> modelRecords;
 };
 
 #endif

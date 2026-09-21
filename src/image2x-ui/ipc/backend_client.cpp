@@ -98,6 +98,50 @@ bool BackendClient::isConnected() const
     return socket.state() == QLocalSocket::ConnectedState;
 }
 
+bool BackendClient::hasRuntimeRecords() const
+{
+    QMutexLocker locker(&runtimeMutex);
+    return !runtimeRecords.isEmpty();
+}
+
+bool BackendClient::runtimeAvailable(const QString &engine) const
+{
+    return runtimeRecord(engine).value(QStringLiteral("available")).toBool();
+}
+
+QString BackendClient::runtimeDirectory(const QString &engine) const
+{
+    return runtimeRecord(engine).value(QStringLiteral("directory")).toString();
+}
+
+QString BackendClient::runtimeExecutable(const QString &engine) const
+{
+    return runtimeRecord(engine).value(QStringLiteral("executable")).toString();
+}
+
+QStringList BackendClient::runtimeMissing(const QString &engine) const
+{
+    QStringList missing;
+    const QJsonArray values = runtimeRecord(engine).value(QStringLiteral("missing")).toArray();
+    for (const QJsonValue &value : values)
+    {
+        missing.append(value.toString());
+    }
+    return missing;
+}
+
+bool BackendClient::hasModelRecords() const
+{
+    QMutexLocker locker(&modelMutex);
+    return !modelRecords.isEmpty();
+}
+
+bool BackendClient::modelAvailable(const QString &model) const
+{
+    QMutexLocker locker(&modelMutex);
+    return modelRecords.value(model).value(QStringLiteral("available")).toBool();
+}
+
 QJsonObject BackendClient::runRequestBlocking(const QJsonObject &request, int timeoutMs) const
 {
     if (socketPath.isEmpty())
@@ -179,15 +223,18 @@ BackendProcessResult BackendClient::runCommandBlocking(const QString &program,
     {
         jsonArguments.append(argument);
     }
-    const QJsonObject request{
+    QJsonObject request{
         {QStringLiteral("type"), QStringLiteral("run")},
         {QStringLiteral("id"), QStringLiteral("run-%1").arg(QRandomGenerator::global()->generate())},
         {QStringLiteral("program"), program},
         {QStringLiteral("args"), jsonArguments},
         {QStringLiteral("cwd"), workingDirectory},
-        {QStringLiteral("output_path"), outputPath},
         {QStringLiteral("timeout_ms"), timeoutMs},
     };
+    if (!outputPath.isEmpty())
+    {
+        request.insert(QStringLiteral("output_path"), outputPath);
+    }
     const QJsonObject response = runRequestBlocking(request, timeoutMs + 5000);
     const QJsonObject data = response.value(QStringLiteral("data")).toObject();
     BackendProcessResult result;
@@ -249,6 +296,50 @@ void BackendClient::readSocket()
             continue;
         }
         const QJsonObject event = document.object();
+        if (event.value(QStringLiteral("event")).toString() == QStringLiteral("runtime"))
+        {
+            QMap<QString, QJsonObject> records;
+            const QJsonArray values = event.value(QStringLiteral("data"))
+                                          .toObject()
+                                          .value(QStringLiteral("runtimes"))
+                                          .toArray();
+            for (const QJsonValue &value : values)
+            {
+                const QJsonObject record = value.toObject();
+                const QString engine = record.value(QStringLiteral("engine")).toString();
+                if (!engine.isEmpty())
+                {
+                    records.insert(engine, record);
+                }
+            }
+            {
+                QMutexLocker locker(&runtimeMutex);
+                runtimeRecords = records;
+            }
+            emit runtimeReady();
+        }
+        if (event.value(QStringLiteral("event")).toString() == QStringLiteral("models"))
+        {
+            QMap<QString, QJsonObject> records;
+            const QJsonArray values = event.value(QStringLiteral("data"))
+                                          .toObject()
+                                          .value(QStringLiteral("models"))
+                                          .toArray();
+            for (const QJsonValue &value : values)
+            {
+                const QJsonObject record = value.toObject();
+                const QString name = record.value(QStringLiteral("name")).toString();
+                if (!name.isEmpty())
+                {
+                    records.insert(name, record);
+                }
+            }
+            {
+                QMutexLocker locker(&modelMutex);
+                modelRecords = records;
+            }
+            emit modelsReady();
+        }
         emit eventReceived(event);
         if (event.value(QStringLiteral("event")).toString() == QStringLiteral("hello")
             && event.value(QStringLiteral("ok")).toBool())
@@ -267,4 +358,10 @@ void BackendClient::send(const QJsonObject &request)
     const QByteArray line = QJsonDocument(request).toJson(QJsonDocument::Compact) + '\n';
     socket.write(line);
     socket.flush();
+}
+
+QJsonObject BackendClient::runtimeRecord(const QString &engine) const
+{
+    QMutexLocker locker(&runtimeMutex);
+    return runtimeRecords.value(engine);
 }

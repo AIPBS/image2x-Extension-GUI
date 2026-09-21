@@ -1,5 +1,18 @@
 # Change log
 
+## v0.9.5 (2026-09-21)
+
+### Changed
+- Route supported Linux compatibility and still-image runtime selection
+  through Rust runtime and model records over the private IPC boundary.
+- Route Linux compatibility plugin checks through Rust process supervision,
+  including stdout-only probes.
+
+### Fixed
+- Discover authorized proprietary W2xEX model pairs from the persistent Linux
+  cache, including model names containing dots, and expose all 9 available rows.
+- Refresh proprietary availability after Rust runtime discovery completes.
+
 ## v0.9.4 (2026-09-20)
 
 ### Changed

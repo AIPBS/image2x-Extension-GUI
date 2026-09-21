@@ -94,8 +94,10 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlpha
     QString file_path = file_getFolderPath(fileinfo);
     QString OutPut_Path = file_path + "/" + file_name + "_waifu2x_"+QString::number(ScaleRatio, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
     //============================== 放大 =======================================
-    QString Waifu2x_folder_path = Waifu2x_ncnn_vulkan_FolderPath;
-    QString program = Waifu2x_ncnn_vulkan_ProgramPath;
+    QString Waifu2x_folder_path = backendClient->runtimeDirectory(
+        QStringLiteral("waifu2x-ncnn-vulkan"));
+    QString program = backendClient->runtimeExecutable(
+        QStringLiteral("waifu2x-ncnn-vulkan"));
     //==========
     int ScaleRatio_tmp=Calculate_Temporary_ScaleRatio_W2xNCNNVulkan(ScaleRatio);
     //======

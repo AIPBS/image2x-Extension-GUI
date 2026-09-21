@@ -1,5 +1,11 @@
 # Change log
 
+## v0.9.8 (2026-09-21)
+
+### Changed
+- Move Waifu2x Linux still-image multi-stage scaling and retry orchestration
+  into the Rust staged image-job executor.
+
 ## v0.9.7 (2026-09-21)
 
 ### Changed

@@ -106,77 +106,41 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlpha
     //==========
     int ScaleRatio_tmp=Calculate_Temporary_ScaleRatio_W2xNCNNVulkan(ScaleRatio);
     //======
-    QString InputPath_tmp = SourceFile_fullPath;
-    QString OutputPath_tmp ="";
-    int DenoiseLevel_tmp = DenoiseLevel;
-    QString ErrorMSG="";
-    QString StanderMSG="";
-    QString cmd="";
-    //======
-    for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
+    QList<BackendImageStage> stages;
+    QString inputPath = SourceFile_fullPath;
+    int denoiseLevel = DenoiseLevel;
+    for(int i=2; i<=ScaleRatio_tmp; i*=2)
     {
-        bool waifu2x_qprocess_failed = false;
-        InputPath_tmp = SourceFile_fullPath;
-        OutputPath_tmp ="";
-        DenoiseLevel_tmp = DenoiseLevel;
-        for(int i=2; i<=ScaleRatio_tmp; i*=2)
+        const QString outputPath = file_path + "/" + file_name + "_waifu2x_"
+            + QString::number(i, 10) + "x_" + QString::number(DenoiseLevel, 10)
+            + "n_" + file_ext + ".png";
+        const QString cmd = "\"" + program + "\" -i \"" + inputPath
+            + "\" -o \"" + outputPath + "\" -s 2 -n "
+            + QString::number(denoiseLevel, 10) + " "
+            + Waifu2x_NCNN_Vulkan_ReadSettings();
+        const QStringList commandParts = QProcess::splitCommand(cmd);
+        stages.append(BackendImageStage{inputPath, outputPath, commandParts.mid(1)});
+        inputPath = outputPath;
+        denoiseLevel = -1;
+    }
+    const BackendProcessResult result = backendClient->runImageStagesBlocking(
+        QStringLiteral("waifu2x-ncnn-vulkan"), modelRecord, stages, 120000,
+        ui->spinBox_retry->value() + ForceRetryCount - 1);
+    QString OutputPath_tmp = stages.isEmpty() ? QString() : stages.last().outputPath;
+    if (!result.succeeded())
+    {
+        qWarning().noquote() << "[image2x] waifu2x-ncnn-vulkan failed:"
+                             << result.diagnostic;
+        for (const BackendImageStage &stage : stages)
         {
-            ErrorMSG="";
-            StanderMSG="";
-            //==========
-            OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
-            cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + " " + Waifu2x_NCNN_Vulkan_ReadSettings();
-            const QStringList commandParts = QProcess::splitCommand(cmd);
-            const BackendProcessResult result = backendClient->runImageJobBlocking(
-                QStringLiteral("waifu2x-ncnn-vulkan"), modelRecord, InputPath_tmp,
-                commandParts.mid(1), OutputPath_tmp, 120000);
-            ErrorMSG = result.standardError.toLower();
-            StanderMSG = result.standardOutput.toLower();
-            waifu2x_qprocess_failed = !result.succeeded()
-                || ErrorMSG.contains("failed") || StanderMSG.contains("failed");
-            if (waifu2x_qprocess_failed)
-            {
-                qWarning().noquote() << "[image2x] waifu2x-ncnn-vulkan failed:"
-                                     << result.diagnostic;
-                if (i > 2)
-                {
-                    QFile::remove(InputPath_tmp);
-                }
-                QFile::remove(OutputPath_tmp);
-                break;
-            }
-            if(waifu2x_STOP)
-            {
-                if(i>2)
-                {
-                    QFile::remove(InputPath_tmp);
-                }
-                QFile::remove(OutputPath_tmp);
-                emit Send_Table_image_ChangeStatus_rowNumInt_statusQString(rowNum, "Interrupted");
-                mutex_ThreadNumRunning.lock();
-                ThreadNumRunning--;
-                mutex_ThreadNumRunning.unlock();
-                return 0;
-            }
-            //===============
-            if(i>2)
-            {
-                QFile::remove(InputPath_tmp);
-            }
-            DenoiseLevel_tmp = -1;
-            InputPath_tmp = OutputPath_tmp;
+            QFile::remove(stage.outputPath);
         }
-        //========= 检测是否成功,是否需要重试 ============
-        if(QFile::exists(OutputPath_tmp)&&!waifu2x_qprocess_failed)
+    }
+    else
+    {
+        for (int stageIndex = 0; stageIndex + 1 < stages.size(); ++stageIndex)
         {
-            break;
-        }
-        else
-        {
-            QFile::remove(OutputPath_tmp);
-            if(retry==ui->spinBox_retry->value()+(ForceRetryCount-1))break;
-            emit Send_TextBrowser_NewMessage(tr("Automatic retry, please wait."));
-            Delay_sec_sleep(5);
+            QFile::remove(stages.at(stageIndex).outputPath);
         }
     }
     if(!QFile::exists(OutputPath_tmp))

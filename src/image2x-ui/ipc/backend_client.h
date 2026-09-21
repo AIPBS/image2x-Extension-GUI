@@ -16,6 +16,7 @@
 #define IMAGE2X_BACKEND_CLIENT_H
 
 #include <QJsonObject>
+#include <QList>
 #include <QLocalSocket>
 #include <QMap>
 #include <QMutex>
@@ -38,6 +39,13 @@ struct BackendProcessResult
     {
         return started && finished && exitCode == 0 && !timedOut && outputValid;
     }
+};
+
+struct BackendImageStage
+{
+    QString inputPath;
+    QString outputPath;
+    QStringList arguments;
 };
 
 class BackendClient final : public QObject
@@ -72,6 +80,11 @@ public:
                                              const QStringList &arguments,
                                              const QString &outputPath,
                                              int timeoutMs) const;
+    BackendProcessResult runImageStagesBlocking(const QString &engine,
+                                                const QString &model,
+                                                const QList<BackendImageStage> &stages,
+                                                int timeoutMs,
+                                                int retryCount) const;
 
 signals:
     void ready();

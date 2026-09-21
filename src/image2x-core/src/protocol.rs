@@ -11,6 +11,14 @@ use serde_json::Value;
 pub const PROTOCOL_VERSION: u32 = 1;
 
 #[derive(Debug, Deserialize)]
+pub struct ImageJobStage {
+    pub input_path: String,
+    pub output_path: String,
+    #[serde(default)]
+    pub args: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Request {
     Hello {
@@ -43,6 +51,10 @@ pub enum Request {
         #[serde(default)]
         args: Vec<String>,
         timeout_ms: u64,
+        #[serde(default)]
+        stages: Vec<ImageJobStage>,
+        #[serde(default)]
+        retry_count: u32,
     },
     TestEngine {
         id: String,

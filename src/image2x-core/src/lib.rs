@@ -16,8 +16,8 @@ use serde_json::Value;
 use thiserror::Error;
 
 use manifest::{model_records, ModelRecord};
-use process::{run_command, run_engine_test, ProcessResult};
-use protocol::{Request, Response};
+use process::{run_command, run_engine_test, run_image_job, ProcessResult};
+use protocol::{ImageJobStage, Request, Response};
 use runtime::{runtime_records, RuntimeRecord};
 
 #[derive(Debug, Error)]
@@ -84,6 +84,8 @@ pub fn handle_line(line: &str, application_directory: &Path) -> Result<String, C
             output_path,
             args,
             timeout_ms,
+            stages,
+            retry_count,
         } => {
             let runtime = runtime_records(application_directory)
                 .into_iter()
@@ -91,6 +93,15 @@ pub fn handle_line(line: &str, application_directory: &Path) -> Result<String, C
             let model_available = model_records(application_directory)
                 .into_iter()
                 .any(|record| record.name == model && record.available);
+            let stages = if stages.is_empty() {
+                vec![ImageJobStage {
+                    input_path: input_path.clone(),
+                    output_path: output_path.clone(),
+                    args,
+                }]
+            } else {
+                stages
+            };
             let result = match runtime {
                 None => ProcessResult {
                     started: false,
@@ -122,12 +133,12 @@ pub fn handle_line(line: &str, application_directory: &Path) -> Result<String, C
                     stderr: String::new(),
                     diagnostic: format!("input image is unavailable: {input_path}"),
                 },
-                Some(runtime) => run_command(
+                Some(runtime) => run_image_job(
                     runtime.executable.to_string_lossy().as_ref(),
-                    &args,
                     &runtime.directory,
+                    &stages,
                     timeout_ms,
-                    Some(Path::new(&output_path)),
+                    retry_count,
                 ),
             };
             Response::ok(

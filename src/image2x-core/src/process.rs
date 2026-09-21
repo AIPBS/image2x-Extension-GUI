@@ -12,6 +12,8 @@ use std::time::{Duration, Instant};
 
 use serde::Serialize;
 
+use crate::protocol::ImageJobStage;
+
 #[derive(Debug, Serialize)]
 pub struct ProcessResult {
     pub started: bool,
@@ -46,6 +48,67 @@ pub fn run_command(
     output_path: Option<&Path>,
 ) -> ProcessResult {
     run_command_with_environment(program, args, cwd, timeout_ms, output_path, &[])
+}
+
+pub fn run_image_job(
+    program: &str,
+    cwd: &Path,
+    stages: &[ImageJobStage],
+    timeout_ms: u64,
+    retry_count: u32,
+) -> ProcessResult {
+    let mut last_result = ProcessResult {
+        started: false,
+        finished: false,
+        exit_code: None,
+        timed_out: false,
+        output_valid: false,
+        stdout: String::new(),
+        stderr: String::new(),
+        diagnostic: "image job has no stages".to_owned(),
+    };
+
+    for _attempt in 0..=retry_count {
+        let mut completed = true;
+        for stage in stages {
+            if !Path::new(&stage.input_path).is_file() {
+                last_result = ProcessResult {
+                    started: false,
+                    finished: false,
+                    exit_code: None,
+                    timed_out: false,
+                    output_valid: false,
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    diagnostic: format!("input image is unavailable: {}", stage.input_path),
+                };
+                completed = false;
+                break;
+            }
+            last_result = run_command(
+                program,
+                &stage.args,
+                cwd,
+                timeout_ms,
+                Some(Path::new(&stage.output_path)),
+            );
+            if !last_result.started
+                || !last_result.finished
+                || last_result.exit_code != Some(0)
+                || !last_result.output_valid
+            {
+                completed = false;
+                break;
+            }
+        }
+        if completed {
+            return last_result;
+        }
+        for stage in stages {
+            let _ = std::fs::remove_file(&stage.output_path);
+        }
+    }
+    last_result
 }
 
 fn run_command_with_environment(
@@ -257,7 +320,8 @@ fn is_nonempty_file(path: &Path) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{reported_device, run_command, run_engine_test};
+    use super::{reported_device, run_command, run_engine_test, run_image_job};
+    use crate::protocol::ImageJobStage;
     use std::path::Path;
 
     #[test]
@@ -303,5 +367,32 @@ mod tests {
         );
         assert!(result.passed);
         let _ = std::fs::remove_file("/tmp/output.png");
+    }
+
+    #[test]
+    fn image_job_retries_stages_and_validates_outputs() {
+        std::fs::write("/tmp/image2x-job-input.png", b"input")
+            .expect("job input should be created");
+        let stage = ImageJobStage {
+            input_path: "/tmp/image2x-job-input.png".to_owned(),
+            output_path: "/tmp/image2x-job-output.png".to_owned(),
+            args: vec![
+                "-c".to_owned(),
+                "printf output > /tmp/image2x-job-output.png".to_owned(),
+            ],
+        };
+        let result = run_image_job(
+            "/bin/sh",
+            Path::new("/tmp"),
+            &[stage],
+            1000,
+            1,
+        );
+        assert!(result.started);
+        assert!(result.finished);
+        assert_eq!(result.exit_code, Some(0));
+        assert!(result.output_valid);
+        let _ = std::fs::remove_file("/tmp/image2x-job-input.png");
+        let _ = std::fs::remove_file("/tmp/image2x-job-output.png");
     }
 }

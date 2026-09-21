@@ -1,5 +1,12 @@
 # Change log
 
+## v0.9.7 (2026-09-21)
+
+### Changed
+- Add Rust-owned staged image-job execution with retry and output validation
+  behind the typed Linux image IPC boundary.
+- Add protocol and process tests for staged image jobs.
+
 ## v0.9.6 (2026-09-21)
 
 ### Changed

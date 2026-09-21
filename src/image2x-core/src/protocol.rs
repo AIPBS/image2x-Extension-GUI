@@ -34,6 +34,16 @@ pub enum Request {
         output_path: Option<String>,
         timeout_ms: Option<u64>,
     },
+    ProcessImage {
+        id: String,
+        engine: String,
+        model: String,
+        input_path: String,
+        output_path: String,
+        #[serde(default)]
+        args: Vec<String>,
+        timeout_ms: u64,
+    },
     TestEngine {
         id: String,
         program: String,
@@ -99,5 +109,27 @@ mod tests {
             serde_json::json!({ "protocol": PROTOCOL_VERSION }),
         );
         assert!(response.to_json_line().contains("\"protocol\":1"));
+    }
+
+    #[test]
+    fn parses_process_image_request() {
+        let request: Request = serde_json::from_str(
+            r#"{
+                "type":"process_image",
+                "id":"image-one",
+                "engine":"waifu2x-ncnn-vulkan",
+                "model":"waifu2x-upconv-anime",
+                "input_path":"/tmp/input.png",
+                "output_path":"/tmp/output.png",
+                "args":["-i","/tmp/input.png","-o","/tmp/output.png"],
+                "timeout_ms":120000
+            }"#,
+        )
+        .expect("image request should parse");
+        assert!(matches!(
+            request,
+            Request::ProcessImage { engine, model, .. }
+                if engine == "waifu2x-ncnn-vulkan" && model == "waifu2x-upconv-anime"
+        ));
     }
 }

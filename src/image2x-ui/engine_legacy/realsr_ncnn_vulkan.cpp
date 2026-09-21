@@ -24,6 +24,9 @@ int MainWindow::Realsr_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaC
 {
     //============================= 读取设置 ================================
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
+    const QString modelRecord = ui->comboBox_Model_RealsrNCNNVulkan->currentIndex() == 0
+        ? QStringLiteral("realsr-df2k-jpeg")
+        : QStringLiteral("realsr-df2k");
     QString OutPutPath_Final ="";
     //========================= 拆解map得到参数 =============================
     //将状态设定到处理中
@@ -123,9 +126,9 @@ int MainWindow::Realsr_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaC
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+file_ext+".png";
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "4" + " " + Realsr_NCNN_Vulkan_ReadSettings();
             const QStringList commandParts = QProcess::splitCommand(cmd);
-            const BackendProcessResult result = backendClient->runCommandBlocking(
-                commandParts.first(), commandParts.mid(1), workingDirectory,
-                OutputPath_tmp, 120000);
+            const BackendProcessResult result = backendClient->runImageJobBlocking(
+                QStringLiteral("realsr-ncnn-vulkan"), modelRecord, InputPath_tmp,
+                commandParts.mid(1), OutputPath_tmp, 120000);
             ErrorMSG = result.standardError.toLower();
             StanderMSG = result.standardOutput.toLower();
             waifu2x_qprocess_failed = !result.succeeded()

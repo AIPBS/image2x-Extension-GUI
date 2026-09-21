@@ -16,7 +16,7 @@ use serde_json::Value;
 use thiserror::Error;
 
 use manifest::{model_records, ModelRecord};
-use process::{run_command, run_engine_test};
+use process::{run_command, run_engine_test, ProcessResult};
 use protocol::{Request, Response};
 use runtime::{runtime_records, RuntimeRecord};
 
@@ -38,7 +38,7 @@ pub fn handle_line(line: &str, application_directory: &Path) -> Result<String, C
             "hello",
             serde_json::json!({
                 "protocol": protocol::PROTOCOL_VERSION,
-            "capabilities": ["hello", "ping", "list_models", "validate_runtime", "run"],
+            "capabilities": ["hello", "ping", "list_models", "validate_runtime", "run", "process_image"],
             }),
         ),
         Request::Ping { id } => Response::ok(id, "pong", serde_json::json!({})),
@@ -73,6 +73,68 @@ pub fn handle_line(line: &str, application_directory: &Path) -> Result<String, C
                 "run_result",
                 serde_json::to_value(result).unwrap_or_else(
                     |_| serde_json::json!({ "error": "failed to serialize process result" }),
+                ),
+            )
+        }
+        Request::ProcessImage {
+            id,
+            engine,
+            model,
+            input_path,
+            output_path,
+            args,
+            timeout_ms,
+        } => {
+            let runtime = runtime_records(application_directory)
+                .into_iter()
+                .find(|record| record.engine == engine && record.available);
+            let model_available = model_records(application_directory)
+                .into_iter()
+                .any(|record| record.name == model && record.available);
+            let result = match runtime {
+                None => ProcessResult {
+                    started: false,
+                    finished: false,
+                    exit_code: None,
+                    timed_out: false,
+                    output_valid: false,
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    diagnostic: format!("runtime or model is unavailable: {engine}/{model}"),
+                },
+                Some(_) if !model_available => ProcessResult {
+                    started: false,
+                    finished: false,
+                    exit_code: None,
+                    timed_out: false,
+                    output_valid: false,
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    diagnostic: format!("model is unavailable: {model}"),
+                },
+                Some(_) if !Path::new(&input_path).is_file() => ProcessResult {
+                    started: false,
+                    finished: false,
+                    exit_code: None,
+                    timed_out: false,
+                    output_valid: false,
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    diagnostic: format!("input image is unavailable: {input_path}"),
+                },
+                Some(runtime) => run_command(
+                    runtime.executable.to_string_lossy().as_ref(),
+                    &args,
+                    &runtime.directory,
+                    timeout_ms,
+                    Some(Path::new(&output_path)),
+                ),
+            };
+            Response::ok(
+                id,
+                "image_result",
+                serde_json::to_value(result).unwrap_or_else(
+                    |_| serde_json::json!({ "error": "failed to serialize image result" }),
                 ),
             )
         }

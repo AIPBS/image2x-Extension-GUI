@@ -1,5 +1,14 @@
 # Change log
 
+## v0.9.6 (2026-09-21)
+
+### Changed
+- Add a typed Rust `process_image` IPC request for supported Linux still-image
+  engines. Rust now validates the selected runtime and exact model record before
+  spawning the engine.
+- Route Waifu2x, SRMD, RealSR, Real-ESRGAN, and Real-CUGAN still-image jobs
+  through the typed Rust image-job boundary.
+
 ## v0.9.5 (2026-09-21)
 
 ### Changed

@@ -25,6 +25,11 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlpha
 {
     //============================= 读取设置 ================================
     int DenoiseLevel = ui->spinBox_DenoiseLevel_image->value();
+    const QString modelRecord = ui->comboBox_model_vulkan->currentIndex() == 1
+        ? QStringLiteral("waifu2x-cunet")
+        : (ui->comboBox_ImageStyle->currentIndex() == 0
+               ? QStringLiteral("waifu2x-upconv-anime")
+               : QStringLiteral("waifu2x-upconv-photo"));
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
     QString OutPutPath_Final ="";
     //========================= 拆解map得到参数 =============================
@@ -122,9 +127,9 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlpha
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
             cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "2" + " -n " + QString::number(DenoiseLevel_tmp, 10) + " " + Waifu2x_NCNN_Vulkan_ReadSettings();
             const QStringList commandParts = QProcess::splitCommand(cmd);
-            const BackendProcessResult result = backendClient->runCommandBlocking(
-                commandParts.first(), commandParts.mid(1), Waifu2x_folder_path,
-                OutputPath_tmp, 120000);
+            const BackendProcessResult result = backendClient->runImageJobBlocking(
+                QStringLiteral("waifu2x-ncnn-vulkan"), modelRecord, InputPath_tmp,
+                commandParts.mid(1), OutputPath_tmp, 120000);
             ErrorMSG = result.standardError.toLower();
             StanderMSG = result.standardOutput.toLower();
             waifu2x_qprocess_failed = !result.succeeded()

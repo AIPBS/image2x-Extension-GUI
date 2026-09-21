@@ -66,6 +66,12 @@ public:
                                             const QString &workingDirectory,
                                             const QString &outputPath,
                                             int timeoutMs) const;
+    BackendProcessResult runImageJobBlocking(const QString &engine,
+                                             const QString &model,
+                                             const QString &inputPath,
+                                             const QStringList &arguments,
+                                             const QString &outputPath,
+                                             int timeoutMs) const;
 
 signals:
     void ready();

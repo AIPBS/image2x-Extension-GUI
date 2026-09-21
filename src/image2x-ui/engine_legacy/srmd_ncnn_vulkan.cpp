@@ -24,6 +24,7 @@ int MainWindow::SRMD_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaCha
 {
     //============================= 读取设置 ================================
     int DenoiseLevel = ui->spinBox_DenoiseLevel_image->value();
+    const QString modelRecord = QStringLiteral("srmd");
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
     QString OutPutPath_Final ="";
     //========================= 拆解map得到参数 =============================
@@ -128,9 +129,9 @@ int MainWindow::SRMD_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaCha
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " " + SrmdNcnnVulkan_ReadSettings();
             const QStringList commandParts = QProcess::splitCommand(cmd);
-            const BackendProcessResult result = backendClient->runCommandBlocking(
-                commandParts.first(), commandParts.mid(1), Waifu2x_folder_path,
-                OutputPath_tmp, 120000);
+            const BackendProcessResult result = backendClient->runImageJobBlocking(
+                QStringLiteral("srmd-ncnn-vulkan"), modelRecord, InputPath_tmp,
+                commandParts.mid(1), OutputPath_tmp, 120000);
             ErrorMSG = result.standardError.toLower();
             StanderMSG = result.standardOutput.toLower();
             waifu2x_qprocess_failed = !result.succeeded()

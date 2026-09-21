@@ -256,6 +256,49 @@ BackendProcessResult BackendClient::runCommandBlocking(const QString &program,
     return result;
 }
 
+BackendProcessResult BackendClient::runImageJobBlocking(const QString &engine,
+                                                        const QString &model,
+                                                        const QString &inputPath,
+                                                        const QStringList &arguments,
+                                                        const QString &outputPath,
+                                                        int timeoutMs) const
+{
+    QJsonArray jsonArguments;
+    for (const QString &argument : arguments)
+    {
+        jsonArguments.append(argument);
+    }
+    const QJsonObject request{
+        {QStringLiteral("type"), QStringLiteral("process_image")},
+        {QStringLiteral("id"), QStringLiteral("image-%1").arg(QRandomGenerator::global()->generate())},
+        {QStringLiteral("engine"), engine},
+        {QStringLiteral("model"), model},
+        {QStringLiteral("input_path"), inputPath},
+        {QStringLiteral("output_path"), outputPath},
+        {QStringLiteral("args"), jsonArguments},
+        {QStringLiteral("timeout_ms"), timeoutMs},
+    };
+    const QJsonObject response = runRequestBlocking(request, timeoutMs + 5000);
+    const QJsonObject data = response.value(QStringLiteral("data")).toObject();
+    BackendProcessResult result;
+    result.started = data.value(QStringLiteral("started")).toBool();
+    result.finished = data.value(QStringLiteral("finished")).toBool();
+    result.exitCode = data.value(QStringLiteral("exit_code")).toInt(-1);
+    result.timedOut = data.value(QStringLiteral("timed_out")).toBool();
+    result.outputValid = data.value(QStringLiteral("output_valid")).toBool();
+    result.standardOutput = data.value(QStringLiteral("stdout")).toString().toUtf8();
+    result.standardError = data.value(QStringLiteral("stderr")).toString().toUtf8();
+    result.diagnostic = data.value(QStringLiteral("diagnostic")).toString();
+    if (!response.value(QStringLiteral("ok")).toBool())
+    {
+        result.diagnostic = response.value(QStringLiteral("data"))
+                                .toObject()
+                                .value(QStringLiteral("message"))
+                                .toString();
+    }
+    return result;
+}
+
 void BackendClient::validateRuntime()
 {
     send(QJsonObject{{QStringLiteral("type"), QStringLiteral("validate_runtime")},

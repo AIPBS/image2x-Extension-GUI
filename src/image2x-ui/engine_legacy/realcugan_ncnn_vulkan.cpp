@@ -134,6 +134,10 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlp
     QMap<QString,int> result_map = Calculate_ScaleRatio_RealCUGAN_NCNNVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];
     int Initial_ScaleRatio=result_map["Initial_ScaleRatio"];
+    const QString modelRecord = QStringLiteral("realcugan-%1-up%2x-%3")
+        .arg(ui->comboBox_ModelVariant_RealCUGAN->currentText().mid(7))
+        .arg(Initial_ScaleRatio)
+        .arg(ui->comboBox_Denoise_RealCUGAN->currentText());
     //======
     QString InputPath_tmp = SourceFile_fullPath;
     QString OutputPath_tmp ="";
@@ -151,9 +155,9 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlp
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " " + RealCUGAN_NCNN_Vulkan_ReadSettings();
             const QStringList commandParts = QProcess::splitCommand(cmd);
-            const BackendProcessResult result = backendClient->runCommandBlocking(
-                commandParts.first(), commandParts.mid(1), workingDirectory,
-                OutputPath_tmp, 120000);
+            const BackendProcessResult result = backendClient->runImageJobBlocking(
+                QStringLiteral("realcugan-ncnn-vulkan"), modelRecord, InputPath_tmp,
+                commandParts.mid(1), OutputPath_tmp, 120000);
             ErrorMSG = result.standardError.toLower();
             StanderMSG = result.standardOutput.toLower();
             waifu2x_qprocess_failed = !result.succeeded()

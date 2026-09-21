@@ -48,6 +48,26 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAl
     //============================= 读取设置 ================================
     int DenoiseLevel = ui->spinBox_DenoiseLevel_image->value();
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
+    const QStringList animeModels{
+        QStringLiteral("realesr-animevideov3-x2"),
+        QStringLiteral("realesr-animevideov3-x3"),
+        QStringLiteral("realesr-animevideov3-x4"),
+        QStringLiteral("realesrgan-x4plus-anime"),
+        QStringLiteral("RealESRGANv2-animevideo-xsx2"),
+        QStringLiteral("RealESRGANv2-animevideo-xsx4")};
+    const QStringList photoModels{
+        QStringLiteral("realesrgan-x4plus"),
+        QStringLiteral("realesr-general-x4v3"),
+        QStringLiteral("realesr-general-wdn-x4v3")};
+    const bool animeStyle = ui->comboBox_ImageStyle_RealESRGAN->currentIndex() == 0;
+    const QStringList selectedModels = animeStyle ? animeModels : photoModels;
+    const int selectedModelIndex = animeStyle
+        ? ui->comboBox_Model_2D_RealESRGAN->currentIndex()
+        : ui->comboBox_Model_3D_RealESRGAN->currentIndex();
+    const QString modelRecord = selectedModelIndex >= 0
+        && selectedModelIndex < selectedModels.size()
+        ? selectedModels.at(selectedModelIndex)
+        : QString();
     QString OutPutPath_Final ="";
     //========================= 拆解map得到参数 =============================
     //将状态设定到处理中
@@ -150,9 +170,9 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAl
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " " + RealESRGAN_NCNN_Vulkan_ReadSettings();
             const QStringList commandParts = QProcess::splitCommand(cmd);
-            const BackendProcessResult result = backendClient->runCommandBlocking(
-                commandParts.first(), commandParts.mid(1), workingDirectory,
-                OutputPath_tmp, 120000);
+            const BackendProcessResult result = backendClient->runImageJobBlocking(
+                QStringLiteral("realesrgan-ncnn-vulkan"), modelRecord, InputPath_tmp,
+                commandParts.mid(1), OutputPath_tmp, 120000);
             ErrorMSG = result.standardError.toLower();
             StanderMSG = result.standardOutput.toLower();
             waifu2x_qprocess_failed = !result.succeeded()

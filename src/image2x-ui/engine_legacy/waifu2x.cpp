@@ -311,7 +311,7 @@ int MainWindow::Waifu2xMainThread()
                 continue;
             }
             //=========
-            ThreadNumMax = ui->spinBox_ThreadNum_image->value();//获取image线程数量最大值
+            ThreadNumMax = qMax(1, ui->spinBox_ThreadNum_image->value());//获取image线程数量最大值
             //====================================================================================
             switch(ImageEngine)
             {
@@ -695,7 +695,9 @@ int MainWindow::Waifu2xMainThread()
         waifu2x_STOP_confirm = true;
         return 0;//如果启用stop位,则直接return
     }
-    emit Send_Waifu2x_Finished();
+    QMetaObject::invokeMethod(this, [this] {
+        Waifu2x_Finished();
+    }, Qt::QueuedConnection);
     return 0;
 }
 /*
@@ -1188,6 +1190,11 @@ bool MainWindow::KILL_TASK_(QString TaskName,bool RequestAdmin)
 */
 bool MainWindow::KILL_TASK_QStringList(QStringList TaskNameList,bool RequestAdmin)
 {
+#ifdef PLATFORM_LINUX
+    Q_UNUSED(TaskNameList);
+    Q_UNUSED(RequestAdmin);
+    return true;
+#else
     TaskNameList.removeAll("");
     if(TaskNameList.isEmpty())return false;
     //===============
@@ -1222,6 +1229,7 @@ bool MainWindow::KILL_TASK_QStringList(QStringList TaskNameList,bool RequestAdmi
     ExecuteCMD_batFile(CMD_commands,RequestAdmin);
     //===============
     return true;
+#endif
 }
 /*
 生成处理总结报告

@@ -254,6 +254,7 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlpha
     mutex_ThreadNumRunning.lock();
     ThreadNumRunning--;
     mutex_ThreadNumRunning.unlock();//线程数量统计-1
+    qInfo().noquote() << "[image2x] image worker complete" << ThreadNumRunning;
     return 0;
 }
 

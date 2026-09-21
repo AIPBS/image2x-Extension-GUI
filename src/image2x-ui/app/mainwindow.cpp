@@ -172,10 +172,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, SIGNAL(Send_Table_video_CustRes_rowNumInt_HeightQString_WidthQString(int,QString,QString)), this, SLOT(Table_video_CustRes_rowNumInt_HeightQString_WidthQString(int,QString,QString)));
     connect(this, SIGNAL(Send_Table_Read_Saved_Table_Filelist_Finished(QString)), this, SLOT(Table_Read_Saved_Table_Filelist_Finished(QString)));
     connect(this, SIGNAL(Send_Table_Save_Current_Table_Filelist_Finished()), this, SLOT(Table_Save_Current_Table_Filelist_Finished()));
-    connect(this, SIGNAL(Send_Waifu2x_Finished()), this, SLOT(Waifu2x_Finished()));
-    connect(this, SIGNAL(Send_Waifu2x_Finished_manual()), this, SLOT(Waifu2x_Finished_manual()));
+    connect(this, &MainWindow::Send_Waifu2x_Finished,
+            this, &MainWindow::Waifu2x_Finished);
+    connect(this, &MainWindow::Send_Waifu2x_Finished_manual,
+            this, &MainWindow::Waifu2x_Finished_manual);
     connect(this, SIGNAL(Send_TextBrowser_NewMessage(QString)), this, SLOT(TextBrowser_NewMessage(QString)));
-    connect(this, SIGNAL(Send_Waifu2x_Compatibility_Test_finished()), this, SLOT(Waifu2x_Compatibility_Test_finished()));
+    connect(this, &MainWindow::Send_Waifu2x_Compatibility_Test_finished,
+            this, &MainWindow::Waifu2x_Compatibility_Test_finished);
     connect(this, SIGNAL(Send_Waifu2x_DetectGPU_finished()), this, SLOT(Waifu2x_DetectGPU_finished()));
     connect(this, SIGNAL(Send_Realsr_ncnn_vulkan_DetectGPU_finished()), this, SLOT(Realsr_ncnn_vulkan_DetectGPU_finished()));
     connect(this, SIGNAL(Send_CheckUpadte_NewUpdate(QString,QString)), this, SLOT(CheckUpadte_NewUpdate(QString,QString)));

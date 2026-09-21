@@ -1,5 +1,12 @@
 # Change log
 
+## v0.9.10 (2026-09-21)
+
+### Fixed
+- Restore Linux UI controls after a still-image job finishes instead of
+  entering the Windows-only tasklist cleanup loop.
+- Deliver processing-finished UI cleanup through the Qt main-thread queue.
+
 ## v0.9.9 (2026-09-21)
 
 ### Changed

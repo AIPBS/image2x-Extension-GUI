@@ -89,7 +89,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void changeEvent(QEvent *e);
     //=======================
-    QString VERSION = "v0.9.8";
+    QString VERSION = "v0.9.9";
     bool isBetaVer = false;
     QString LastStableVer = "v3.31.13";
     QString LastBetaVer = "v3.41.02-beta";

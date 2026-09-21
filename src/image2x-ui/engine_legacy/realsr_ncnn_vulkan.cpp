@@ -111,70 +111,37 @@ int MainWindow::Realsr_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaC
         QStringLiteral("realsr-ncnn-vulkan"));
     //==========
     int ScaleRatio_tmp=Calculate_Temporary_ScaleRatio_RealsrNCNNVulkan(ScaleRatio);
-    QString InputPath_tmp = SourceFile_fullPath;
-    QString OutputPath_tmp ="";
-    for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
+    QList<BackendImageStage> stages;
+    QString inputPath = SourceFile_fullPath;
+    for(int i=4; i<=ScaleRatio_tmp; i*=4)
     {
-        bool waifu2x_qprocess_failed = false;
-        InputPath_tmp = SourceFile_fullPath;
-        OutputPath_tmp ="";
-        for(int i=4; i<=ScaleRatio_tmp; i*=4)
+        const QString outputPath = file_path + "/" + file_name + "_waifu2x_"
+            + QString::number(i, 10) + "x_" + file_ext + ".png";
+        const QString cmd = "\"" + program + "\" -i \"" + inputPath
+            + "\" -o \"" + outputPath + "\" -s 4 "
+            + Realsr_NCNN_Vulkan_ReadSettings();
+        const QStringList commandParts = QProcess::splitCommand(cmd);
+        stages.append(BackendImageStage{inputPath, outputPath, commandParts.mid(1)});
+        inputPath = outputPath;
+    }
+    const BackendProcessResult result = backendClient->runImageStagesBlocking(
+        QStringLiteral("realsr-ncnn-vulkan"), modelRecord, stages, 120000,
+        ui->spinBox_retry->value() + ForceRetryCount - 1);
+    QString OutputPath_tmp = stages.isEmpty() ? QString() : stages.last().outputPath;
+    if (!result.succeeded())
+    {
+        qWarning().noquote() << "[image2x] realsr-ncnn-vulkan failed:"
+                             << result.diagnostic;
+        for (const BackendImageStage &stage : stages)
         {
-            QString ErrorMSG="";
-            QString StanderMSG="";
-            //==========================
-            OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+file_ext+".png";
-            QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + "4" + " " + Realsr_NCNN_Vulkan_ReadSettings();
-            const QStringList commandParts = QProcess::splitCommand(cmd);
-            const BackendProcessResult result = backendClient->runImageJobBlocking(
-                QStringLiteral("realsr-ncnn-vulkan"), modelRecord, InputPath_tmp,
-                commandParts.mid(1), OutputPath_tmp, 120000);
-            ErrorMSG = result.standardError.toLower();
-            StanderMSG = result.standardOutput.toLower();
-            waifu2x_qprocess_failed = !result.succeeded()
-                || ErrorMSG.contains("failed") || StanderMSG.contains("failed");
-            if (waifu2x_qprocess_failed)
-            {
-                qWarning().noquote() << "[image2x] realsr-ncnn-vulkan failed:"
-                                     << result.diagnostic;
-                if (i > 4)
-                {
-                    QFile::remove(InputPath_tmp);
-                }
-                QFile::remove(OutputPath_tmp);
-                break;
-            }
-            if(waifu2x_STOP)
-            {
-                if(i>4)
-                {
-                    QFile::remove(InputPath_tmp);
-                }
-                QFile::remove(OutputPath_tmp);
-                emit Send_Table_image_ChangeStatus_rowNumInt_statusQString(rowNum, "Interrupted");
-                mutex_ThreadNumRunning.lock();
-                ThreadNumRunning--;
-                mutex_ThreadNumRunning.unlock();
-                return 0;
-            }
-            //===============
-            if(i>4)
-            {
-                QFile::remove(InputPath_tmp);
-            }
-            InputPath_tmp = OutputPath_tmp;
+            QFile::remove(stage.outputPath);
         }
-        //========= 检测是否成功,是否需要重试 ============
-        if(QFile::exists(OutputPath_tmp)&&!waifu2x_qprocess_failed)
+    }
+    else
+    {
+        for (int stageIndex = 0; stageIndex + 1 < stages.size(); ++stageIndex)
         {
-            break;
-        }
-        else
-        {
-            QFile::remove(OutputPath_tmp);
-            if(retry==ui->spinBox_retry->value()+(ForceRetryCount-1))break;
-            emit Send_TextBrowser_NewMessage(tr("Automatic retry, please wait."));
-            Delay_sec_sleep(5);
+            QFile::remove(stages.at(stageIndex).outputPath);
         }
     }
     if(!QFile::exists(OutputPath_tmp))

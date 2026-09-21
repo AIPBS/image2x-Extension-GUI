@@ -139,72 +139,42 @@ int MainWindow::RealCUGAN_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlp
         .arg(Initial_ScaleRatio)
         .arg(ui->comboBox_Denoise_RealCUGAN->currentText());
     //======
-    QString InputPath_tmp = SourceFile_fullPath;
-    QString OutputPath_tmp ="";
-    for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
+    QList<BackendImageStage> stages;
+    QString inputPath = SourceFile_fullPath;
+    int denoiseLevel = DenoiseLevel;
+    for(int i=Initial_ScaleRatio; i<=ScaleRatio_tmp; i*=Initial_ScaleRatio)
     {
-        bool waifu2x_qprocess_failed = false;
-        InputPath_tmp = SourceFile_fullPath;
-        OutputPath_tmp ="";
-        int DenoiseLevel_tmp = DenoiseLevel;
-        for(int i=Initial_ScaleRatio; i<=ScaleRatio_tmp; i*=Initial_ScaleRatio)
+        const QString outputPath = file_path + "/" + file_name + "_waifu2x_"
+            + QString::number(i, 10) + "x_" + QString::number(DenoiseLevel, 10)
+            + "n_" + file_ext + ".png";
+        const QString cmd = "\"" + program + "\" -i \"" + inputPath
+            + "\" -o \"" + outputPath + "\" -s "
+            + QString::number(Initial_ScaleRatio, 10) + " -n "
+            + QString::number(denoiseLevel, 10) + " "
+            + RealCUGAN_NCNN_Vulkan_ReadSettings();
+        const QStringList commandParts = QProcess::splitCommand(cmd);
+        stages.append(BackendImageStage{inputPath, outputPath, commandParts.mid(1)});
+        inputPath = outputPath;
+        denoiseLevel = -1;
+    }
+    const BackendProcessResult result = backendClient->runImageStagesBlocking(
+        QStringLiteral("realcugan-ncnn-vulkan"), modelRecord, stages, 120000,
+        ui->spinBox_retry->value() + ForceRetryCount - 1);
+    QString OutputPath_tmp = stages.isEmpty() ? QString() : stages.last().outputPath;
+    if (!result.succeeded())
+    {
+        qWarning().noquote() << "[image2x] realcugan-ncnn-vulkan failed:"
+                             << result.diagnostic;
+        for (const BackendImageStage &stage : stages)
         {
-            QString ErrorMSG="";
-            QString StanderMSG="";
-            //==========
-            OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
-            QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " " + RealCUGAN_NCNN_Vulkan_ReadSettings();
-            const QStringList commandParts = QProcess::splitCommand(cmd);
-            const BackendProcessResult result = backendClient->runImageJobBlocking(
-                QStringLiteral("realcugan-ncnn-vulkan"), modelRecord, InputPath_tmp,
-                commandParts.mid(1), OutputPath_tmp, 120000);
-            ErrorMSG = result.standardError.toLower();
-            StanderMSG = result.standardOutput.toLower();
-            waifu2x_qprocess_failed = !result.succeeded()
-                || ErrorMSG.contains("failed") || StanderMSG.contains("failed");
-            if (waifu2x_qprocess_failed)
-            {
-                qWarning().noquote() << "[image2x] realcugan-ncnn-vulkan failed:"
-                                     << result.diagnostic;
-                if (i > Initial_ScaleRatio)
-                {
-                    QFile::remove(InputPath_tmp);
-                }
-                QFile::remove(OutputPath_tmp);
-                break;
-            }
-            if(waifu2x_STOP)
-            {
-                if(i>Initial_ScaleRatio)
-                {
-                    QFile::remove(InputPath_tmp);
-                }
-                QFile::remove(OutputPath_tmp);
-                emit Send_Table_image_ChangeStatus_rowNumInt_statusQString(rowNum, "Interrupted");
-                mutex_ThreadNumRunning.lock();
-                ThreadNumRunning--;
-                mutex_ThreadNumRunning.unlock();
-                return 0;
-            }
-            //===============
-            if(i>Initial_ScaleRatio)
-            {
-                QFile::remove(InputPath_tmp);
-            }
-            DenoiseLevel_tmp = -1;
-            InputPath_tmp = OutputPath_tmp;
+            QFile::remove(stage.outputPath);
         }
-        //========= 检测是否成功,是否需要重试 ============
-        if(QFile::exists(OutputPath_tmp)&&!waifu2x_qprocess_failed)
+    }
+    else
+    {
+        for (int stageIndex = 0; stageIndex + 1 < stages.size(); ++stageIndex)
         {
-            break;
-        }
-        else
-        {
-            QFile::remove(OutputPath_tmp);
-            if(retry==ui->spinBox_retry->value()+(ForceRetryCount-1))break;
-            emit Send_TextBrowser_NewMessage(tr("Automatic retry, please wait."));
-            Delay_sec_sleep(5);
+            QFile::remove(stages.at(stageIndex).outputPath);
         }
     }
     if(!QFile::exists(OutputPath_tmp))

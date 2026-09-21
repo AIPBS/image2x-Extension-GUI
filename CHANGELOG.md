@@ -1,5 +1,11 @@
 # Change log
 
+## v0.9.9 (2026-09-21)
+
+### Changed
+- Move SRMD, RealSR, Real-ESRGAN, and Real-CUGAN Linux still-image scaling
+  stages and retry orchestration into the Rust image-job executor.
+
 ## v0.9.8 (2026-09-21)
 
 ### Changed

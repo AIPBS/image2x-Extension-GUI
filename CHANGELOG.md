@@ -1,5 +1,12 @@
 # Change log
 
+## v1.1.0 (2026-09-21)
+
+### Added
+- Add the Linux hardware-GPU matrix runner for every installed public,
+  proprietary, and frame-interpolation model row.
+- Record model-level GPU output validity separately from CPU fallback results.
+
 ## v1.0.0 (2026-09-21)
 
 ### Added

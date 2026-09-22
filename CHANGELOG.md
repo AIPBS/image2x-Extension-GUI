@@ -1,5 +1,19 @@
 # Change log
 
+## v1.0.0 (2026-09-21)
+
+### Added
+- Complete the Linux Rust business-core boundary for runtime and model
+  discovery, availability, compatibility execution, process supervision, and
+  staged still-image job orchestration.
+- Keep Qt focused on widgets, user input, progress, and result presentation.
+
+### Fixed
+- Discover all 9 authorized proprietary W2xEX model pairs from the persistent
+  Linux cache, including dotted model names.
+- Restore the Linux UI after still-image completion without entering the
+  Windows-only task cleanup path.
+
 ## v0.9.10 (2026-09-21)
 
 ### Fixed

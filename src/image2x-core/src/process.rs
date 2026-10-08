@@ -381,13 +381,7 @@ mod tests {
                 "printf output > /tmp/image2x-job-output.png".to_owned(),
             ],
         };
-        let result = run_image_job(
-            "/bin/sh",
-            Path::new("/tmp"),
-            &[stage],
-            1000,
-            1,
-        );
+        let result = run_image_job("/bin/sh", Path::new("/tmp"), &[stage], 1000, 1);
         assert!(result.started);
         assert!(result.finished);
         assert_eq!(result.exit_code, Some(0));

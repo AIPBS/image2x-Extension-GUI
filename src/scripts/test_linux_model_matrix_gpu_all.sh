@@ -20,11 +20,13 @@ trap 'rm -rf "$OUTPUT_DIRECTORY"' EXIT
 
 GPU_CACHE_DIRECTORY="${COMET_GPU_CACHE_DIRECTORY:-${FIREFIRE_GPU_CACHE:-}}"
 if [[ -n "$GPU_CACHE_DIRECTORY" ]]; then
-    [[ -f "$GPU_CACHE_DIRECTORY/icd.json" ]] || {
-        printf 'GPU cache ICD does not exist: %s\n' "$GPU_CACHE_DIRECTORY/icd.json" >&2
+    GPU_ICD="$GPU_CACHE_DIRECTORY/icd-container.json"
+    [[ -f "$GPU_ICD" ]] || GPU_ICD="$GPU_CACHE_DIRECTORY/icd.json"
+    [[ -f "$GPU_ICD" ]] || {
+        printf 'GPU cache ICD does not exist: %s\n' "$GPU_CACHE_DIRECTORY/icd-container.json" >&2
         exit 1
     }
-    export VK_ICD_FILENAMES="$GPU_CACHE_DIRECTORY/icd.json"
+    export VK_ICD_FILENAMES="$GPU_ICD"
     export LD_LIBRARY_PATH="$GPU_CACHE_DIRECTORY/lib:/usr/lib/wsl/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 fi
 

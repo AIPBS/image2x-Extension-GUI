@@ -89,7 +89,11 @@ are downloaded into the persistent `dependencies/distributable/` and
 Flatpak updates therefore reuse unchanged OSTree objects instead of replacing
 the whole application payload.
 
-Build locally with:
+The release workflow builds the Flatpak in its disposable GitHub Actions
+runner. Do not install the Flatpak SDK or runtime into the application
+workspace.
+
+For a separate disposable build environment:
 
 ```bash
 flatpak-builder --user --install --force-clean \

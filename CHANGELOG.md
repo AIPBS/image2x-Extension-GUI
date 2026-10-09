@@ -9,6 +9,8 @@
 - Add a first-run component download panel with separate distributable and
   non-free choices, persistent component directories, progress reporting, and
   later install buttons when components are missing.
+- Build the Flatpak in the disposable release runner so its OSTree app updates
+  remain incremental without adding SDK/runtime storage to the project workspace.
 
 ## v1.1.0 (2026-09-21)
 

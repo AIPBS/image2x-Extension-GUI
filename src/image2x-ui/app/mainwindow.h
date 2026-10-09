@@ -81,6 +81,10 @@ namespace Ui
 }
 QT_END_NAMESPACE
 
+class QDialog;
+class QLabel;
+class QProgressBar;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -88,6 +92,11 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     void changeEvent(QEvent *e);
+    enum class ComponentDownloadMode {
+        Distributable,
+        DistributableAndNonFree,
+        NonFree,
+    };
     //=======================
     QString VERSION = "v1.1.0";
     bool isBetaVer = false;
@@ -96,6 +105,14 @@ public:
     //=======================
     QTranslator * translator;
     BackendClient *backendClient = nullptr;
+    QProcess *componentDownloadProcess = nullptr;
+    QDialog *componentDownloadDialog = nullptr;
+    QLabel *componentDownloadStatus = nullptr;
+    QProgressBar *componentDownloadProgress = nullptr;
+    ComponentDownloadMode componentDownloadMode = ComponentDownloadMode::Distributable;
+    bool componentDownloadStartupDialog = false;
+    bool componentDownloadSucceeded = false;
+    bool componentProcessHandled = false;
     QGroupBox *proprietaryCompatibilityGroup = nullptr;
     QLabel *proprietaryCompatibilityStatus = nullptr;
     QMap<QString, QCheckBox *> proprietaryCompatibilityCheckboxes;
@@ -611,6 +628,12 @@ public:
     bool isStart_CurrentFile=false;
     //=============================================
     void Tip_FirstTimeStart();
+    bool showComponentDownloadDialog();
+    void startComponentDownload(ComponentDownloadMode mode);
+    void showComponentProgressDialog(ComponentDownloadMode mode);
+    void startComponentPhase(bool proprietary);
+    void finishComponentDownload(bool success, const QString &message);
+    void refreshComponentDownloadButtons();
     //================== 托盘图标 =================
     void Init_SystemTrayIcon();
     QSystemTrayIcon *systemTray = new QSystemTrayIcon(this);
@@ -864,6 +887,10 @@ private slots:
     void on_spinBox_textbrowser_fontsize_valueChanged(int arg1);
 
     void on_pushButton_compatibilityTest_clicked();
+
+    void on_pushButton_InstallLinuxRuntime_clicked();
+
+    void on_pushButton_DownloadProprietaryModels_clicked();
 
     void on_pushButton_CustRes_apply_clicked();
 

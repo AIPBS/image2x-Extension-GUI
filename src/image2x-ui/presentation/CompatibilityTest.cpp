@@ -24,9 +24,14 @@
 #include "model_test_matrix.h"
 #include "runtime_dependencies.h"
 #include "ui_routing.h"
+#include <QDialog>
 #include <QHBoxLayout>
 #include <QJsonArray>
 #include <QPlainTextEdit>
+#include <QProcessEnvironment>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QtMath>
 #include <QVBoxLayout>
 
 namespace
@@ -44,7 +49,7 @@ QString proprietaryModelRoot(const QString &applicationDirectory)
         QDir(applicationDirectory).filePath(QStringLiteral("vendor/models-non-free")),
         QDir(applicationDirectory).filePath(QStringLiteral("../vendor/models-non-free")),
         QDir(applicationDirectory).filePath(QStringLiteral("../../vendor/models-non-free")),
-        QDir(applicationDirectory).filePath(QStringLiteral("dependencies/models-non-free")),
+        QDir(applicationDirectory).filePath(QStringLiteral("dependencies/non-free")),
     });
     for (const QString &candidate : candidates)
     {
@@ -246,6 +251,280 @@ void MainWindow::on_pushButton_compatibilityTest_clicked()
     QtConcurrent::run(this, &MainWindow::Waifu2x_Compatibility_Test);
 }
 
+void MainWindow::refreshComponentDownloadButtons()
+{
+#ifdef PLATFORM_LINUX
+    const RuntimeDependencies dependencies(Current_Path);
+    const bool downloadRunning = componentDownloadProcess != nullptr;
+    ui->pushButton_InstallLinuxRuntime->setVisible(dependencies.hasMissingDistributable());
+    ui->pushButton_InstallLinuxRuntime->setEnabled(!downloadRunning);
+    ui->pushButton_DownloadProprietaryModels->setVisible(
+        dependencies.hasMissingProprietaryModels());
+    ui->pushButton_DownloadProprietaryModels->setEnabled(!downloadRunning);
+#endif
+}
+
+void MainWindow::showComponentProgressDialog(ComponentDownloadMode mode)
+{
+#ifdef PLATFORM_LINUX
+    if (componentDownloadDialog != nullptr || componentDownloadProcess != nullptr)
+    {
+        return;
+    }
+    componentDownloadMode = mode;
+    componentDownloadStartupDialog = false;
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowTitle(tr("Download components"));
+    dialog->setWindowModality(Qt::ApplicationModal);
+    dialog->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
+    componentDownloadStatus = new QLabel(dialog);
+    componentDownloadStatus->setWordWrap(true);
+    componentDownloadProgress = new QProgressBar(dialog);
+    componentDownloadProgress->setTextVisible(true);
+    QPushButton *closeButton = new QPushButton(tr("Close"), dialog);
+    closeButton->setEnabled(false);
+    layout->addWidget(componentDownloadStatus);
+    layout->addWidget(componentDownloadProgress);
+    layout->addWidget(closeButton);
+    componentDownloadDialog = dialog;
+    connect(closeButton, &QPushButton::clicked, dialog, &QDialog::accept);
+    connect(dialog, &QDialog::finished, this, [this, dialog] {
+        if (componentDownloadDialog == dialog)
+        {
+            componentDownloadDialog = nullptr;
+            componentDownloadStatus = nullptr;
+            componentDownloadProgress = nullptr;
+        }
+        dialog->deleteLater();
+    });
+    dialog->show();
+    startComponentDownload(mode);
+#else
+    Q_UNUSED(mode)
+#endif
+}
+
+bool MainWindow::showComponentDownloadDialog()
+{
+#ifdef PLATFORM_LINUX
+    const RuntimeDependencies dependencies(Current_Path);
+    if (!dependencies.hasMissingDistributable()
+        && !dependencies.hasMissingProprietaryModels())
+    {
+        return true;
+    }
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Download image2x components"));
+    dialog.setWindowModality(Qt::ApplicationModal);
+    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    QVBoxLayout layout(&dialog);
+    QLabel description(tr(
+        "Choose which components to download. The distributable set contains public engines and models; the second option also downloads proprietary W2xEX models."), &dialog);
+    description.setWordWrap(true);
+    QProgressBar progress(&dialog);
+    progress.setRange(0, 1);
+    progress.setValue(0);
+    QPushButton distributableButton(tr("Download distributable"), &dialog);
+    QPushButton allButton(tr("Download distributable + non-free"), &dialog);
+    layout.addWidget(&description);
+    layout.addWidget(&progress);
+    layout.addWidget(&distributableButton);
+    layout.addWidget(&allButton);
+    distributableButton.setEnabled(dependencies.hasMissingDistributable());
+    allButton.setEnabled(dependencies.hasMissingDistributable()
+                         || dependencies.hasMissingProprietaryModels());
+    componentDownloadDialog = &dialog;
+    componentDownloadStatus = &description;
+    componentDownloadProgress = &progress;
+    componentDownloadStartupDialog = true;
+    componentDownloadSucceeded = false;
+    connect(&distributableButton, &QPushButton::clicked, &dialog, [this,
+                                                                    &distributableButton,
+                                                                    &allButton] {
+        distributableButton.setEnabled(false);
+        allButton.setEnabled(false);
+        startComponentDownload(ComponentDownloadMode::Distributable);
+    });
+    connect(&allButton, &QPushButton::clicked, &dialog, [this,
+                                                          &distributableButton,
+                                                          &allButton] {
+        distributableButton.setEnabled(false);
+        allButton.setEnabled(false);
+        startComponentDownload(ComponentDownloadMode::DistributableAndNonFree);
+    });
+    dialog.exec();
+    componentDownloadDialog = nullptr;
+    componentDownloadStatus = nullptr;
+    componentDownloadProgress = nullptr;
+    componentDownloadStartupDialog = false;
+    return componentDownloadSucceeded;
+#else
+    return true;
+#endif
+}
+
+void MainWindow::startComponentDownload(ComponentDownloadMode mode)
+{
+#ifdef PLATFORM_LINUX
+    if (componentDownloadProcess != nullptr)
+    {
+        return;
+    }
+    componentDownloadMode = mode;
+    componentProcessHandled = false;
+    if (componentDownloadProgress != nullptr)
+    {
+        const int maximum = mode == ComponentDownloadMode::DistributableAndNonFree ? 11
+            : mode == ComponentDownloadMode::Distributable ? 10 : 1;
+        componentDownloadProgress->setRange(0, maximum);
+        componentDownloadProgress->setValue(0);
+    }
+    startComponentPhase(mode == ComponentDownloadMode::NonFree);
+#else
+    Q_UNUSED(mode)
+#endif
+}
+
+void MainWindow::startComponentPhase(bool proprietary)
+{
+#ifdef PLATFORM_LINUX
+    componentProcessHandled = false;
+    const RuntimeDependencies dependencies(Current_Path);
+    const QString script = proprietary
+        ? dependencies.proprietaryInstallerScriptPath()
+        : dependencies.installerScriptPath();
+    if (script.isEmpty())
+    {
+        finishComponentDownload(false, tr("The selected component installer is not included."));
+        return;
+    }
+
+    if (componentDownloadStatus != nullptr)
+    {
+        componentDownloadStatus->setText(proprietary
+            ? tr("Downloading proprietary W2xEX models...")
+            : tr("Downloading distributable engines and public models..."));
+    }
+    const int progressOffset = proprietary
+        && componentDownloadMode == ComponentDownloadMode::DistributableAndNonFree ? 10 : 0;
+    const int progressScale = proprietary ? 1 : 10;
+    componentDownloadProcess = new QProcess(this);
+    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("IMAGE2X_RUNTIME_DIRECTORY"),
+                       dependencies.runtimeDirectory());
+    environment.insert(QStringLiteral("MODEL_OUTPUT_DIRECTORY"),
+                       dependencies.proprietaryModelDirectory());
+    componentDownloadProcess->setProcessEnvironment(environment);
+    componentDownloadProcess->setProgram(script);
+    componentDownloadProcess->setArguments(proprietary
+        ? QStringList{QStringLiteral("--latest")}
+        : QStringList{Current_Path});
+
+    const auto consumeOutput = [this, progressOffset, progressScale](const QByteArray &bytes) {
+        const QString output = QString::fromLocal8Bit(bytes);
+        for (const QString &line : output.split('\n'))
+        {
+            const QStringList parts = line.split(' ', Qt::SkipEmptyParts);
+            if (parts.size() >= 3 && parts.at(0) == QStringLiteral("IMAGE2X_PROGRESS"))
+            {
+                bool doneOk = false;
+                bool totalOk = false;
+                const int done = parts.at(1).toInt(&doneOk);
+                const int total = parts.at(2).toInt(&totalOk);
+                if (doneOk && totalOk && total > 0 && componentDownloadProgress != nullptr)
+                {
+                    componentDownloadProgress->setValue(
+                        progressOffset + qRound((done * progressScale) / static_cast<double>(total)));
+                }
+            }
+            else if (!line.trimmed().isEmpty())
+            {
+                emit Send_TextBrowser_NewMessage(line.trimmed());
+            }
+        }
+    };
+    connect(componentDownloadProcess, &QProcess::readyReadStandardOutput, this,
+            [this, consumeOutput] { consumeOutput(componentDownloadProcess->readAllStandardOutput()); });
+    connect(componentDownloadProcess, &QProcess::readyReadStandardError, this,
+            [this, consumeOutput] { consumeOutput(componentDownloadProcess->readAllStandardError()); });
+    connect(componentDownloadProcess,
+            qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
+            [this, proprietary](int exitCode, QProcess::ExitStatus exitStatus) {
+        if (componentProcessHandled)
+        {
+            return;
+        }
+        componentProcessHandled = true;
+        const bool success = exitStatus == QProcess::NormalExit && exitCode == 0;
+        if (success && !proprietary
+            && componentDownloadMode == ComponentDownloadMode::DistributableAndNonFree)
+        {
+            componentDownloadProcess->deleteLater();
+            componentDownloadProcess = nullptr;
+            startComponentPhase(true);
+            return;
+        }
+        finishComponentDownload(success, success ? QString() : tr(
+            "The component download process exited unsuccessfully."));
+    });
+    connect(componentDownloadProcess, &QProcess::errorOccurred, this,
+            [this](QProcess::ProcessError error) {
+        if (error == QProcess::FailedToStart && !componentProcessHandled)
+        {
+            componentProcessHandled = true;
+            finishComponentDownload(false, tr("The component installer could not start."));
+        }
+    });
+    componentDownloadProcess->start();
+#else
+    Q_UNUSED(proprietary)
+#endif
+}
+
+void MainWindow::finishComponentDownload(bool success, const QString &message)
+{
+#ifdef PLATFORM_LINUX
+    if (componentDownloadProcess != nullptr)
+    {
+        componentDownloadProcess->deleteLater();
+        componentDownloadProcess = nullptr;
+    }
+    componentDownloadSucceeded = success;
+    if (success && componentDownloadProgress != nullptr)
+    {
+        componentDownloadProgress->setValue(componentDownloadProgress->maximum());
+    }
+    refreshComponentDownloadButtons();
+    if (!success)
+    {
+        QMessageBox::warning(this, tr("Component download failed"), message);
+    }
+    else
+    {
+        backendClient->validateRuntime();
+    }
+    if (componentDownloadDialog != nullptr)
+    {
+        componentDownloadDialog->done(success ? QDialog::Accepted : QDialog::Rejected);
+    }
+#else
+    Q_UNUSED(success)
+    Q_UNUSED(message)
+#endif
+}
+
+void MainWindow::on_pushButton_InstallLinuxRuntime_clicked()
+{
+    showComponentProgressDialog(ComponentDownloadMode::Distributable);
+}
+
+void MainWindow::on_pushButton_DownloadProprietaryModels_clicked()
+{
+    showComponentProgressDialog(ComponentDownloadMode::NonFree);
+}
+
 int MainWindow::Waifu2x_Compatibility_Test()
 {
 #ifdef PLATFORM_LINUX
@@ -382,7 +661,8 @@ int MainWindow::Waifu2x_Compatibility_Test()
     }
     emit Send_Add_progressBar_CompatibilityTest();
 
-    const QString enginesDirectory = Current_Path + "/dependencies/engines";
+    const RuntimeDependencies runtimeDependencies(Current_Path);
+    const QString enginesDirectory = runtimeDependencies.runtimeDirectory();
     const auto testEngine = [&](const QString &name, const QString &program,
                                 const QStringList &arguments, const QString &resultPath,
                                 int timeoutMs = 30000, bool requireHardwareVulkan = true,

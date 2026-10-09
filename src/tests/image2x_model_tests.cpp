@@ -35,7 +35,7 @@ struct TestRecord
 
 QString engineDirectory(const QString &applicationDirectory, const QString &engine)
 {
-    return QDir(applicationDirectory).filePath(QStringLiteral("dependencies/engines/%1").arg(engine));
+    return QDir(applicationDirectory).filePath(QStringLiteral("dependencies/distributable/%1").arg(engine));
 }
 
 QString executablePath(const QString &directory, const QString &engine)

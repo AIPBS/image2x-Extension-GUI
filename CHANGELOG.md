@@ -6,6 +6,9 @@
 - Run standalone CI for unreleased changes, and let the release workflow use
   successful CI as its prerequisite before creating a tag and GitHub Release
   for a new versioned changelog section.
+- Add a first-run component download panel with separate distributable and
+  non-free choices, persistent component directories, progress reporting, and
+  later install buttons when components are missing.
 
 ## v1.1.0 (2026-09-21)
 

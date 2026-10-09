@@ -56,23 +56,44 @@ done
 ## Linux runtime
 
 The Qt executable needs inference runtimes and public model files in addition
-to Qt libraries. Install the pinned, checksum-verified Linux runtime bundles
-for the complete public still-image matrix beside the executable:
+to Qt libraries. Install the pinned, checksum-verified distributable bundles
+for the complete public still-image matrix under `dependencies/distributable/`:
 
 ```bash
 ./scripts/install_linux_runtime.sh /path/to/application-directory
 ```
 
-This creates the `dependencies/engines/` tree beside the executable for
+This creates the `dependencies/distributable/` tree beside the executable for
 Waifu2x, SRMD, RealSR, Real-ESRGAN, Real-CUGAN, and the separately tracked
 frame engines. The application validates the selected engine and exact model
 directory before processing and reports this same repair command when assets
 are missing.
 
+The first-run download panel offers two choices: distributable components,
+or distributable components plus proprietary W2xEX models. Proprietary files
+are kept separately under `dependencies/non-free/` and are never included in
+the distributable set.
+
 Run the complete public still-image matrix against an installed bundle with:
 
 ```bash
 ./scripts/test_linux_model_matrix.sh /path/to/application-directory /path/to/input.png
+```
+
+## Flatpak
+
+The Flatpak manifest packages the GUI and Rust core only. Public distributable
+engines/models and proprietary models remain outside the OSTree app payload and
+are downloaded into the persistent `dependencies/distributable/` and
+`dependencies/non-free/` directories through the in-app component panel.
+Flatpak updates therefore reuse unchanged OSTree objects instead of replacing
+the whole application payload.
+
+Build locally with:
+
+```bash
+flatpak-builder --user --install --force-clean \
+  build-flatpak flatpak/com.aipbs.Image2xExtensionGUI.yml
 ```
 
 ## Models

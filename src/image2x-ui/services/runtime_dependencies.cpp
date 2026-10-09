@@ -2,6 +2,8 @@
 
 #include <QDir>
 #include <QFileInfo>
+#include <QPair>
+#include <QStandardPaths>
 
 RuntimeDependencies::RuntimeDependencies(const QString &applicationDirectory)
     : applicationDirectory(applicationDirectory)
@@ -31,11 +33,165 @@ QString RuntimeDependencies::engineDirectory(RuntimeEngine engine) const
     }
 
 #ifdef PLATFORM_LINUX
-    return QDir(applicationDirectory).filePath(
-        QStringLiteral("dependencies/engines/%1").arg(engineName));
+    return QDir(runtimeDirectory()).filePath(engineName);
 #else
     return QDir(applicationDirectory).filePath(engineName);
 #endif
+}
+
+QString RuntimeDependencies::runtimeDirectory() const
+{
+#ifdef PLATFORM_LINUX
+    const QString configured = qEnvironmentVariable("IMAGE2X_RUNTIME_DIRECTORY");
+    if (!configured.isEmpty())
+    {
+        return QDir::cleanPath(configured);
+    }
+    if (qEnvironmentVariableIsSet("FLATPAK_ID"))
+    {
+        return QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
+            .filePath(QStringLiteral("dependencies/distributable"));
+    }
+    return QDir(applicationDirectory).filePath(QStringLiteral("dependencies/distributable"));
+#else
+    return QDir(applicationDirectory).filePath(QStringLiteral("dependencies/distributable"));
+#endif
+}
+
+QString RuntimeDependencies::installerScriptPath() const
+{
+    const QString configured = qEnvironmentVariable("IMAGE2X_RUNTIME_INSTALLER");
+    if (!configured.isEmpty())
+    {
+        return configured;
+    }
+
+    const QStringList candidates{
+        QDir(applicationDirectory).filePath(QStringLiteral("scripts/install_linux_runtime.sh")),
+        QDir(applicationDirectory).filePath(QStringLiteral("../scripts/install_linux_runtime.sh")),
+        QDir(applicationDirectory).filePath(
+            QStringLiteral("../libexec/image2x/install_linux_runtime.sh")),
+    };
+    for (const QString &candidate : candidates)
+    {
+        const QFileInfo info(candidate);
+        if (info.isFile() && info.isExecutable())
+        {
+            return info.absoluteFilePath();
+        }
+    }
+    return QString();
+}
+
+QString RuntimeDependencies::proprietaryInstallerScriptPath() const
+{
+    const QString configured = qEnvironmentVariable("IMAGE2X_PROPRIETARY_INSTALLER");
+    if (!configured.isEmpty())
+    {
+        return configured;
+    }
+
+    const QStringList candidates{
+        QDir(applicationDirectory).filePath(
+            QStringLiteral("scripts/download_non_free_models.sh")),
+        QDir(applicationDirectory).filePath(
+            QStringLiteral("../scripts/download_non_free_models.sh")),
+        QDir(applicationDirectory).filePath(
+            QStringLiteral("../libexec/image2x/download_non_free_models.sh")),
+    };
+    for (const QString &candidate : candidates)
+    {
+        const QFileInfo info(candidate);
+        if (info.isFile() && info.isExecutable())
+        {
+            return info.absoluteFilePath();
+        }
+    }
+    return QString();
+}
+
+QString RuntimeDependencies::proprietaryModelDirectory() const
+{
+    const QString configured = qEnvironmentVariable("IMAGE2X_PROPRIETARY_MODEL_ROOT");
+    if (!configured.isEmpty())
+    {
+        return QDir::cleanPath(configured);
+    }
+#ifdef PLATFORM_LINUX
+    if (qEnvironmentVariableIsSet("FLATPAK_ID"))
+    {
+        return QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
+            .filePath(QStringLiteral("dependencies/non-free"));
+    }
+#endif
+    return QDir(applicationDirectory).filePath(QStringLiteral("dependencies/non-free"));
+}
+
+bool RuntimeDependencies::hasMissingDistributable() const
+{
+    const RuntimeEngine engines[] = {
+        RuntimeEngine::Waifu2xNcnnVulkan,
+        RuntimeEngine::SrmdNcnnVulkan,
+        RuntimeEngine::RealSrNcnnVulkan,
+        RuntimeEngine::RealESRGANNcnnVulkan,
+        RuntimeEngine::RealCUGANNcnnVulkan,
+    };
+    for (const RuntimeEngine engine : engines)
+    {
+        if (!isAvailable(engine))
+        {
+            return true;
+        }
+    }
+    const QList<QPair<QString, QString>> frameEngines{
+        {QStringLiteral("rife-ncnn-vulkan"), QStringLiteral("rife-ncnn-vulkan")},
+        {QStringLiteral("ifrnet-ncnn-vulkan"), QStringLiteral("ifrnet-ncnn-vulkan")},
+        {QStringLiteral("cain-ncnn-vulkan"), QStringLiteral("cain-ncnn-vulkan")},
+        {QStringLiteral("dain-ncnn-vulkan"), QStringLiteral("dain-ncnn-vulkan")},
+    };
+    const QDir root(runtimeDirectory());
+    for (const auto &engine : frameEngines)
+    {
+        if (!QFileInfo(root.filePath(engine.first)).isDir()
+            || !QFileInfo(root.filePath(engine.first + QLatin1Char('/') + engine.second)).isExecutable())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RuntimeDependencies::hasMissingProprietaryModels() const
+{
+    const QStringList requiredFiles{
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Anime-HQ-W4xEX.bin"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Anime-HQ-W4xEX.param"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/AnimeVideo-MiniV1.8-W2xEX.bin"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/AnimeVideo-MiniV1.8-W2xEX.param"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Omni-MiniV2-W2xEX.bin"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Omni-MiniV2-W2xEX.param"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Omni-Smallv2-W2xEX.bin"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Omni-Smallv2-W2xEX.param"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Omni-TurboV1.5-W2xEX.bin"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Omni-TurboV1.5-W2xEX.param"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Photo-HQ-W4xEX.bin"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Photo-HQ-W4xEX.param"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Photo-Small-W2xEX.bin"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Photo-Small-W2xEX.param"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Universal-FastV2-W2xEX.bin"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Universal-FastV2-W2xEX.param"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Photo-Conservative-x4.bin"),
+        QStringLiteral("realesrgan-ncnn-vulkan/models/Photo-Conservative-x4.param"),
+    };
+    const QDir root(proprietaryModelDirectory());
+    for (const QString &file : requiredFiles)
+    {
+        if (!QFileInfo(root.filePath(file)).isFile())
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 QString RuntimeDependencies::executable(RuntimeEngine engine) const

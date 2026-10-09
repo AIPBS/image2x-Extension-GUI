@@ -8,6 +8,8 @@
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 
+use crate::runtime::runtime_root;
+
 #[derive(Clone, Debug, Serialize)]
 pub struct ModelRecord {
     pub name: &'static str,
@@ -142,9 +144,7 @@ pub fn model_records(application_directory: &Path) -> Vec<ModelRecord> {
 }
 
 fn public_model_available(application_directory: &Path, record: &ModelRecord) -> bool {
-    let engine_directory = application_directory
-        .join("dependencies/engines")
-        .join(record.engine);
+    let engine_directory = runtime_root(application_directory).join(record.engine);
     let model_path = if record.engine == "realesrgan-ncnn-vulkan" {
         engine_directory.join("models").join(record.model)
     } else {
@@ -166,7 +166,7 @@ fn proprietary_model_available(application_directory: &Path, model: &str) -> boo
         application_directory.join("vendor/models-non-free"),
         application_directory.join("../vendor/models-non-free"),
         application_directory.join("../../vendor/models-non-free"),
-        application_directory.join("dependencies/models-non-free"),
+        application_directory.join("dependencies/non-free"),
         PathBuf::from("/var/cache/image2x-models/non-free"),
     ]);
     roots.iter().any(|root| {

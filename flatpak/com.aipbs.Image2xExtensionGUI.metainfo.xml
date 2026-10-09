@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.aipbs.Image2xExtensionGUI</id>
+  <name>image2x-Extension-GUI</name>
+  <summary>Linux image processing and upscaling</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
+  <launchable type="desktop-id">com.aipbs.Image2xExtensionGUI.desktop</launchable>
+  <description>
+    <p>Process and upscale images with Vulkan-backed Linux engines.</p>
+    <p>Public distributable components and separately licensed non-free models are downloaded only when the user chooses them.</p>
+  </description>
+  <url type="homepage">https://github.com/AIPBS/image2x-Extension-GUI</url>
+  <releases>
+    <release version="1.1.0" date="2026-09-21" />
+  </releases>
+</component>

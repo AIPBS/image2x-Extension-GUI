@@ -19,6 +19,12 @@ public:
 
     QString engineDirectory(RuntimeEngine engine) const;
     QString executable(RuntimeEngine engine) const;
+    QString runtimeDirectory() const;
+    QString installerScriptPath() const;
+    QString proprietaryInstallerScriptPath() const;
+    QString proprietaryModelDirectory() const;
+    bool hasMissingDistributable() const;
+    bool hasMissingProprietaryModels() const;
     QStringList missingFiles(RuntimeEngine engine,
                              const QString &modelRelativePath = QString()) const;
     bool isAvailable(RuntimeEngine engine) const;

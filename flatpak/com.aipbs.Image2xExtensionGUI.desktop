@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=image2x-Extension-GUI
+Comment=Linux image processing and upscaling
+Exec=image2x-Extension-GUI
+Icon=com.aipbs.Image2xExtensionGUI
+Terminal=false
+Type=Application
+Categories=Graphics;Utility;

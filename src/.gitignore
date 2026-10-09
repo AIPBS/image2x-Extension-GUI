@@ -3,6 +3,8 @@
 # Downloaded model weights (pulled separately via scripts/)
 vendor/models-open-source/
 vendor/models-non-free/
+dependencies/distributable/
+dependencies/non-free/
 
 # Qt build artifacts
 *.o

@@ -9,7 +9,7 @@ set -euo pipefail
 
 APPLICATION_DIRECTORY="$(realpath "$1")"
 INPUT_IMAGE="$(realpath "$2")"
-ENGINE_DIRECTORY="${APPLICATION_DIRECTORY}/dependencies/engines"
+ENGINE_DIRECTORY="${APPLICATION_DIRECTORY}/dependencies/distributable"
 OUTPUT_DIRECTORY="$(mktemp -d)"
 RESULTS_FILE="${OUTPUT_DIRECTORY}/matrix.tsv"
 FAILED=0

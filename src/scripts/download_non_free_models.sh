@@ -20,8 +20,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MODELS_DIR="${MODEL_OUTPUT_DIRECTORY:-$SCRIPT_DIR/../vendor/models-non-free}"
+MODELS_DIR="${MODEL_OUTPUT_DIRECTORY:-$SCRIPT_DIR/../dependencies/non-free}"
 UPSTREAM_REPO="${UPSTREAM_REPO:-AaronFeng753/Waifu2x-Extension-GUI}"
+
+report_progress() {
+    printf 'IMAGE2X_PROGRESS %s 1\n' "$1"
+}
 
 # ---- proprietary model manifest ----
 # These are custom-trained by Aaron Feng. Do NOT redistribute.
@@ -135,6 +139,7 @@ copy_models() {
             missing=$((missing + 1))
         fi
     done
+    report_progress 1
 
     echo ""
     echo "Done. $copied of $(( ${#PROPRIETARY_MODELS[@]} )) files copied to $MODELS_DIR/"
@@ -150,6 +155,8 @@ copy_models() {
 }
 
 # ---- main ----
+
+report_progress 0
 
 # Already done?
 if [ -d "$MODELS_DIR" ] && [ "$(ls -A "$MODELS_DIR" 2>/dev/null)" ] && [ "${1:-}" != "--fetch" ] && [ "${1:-}" != "--latest" ]; then

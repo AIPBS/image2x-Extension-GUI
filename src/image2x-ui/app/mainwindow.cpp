@@ -87,6 +87,16 @@ MainWindow::MainWindow(QWidget *parent)
     });
     InitializeCompatibilityCpuCheckboxes();
     InitializeProprietaryCompatibilityModels();
+    const RuntimeDependencies runtimeDependencies(Current_Path);
+#ifdef PLATFORM_LINUX
+    qputenv("IMAGE2X_RUNTIME_DIRECTORY", runtimeDependencies.runtimeDirectory().toUtf8());
+    qputenv("IMAGE2X_PROPRIETARY_MODEL_ROOT",
+            runtimeDependencies.proprietaryModelDirectory().toUtf8());
+#else
+    ui->pushButton_InstallLinuxRuntime->setVisible(false);
+    ui->pushButton_DownloadProprietaryModels->setVisible(false);
+#endif
+    refreshComponentDownloadButtons();
     backendClient->start(QDir(QCoreApplication::applicationDirPath())
                              .filePath(QStringLiteral("image2x-core")),
                          QCoreApplication::applicationDirPath());
@@ -1348,11 +1358,15 @@ void MainWindow::Tip_FirstTimeStart()
         Msg.exec();
         if (Msg.clickedButton() == pYesBtn_English)ui->comboBox_language->setCurrentIndex(0);
         if (Msg.clickedButton() == pYesBtn_Chinese)ui->comboBox_language->setCurrentIndex(1);
-        if (Msg.clickedButton() == pYesBtn_TraditionalChinese)ui->comboBox_language->setCurrentIndex(2);
-        if (Msg.clickedButton() == Msg.button(QMessageBox::Close))ui->comboBox_language->setCurrentIndex(0);
-        on_comboBox_language_currentIndexChanged(0);
-        //======
-        file_generateMarkFile(FirstTimeStart,"");
+         if (Msg.clickedButton() == pYesBtn_TraditionalChinese)ui->comboBox_language->setCurrentIndex(2);
+         if (Msg.clickedButton() == Msg.button(QMessageBox::Close))ui->comboBox_language->setCurrentIndex(0);
+         on_comboBox_language_currentIndexChanged(0);
+         if (!showComponentDownloadDialog())
+         {
+             return;
+         }
+         //======
+         file_generateMarkFile(FirstTimeStart,"");
         on_pushButton_clear_textbrowser_clicked();
         QMessageBox compatibilityPrompt(
             QMessageBox::Question,

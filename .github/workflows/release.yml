@@ -230,7 +230,7 @@ jobs:
         run: |
           (
             cd bundle
-            find dependencies/engines -type f -print0 \
+            find dependencies/distributable -type f -print0 \
               | sort -z \
               | xargs -0 sha256sum
           ) > bundle/runtime-manifest.sha256

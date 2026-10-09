@@ -78,7 +78,7 @@ if ! "$SCRIPT_DIRECTORY/test_linux_model_matrix.sh" "$APPLICATION_DIRECTORY" "$I
     FAILED=1
 fi
 
-ENGINE_DIRECTORY="${APPLICATION_DIRECTORY}/dependencies/engines"
+ENGINE_DIRECTORY="${APPLICATION_DIRECTORY}/dependencies/distributable"
 REALESRGAN="${ENGINE_DIRECTORY}/realesrgan-ncnn-vulkan/realesrgan-ncnn-vulkan"
 if [[ -x "$REALESRGAN" ]]; then
     for model in \

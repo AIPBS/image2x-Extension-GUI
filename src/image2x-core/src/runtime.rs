@@ -56,14 +56,23 @@ const RUNTIMES: &[RuntimeDefinition] = &[
     },
 ];
 
+pub fn runtime_root(application_directory: &Path) -> PathBuf {
+    if let Ok(configured) = std::env::var("IMAGE2X_RUNTIME_DIRECTORY") {
+        if !configured.is_empty() {
+            return PathBuf::from(configured);
+        }
+    }
+    application_directory
+        .join("dependencies")
+        .join("distributable")
+}
+
 pub fn runtime_records(application_directory: &Path) -> Vec<RuntimeRecord> {
+    let runtime_root = runtime_root(application_directory);
     RUNTIMES
         .iter()
         .map(|definition| {
-            let directory = application_directory
-                .join("dependencies")
-                .join("engines")
-                .join(definition.engine);
+            let directory = runtime_root.join(definition.engine);
             let executable = directory.join(definition.executable);
             let mut missing = Vec::new();
             if !directory.is_dir() {

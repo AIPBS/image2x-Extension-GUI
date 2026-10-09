@@ -8,7 +8,7 @@ set -euo pipefail
 }
 
 APPLICATION_DIRECTORY="$(realpath "$1")"
-ENGINES_DIRECTORY="${APPLICATION_DIRECTORY}/dependencies/engines"
+ENGINES_DIRECTORY="${IMAGE2X_RUNTIME_DIRECTORY:-${APPLICATION_DIRECTORY}/dependencies/distributable}"
 WORK_DIRECTORY="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIRECTORY"' EXIT
 MODEL_ARCHIVE="w2x-models-v3.139.01-open-source.tar.gz"
@@ -16,6 +16,12 @@ MODEL_URL="https://github.com/AIPBS/image2x-Extension-GUI/releases/download/open
 MODEL_SHA256="338788588bdc352cbbc9a0ca49ede2dd2ba833d8a9a54dff103708412966fae3"
 MODEL_DIRECTORY="${WORK_DIRECTORY}/open-source-models"
 MODEL_CACHE_DIRECTORY="${MODEL_CACHE_DIRECTORY:-}"
+PROGRESS_TOTAL=10
+PROGRESS_DONE=0
+
+report_progress() {
+    printf 'IMAGE2X_PROGRESS %s %s\n' "$PROGRESS_DONE" "$PROGRESS_TOTAL"
+}
 
 for command in curl sha256sum unzip tar; do
     command -v "$command" >/dev/null 2>&1 || {
@@ -28,6 +34,8 @@ done
     printf 'Application directory does not exist: %s\n' "$APPLICATION_DIRECTORY" >&2
     exit 1
 }
+
+report_progress
 
 mkdir -p "$MODEL_DIRECTORY"
 if [[ -n "${MODEL_SOURCE_DIRECTORY:-}" ]]; then
@@ -47,6 +55,8 @@ else
     fi
     tar -xzf "$MODEL_ARCHIVE_PATH" -C "$MODEL_DIRECTORY" --strip-components=1
 fi
+PROGRESS_DONE=1
+report_progress
 
 merge_models() {
     local engine="$1"
@@ -68,9 +78,21 @@ install_archive() {
     local archive_path="${WORK_DIRECTORY}/${archive}"
     local extract_directory="${WORK_DIRECTORY}/${engine}"
 
-    if [[ -e "$target_directory" ]]; then
-        printf 'Runtime already exists at %s; remove it explicitly before reinstalling.\n' "$target_directory" >&2
-        exit 1
+    local marker="${target_directory}/.image2x-runtime.sha256"
+    if [[ -d "$target_directory" && -f "$marker" ]]; then
+        local installed_sha256
+        installed_sha256="$(<"$marker")"
+        local complete=true
+        [[ "$installed_sha256" == "$sha256" ]] || complete=false
+        [[ -x "${target_directory}/${executable}" ]] || complete=false
+        local required_model
+        for required_model in "$@"; do
+            [[ -d "${target_directory}/${required_model}" ]] || complete=false
+        done
+        if [[ "$complete" == true ]]; then
+            printf 'Runtime %s is already current; skipping download.\n' "$engine"
+            return
+        fi
     fi
 
     printf 'Downloading %s...\n' "$archive"
@@ -108,6 +130,9 @@ install_archive() {
         }
     done
     chmod 700 "$target_directory/$executable"
+    printf '%s\n' "$sha256" > "$marker"
+    PROGRESS_DONE=$((PROGRESS_DONE + 1))
+    report_progress
     printf 'Installed %s at %s\n' "$engine" "$target_directory"
 }
 

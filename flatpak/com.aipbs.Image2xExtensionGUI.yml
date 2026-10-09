@@ -1,0 +1,41 @@
+app-id: com.aipbs.Image2xExtensionGUI
+runtime: org.kde.Platform
+runtime-version: '5.15-24.08'
+sdk: org.kde.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: image2x-Extension-GUI
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --socket=pulseaudio
+  - --share=network
+  - --filesystem=home
+modules:
+  - name: image2x-extension-gui
+    buildsystem: simple
+    build-options:
+      append-path: /usr/lib/sdk/rust-stable/bin
+      env:
+        CARGO_HOME: /run/build/image2x-extension-gui/cargo
+      build-args:
+        - --share=network
+    build-commands:
+      - qmake src/image2x-ui/Waifu2x-Extension-QT.pro CONFIG+=release
+      - make -C src/image2x-ui -j${FLATPAK_BUILDER_N_JOBS}
+      - rm -f src/image2x-ui/language_*.qm
+      - for ts in src/image2x-ui/translations/language_*.ts; do qm="$(basename "${ts%.ts}.qm")"; lrelease "$ts" -qm "src/image2x-ui/$qm"; done
+      - cargo build --release --locked --manifest-path src/image2x-core/Cargo.toml
+      - install -Dm755 src/image2x-ui/image2x-Extension-GUI /app/bin/image2x-Extension-GUI
+      - install -Dm755 src/image2x-core/target/release/image2x-core /app/bin/image2x-core
+      - install -Dm755 src/scripts/install_linux_runtime.sh /app/libexec/image2x/install_linux_runtime.sh
+      - install -Dm755 src/scripts/download_non_free_models.sh /app/libexec/image2x/download_non_free_models.sh
+      - install -Dm644 src/image2x-ui/language_*.qm -t /app/bin
+      - install -Dm644 flatpak/com.aipbs.Image2xExtensionGUI.desktop /app/share/applications/com.aipbs.Image2xExtensionGUI.desktop
+      - install -Dm644 flatpak/com.aipbs.Image2xExtensionGUI.metainfo.xml /app/share/metainfo/com.aipbs.Image2xExtensionGUI.metainfo.xml
+      - install -Dm644 flatpak/com.aipbs.Image2xExtensionGUI.svg /app/share/icons/hicolor/scalable/apps/com.aipbs.Image2xExtensionGUI.svg
+    sources:
+      - type: dir
+        path: ..

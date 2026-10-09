@@ -85,14 +85,17 @@
 
 /*
  * Resolve the directory containing an engine runtime and its models.
- * Packaged Linux builds keep these under dependencies/engines; the original
+ * Packaged Linux builds keep these under dependencies/distributable; the original
  * flat layout remains a fallback for Windows and older installations.
  */
 inline QString resolveEngineDirectory(const QString &baseDir,
                                       const QString &engineName)
 {
-    const QString packagedEngineDirectory = QDir(baseDir).filePath(
-        QStringLiteral("dependencies/engines/%1").arg(engineName));
+    const QString configuredRoot = qEnvironmentVariable("IMAGE2X_RUNTIME_DIRECTORY");
+    const QString runtimeRoot = configuredRoot.isEmpty()
+        ? QDir(baseDir).filePath(QStringLiteral("dependencies/distributable"))
+        : configuredRoot;
+    const QString packagedEngineDirectory = QDir(runtimeRoot).filePath(engineName);
     if (QDir(packagedEngineDirectory).exists())
     {
         return QDir::toNativeSeparators(packagedEngineDirectory);

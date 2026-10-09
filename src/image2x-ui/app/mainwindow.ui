@@ -10946,8 +10946,8 @@ the language for the language settings to fully take effect.</string>
          <property name="horizontalSpacing">
           <number>0</number>
          </property>
-         <item row="2" column="0">
-          <widget class="QPushButton" name="pushButton_compatibilityTest">
+          <item row="2" column="0">
+           <widget class="QPushButton" name="pushButton_compatibilityTest">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -11520,6 +11520,26 @@ https://github.com/MrZihan/Super-resolution-SR-CUDA</string>
               </widget>
              </item>
             </layout>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="pushButton_InstallLinuxRuntime">
+            <property name="toolTip">
+             <string>Install or update distributable engines and public models.</string>
+            </property>
+            <property name="text">
+             <string>Install or update distributable components</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QPushButton" name="pushButton_DownloadProprietaryModels">
+            <property name="toolTip">
+             <string>Download missing proprietary W2xEX model files into the separate non-free directory.</string>
+            </property>
+            <property name="text">
+             <string>Download proprietary W2xEX models</string>
+            </property>
            </widget>
           </item>
          </layout>

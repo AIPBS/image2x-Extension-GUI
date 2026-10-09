@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -12,17 +12,95 @@ jobs:
   test:
     uses: ./.github/workflows/test.yml
 
-  package:
+  gate:
     needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.check.outputs.publish }}
+      tag: ${{ steps.check.outputs.tag }}
+      create_tag: ${{ steps.check.outputs.create_tag }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Check release changelog and GitHub Release state
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          top="$(awk '/^##[[:space:]]/ { print; exit }' CHANGELOG.md)"
+
+          if [[ "$top" =~ ^##[[:space:]]+\[Unreleased\] ]]; then
+            echo 'Top changelog section is Unreleased; running CI only.'
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ ! "$top" =~ ^##[[:space:]]+(v[0-9]+\.[0-9]+\.[0-9]+)([[:space:]]|$) ]]; then
+            echo "Top changelog section is not a version: $top" >&2
+            exit 1
+          fi
+          tag="${BASH_REMATCH[1]}"
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "GitHub Release $tag already exists; running CI only."
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git ls-remote --exit-code --refs origin "refs/tags/$tag" >/dev/null 2>&1; then
+            git fetch --force origin "refs/tags/$tag:refs/tags/$tag"
+            tag_commit="$(git rev-list -n 1 "$tag^{commit}")"
+            [[ "$tag_commit" == "$GITHUB_SHA" ]] || {
+              echo "Existing tag $tag does not point to $GITHUB_SHA." >&2
+              exit 1
+            }
+            create_tag=false
+          else
+            create_tag=true
+          fi
+
+          echo 'publish=true' >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "create_tag=$create_tag" >> "$GITHUB_OUTPUT"
+
+  prepare-release:
+    needs: [test, gate]
+    if: needs.gate.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Create release tag
+        if: needs.gate.outputs.create_tag == 'true'
+        env:
+          RELEASE_TAG: ${{ needs.gate.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git push origin "$RELEASE_TAG"
+
+  package:
+    needs: [test, gate, prepare-release]
+    if: needs.gate.outputs.publish == 'true'
     runs-on: ubuntu-latest
     env:
       GPU_HELPER_REPOSITORY: AIPEACM/gpu-driver-helper
       GH_TOKEN: ${{ secrets.GPU_HELPER_TOKEN || github.token }}
     steps:
       - name: Checkout tagged source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ needs.gate.outputs.tag }}
 
       - name: Install packaging and runtime tools
         run: |
@@ -47,7 +125,7 @@ jobs:
             vulkan-tools
 
       - name: Download tested binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: image2x-tested-binaries
           path: tested/
@@ -125,7 +203,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/image2x-runtime-cache
-           key: image2x-runtime-${{ hashFiles('src/scripts/install_linux_runtime.sh') }}
+          key: image2x-runtime-${{ hashFiles('src/scripts/install_linux_runtime.sh') }}
 
       - name: Install public engines and models
         env:
@@ -163,7 +241,7 @@ jobs:
             --json "$GITHUB_WORKSPACE/model-test-results.json"
 
       - name: Upload release bundle and test evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: image2x-linux-release-bundle
           path: |
@@ -173,16 +251,17 @@ jobs:
       - name: Create GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.gate.outputs.tag }}
         run: |
           set -euo pipefail
           version=''
-           version="$(awk -F '"' '/QString VERSION/{print $2; exit}' src/image2x-ui/mainwindow.h)"
-          [[ "$version" == "${GITHUB_REF_NAME}" ]] || {
-            echo "Tag ${GITHUB_REF_NAME} does not match application version ${version}." >&2
+          version="$(awk -F '"' '/QString VERSION/{print $2; exit}' src/image2x-ui/app/mainwindow.h)"
+          [[ "$version" == "${RELEASE_TAG}" ]] || {
+            echo "Tag ${RELEASE_TAG} does not match application version ${version}." >&2
             exit 1
           }
           tar -czf image2x-Extension-GUI-linux.tar.gz -C bundle .
-          gh release create "$GITHUB_REF_NAME" image2x-Extension-GUI-linux.tar.gz \
+          gh release create "$RELEASE_TAG" image2x-Extension-GUI-linux.tar.gz \
             --repo "$GITHUB_REPOSITORY" \
-            --title "image2x-Extension-GUI $GITHUB_REF_NAME" \
+            --title "image2x-Extension-GUI $RELEASE_TAG" \
             --generate-notes

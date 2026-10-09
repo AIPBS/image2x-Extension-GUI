@@ -1,5 +1,11 @@
 # Change log
 
+## [Unreleased]
+
+### Changed
+- Run CI-only for unreleased changes and let the release workflow create a
+  version tag and GitHub Release only for a new versioned changelog section.
+
 ## v1.1.0 (2026-09-21)
 
 ### Added

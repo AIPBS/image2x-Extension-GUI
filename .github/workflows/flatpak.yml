@@ -1,0 +1,156 @@
+name: Flatpak Pages
+
+on:
+  workflow_run:
+    workflows:
+      - Release
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.check.outputs.publish }}
+      tag: ${{ steps.check.outputs.tag }}
+    steps:
+      - name: Checkout released source
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Require a versioned release changelog
+        id: check
+        run: |
+          set -euo pipefail
+          top="$(awk '/^##[[:space:]]/ { print; exit }' CHANGELOG.md)"
+          if [[ "$top" =~ ^##[[:space:]]+(v[0-9]+\.[0-9]+\.[0-9]+)([[:space:]]|$) ]]; then
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+            echo "tag=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          else
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: gate
+    if: needs.gate.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      FLATPAK_GPG_PRIVATE_KEY: ${{ secrets.IMAGE2X_FLATPAK_GPG_PRIVATE_KEY }}
+    steps:
+      - name: Checkout released source
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.gate.outputs.tag }}
+
+      - name: Install Flatpak build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder ostree gnupg curl
+          flatpak remote-add --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+
+      - name: Import the Flatpak signing key
+        id: signing
+        run: |
+          set -euo pipefail
+          test -n "$FLATPAK_GPG_PRIVATE_KEY" || {
+            echo 'IMAGE2X_FLATPAK_GPG_PRIVATE_KEY is not configured.' >&2
+            exit 1
+          }
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          mkdir -m 700 "$GNUPGHOME"
+          printf '%s' "$FLATPAK_GPG_PRIVATE_KEY" | gpg --batch --import
+          key_id="$(gpg --batch --with-colons --list-secret-keys \
+            | awk -F: '$1 == "sec" { print $5; exit }')"
+          test -n "$key_id"
+          echo "key_id=$key_id" >> "$GITHUB_OUTPUT"
+          gpg --batch --export "$key_id" | base64 -w0 > "$RUNNER_TEMP/flatpak-public-key"
+
+      - name: Preserve the existing Pages OSTree repository
+        env:
+          PAGES_BASE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+          mkdir -p repo
+          if curl --fail --silent --show-error "$PAGES_BASE/repo/summary" \
+              -o "$RUNNER_TEMP/flatpak-summary"; then
+            ostree init --repo=repo --mode=archive-z
+            ostree remote add --repo=repo pages "$PAGES_BASE/repo"
+            ostree pull --repo=repo --mirror pages
+          fi
+
+      - name: Build the Flatpak and update the OSTree repository
+        env:
+          KEY_ID: ${{ steps.signing.outputs.key_id }}
+        run: |
+          set -euo pipefail
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          flatpak-builder \
+            --user \
+            --install-deps-from=flathub \
+            --force-clean \
+            --default-branch=stable \
+            --gpg-sign="$KEY_ID" \
+            --repo=repo \
+            flatpak-build \
+            flatpak/com.aipbs.Image2xExtensionGUI.yml
+          flatpak build-update-repo repo \
+            --gpg-sign="$KEY_ID" \
+            --generate-static-deltas \
+            --prune \
+            --prune-depth=20
+
+      - name: Assemble GitHub Pages content
+        env:
+          KEY_ID: ${{ steps.signing.outputs.key_id }}
+          PAGES_BASE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+          mkdir -p pages/repo
+          cp -a repo/. pages/repo/
+          public_key="$(tr -d '\n' < "$RUNNER_TEMP/flatpak-public-key")"
+          cat > pages/com.aipbs.Image2xExtensionGUI.flatpakrepo <<EOF
+          [Flatpak Repo]
+          Title=image2x-Extension-GUI
+          Url=$PAGES_BASE/repo
+          Homepage=https://github.com/$GITHUB_REPOSITORY
+          Comment=Incremental Flatpak updates for image2x-Extension-GUI
+          Description=The official image2x-Extension-GUI Flatpak repository.
+          GPGKey=$public_key
+          EOF
+          cp flatpak/com.aipbs.Image2xExtensionGUI.svg \
+            pages/com.aipbs.Image2xExtensionGUI.svg
+          cat > pages/index.html <<EOF
+          <!doctype html>
+          <meta charset="utf-8">
+          <title>image2x-Extension-GUI Flatpak</title>
+          <p><a href="com.aipbs.Image2xExtensionGUI.flatpakrepo">Add the image2x-Extension-GUI Flatpak repository</a>.</p>
+          EOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Deploy Flatpak repository to GitHub Pages
+        uses: actions/deploy-pages@v4

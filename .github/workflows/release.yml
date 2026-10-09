@@ -130,14 +130,7 @@ jobs:
              imagemagick \
              libvulkan1 \
              mesa-vulkan-drivers \
-             vulkan-tools \
-             flatpak \
-             flatpak-builder
-
-      - name: Add Flathub for disposable Flatpak build
-        run: |
-          flatpak remote-add --if-not-exists flathub \
-            https://dl.flathub.org/repo/flathub.flatpakrepo
+             vulkan-tools
 
       - name: Download tested binaries
         env:
@@ -269,22 +262,6 @@ jobs:
             bundle/
             model-test-results.json
 
-      - name: Build Flatpak in the disposable release runner
-        run: |
-          set -euo pipefail
-          flatpak-builder \
-            --user \
-            --install-deps-from=flathub \
-            --force-clean \
-            --repo=flatpak-repo \
-            flatpak-build \
-            flatpak/com.aipbs.Image2xExtensionGUI.yml
-          flatpak build-bundle \
-            flatpak-repo \
-            image2x-Extension-GUI.flatpak \
-            com.aipbs.Image2xExtensionGUI \
-            stable
-
       - name: Create GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -298,9 +275,7 @@ jobs:
             exit 1
           }
            tar -czf image2x-Extension-GUI-linux.tar.gz -C bundle .
-           gh release create "$RELEASE_TAG" \
-             image2x-Extension-GUI-linux.tar.gz \
-             image2x-Extension-GUI.flatpak \
+           gh release create "$RELEASE_TAG" image2x-Extension-GUI-linux.tar.gz \
              --repo "$GITHUB_REPOSITORY" \
             --title "image2x-Extension-GUI $RELEASE_TAG" \
             --generate-notes

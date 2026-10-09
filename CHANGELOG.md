@@ -1,6 +1,6 @@
 # Change log
 
-## [Unreleased]
+## v1.2.0 (2026-10-09)
 
 ### Changed
 - Run standalone CI for unreleased changes, and let the release workflow use
@@ -9,8 +9,8 @@
 - Add a first-run component download panel with separate distributable and
   non-free choices, persistent component directories, progress reporting, and
   later install buttons when components are missing.
-- Build the Flatpak in the disposable release runner so its OSTree app updates
-  remain incremental without adding SDK/runtime storage to the project workspace.
+- Publish a signed Flatpak OSTree repository to GitHub Pages so app updates are
+  incremental without adding SDK/runtime storage to the project workspace.
 
 ## v1.1.0 (2026-09-21)
 

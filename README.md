@@ -4,14 +4,6 @@ Cross-platform rebuild derived from Aaron Feng's Waifu2x-Extension-GUI.
 Renamed as image2x-Extension-GUI for distinguishing purpose, but also clearly stating that this a fork.
 Created because w2x does not work well on linux.
 
-## Versions
-
-| What | Version | License |
-|------|---------|---------|
-| **This project** |  | AGPLv3 |
-| Aaron Feng original source | v3.41.01-beta | AGPLv3 |
-| Aaron Feng latest binary | v3.139.01 | Proprietary |
-
 ## Structure
 
 ```
@@ -89,9 +81,7 @@ are downloaded into the persistent `dependencies/distributable/` and
 Flatpak updates therefore reuse unchanged OSTree objects instead of replacing
 the whole application payload.
 
-The release workflow builds the Flatpak in its disposable GitHub Actions
-runner. Do not install the Flatpak SDK or runtime into the application
-workspace.
+The Flatpak Pages workflow builds and publishes a signed OSTree repository.
 
 For a separate disposable build environment:
 

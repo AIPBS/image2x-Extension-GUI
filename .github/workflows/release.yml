@@ -219,7 +219,15 @@ jobs:
           path: ${{ runner.temp }}/image2x-runtime-cache
           key: image2x-runtime-${{ hashFiles('src/scripts/install_linux_runtime.sh') }}
 
+      - name: Cache assembled distributable components
+        id: distributable-cache
+        uses: actions/cache@v4
+        with:
+          path: bundle/dependencies/distributable
+          key: image2x-distributable-${{ hashFiles('src/scripts/install_linux_runtime.sh') }}
+
       - name: Install public engines and models
+        if: steps.distributable-cache.outputs.cache-hit != 'true'
         env:
           MODEL_CACHE_DIRECTORY: ${{ runner.temp }}/image2x-runtime-cache/models
           RUNTIME_CACHE_DIRECTORY: ${{ runner.temp }}/image2x-runtime-cache/runtimes

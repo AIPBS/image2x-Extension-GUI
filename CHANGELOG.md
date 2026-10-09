@@ -1,5 +1,7 @@
 # Change log
 
+## [Unreleased]
+
 ## v1.2.0 (2026-10-09)
 
 ### Changed

@@ -1,19 +1,23 @@
 name: Release
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - Test
+    types:
+      - completed
     branches:
       - main
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
-  test:
-    uses: ./.github/workflows/test.yml
-
   gate:
-    needs: test
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     outputs:
       publish: ${{ steps.check.outputs.publish }}
@@ -24,11 +28,13 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Check release changelog and GitHub Release state
         id: check
         env:
           GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           top="$(awk '/^##[[:space:]]/ { print; exit }' CHANGELOG.md)"
@@ -54,8 +60,8 @@ jobs:
           if git ls-remote --exit-code --refs origin "refs/tags/$tag" >/dev/null 2>&1; then
             git fetch --force origin "refs/tags/$tag:refs/tags/$tag"
             tag_commit="$(git rev-list -n 1 "$tag^{commit}")"
-            [[ "$tag_commit" == "$GITHUB_SHA" ]] || {
-              echo "Existing tag $tag does not point to $GITHUB_SHA." >&2
+            [[ "$tag_commit" == "$SOURCE_SHA" ]] || {
+              echo "Existing tag $tag does not point to $SOURCE_SHA." >&2
               exit 1
             }
             create_tag=false
@@ -68,7 +74,7 @@ jobs:
           echo "create_tag=$create_tag" >> "$GITHUB_OUTPUT"
 
   prepare-release:
-    needs: [test, gate]
+    needs: gate
     if: needs.gate.outputs.publish == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -76,20 +82,22 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Create release tag
         if: needs.gate.outputs.create_tag == 'true'
         env:
           RELEASE_TAG: ${{ needs.gate.outputs.tag }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git tag "$RELEASE_TAG" "$GITHUB_SHA"
+          git tag "$RELEASE_TAG" "$SOURCE_SHA"
           git push origin "$RELEASE_TAG"
 
   package:
-    needs: [test, gate, prepare-release]
+    needs: [gate, prepare-release]
     if: needs.gate.outputs.publish == 'true'
     runs-on: ubuntu-latest
     env:
@@ -125,10 +133,16 @@ jobs:
             vulkan-tools
 
       - name: Download tested binaries
-        uses: actions/download-artifact@v8
-        with:
-          name: image2x-tested-binaries
-          path: tested/
+        env:
+          CI_RUN_ID: ${{ github.event.workflow_run.id }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p tested
+          gh run download "$CI_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name image2x-tested-binaries \
+            --dir tested
 
       - name: Restore executable permissions
         run: chmod +x tested/image2x-Extension-GUI tested/image2x-model-tests

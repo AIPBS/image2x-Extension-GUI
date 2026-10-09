@@ -3,8 +3,9 @@
 ## [Unreleased]
 
 ### Changed
-- Run CI-only for unreleased changes and let the release workflow create a
-  version tag and GitHub Release only for a new versioned changelog section.
+- Run standalone CI for unreleased changes, and let the release workflow use
+  successful CI as its prerequisite before creating a tag and GitHub Release
+  for a new versioned changelog section.
 
 ## v1.1.0 (2026-09-21)
 

@@ -4,17 +4,17 @@ on:
   push:
     branches:
       - '**'
-      - '!main'
     paths:
       - 'src/**'
       - '.github/workflows/**'
+      - 'CHANGELOG.md'
   pull_request:
     branches:
       - main
     paths:
       - 'src/**'
       - '.github/workflows/**'
-  workflow_call:
+      - 'CHANGELOG.md'
 
 permissions:
   contents: read

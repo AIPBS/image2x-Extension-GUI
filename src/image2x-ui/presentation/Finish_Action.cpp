@@ -36,12 +36,12 @@ int MainWindow::SystemShutDown_Countdown()
             }
         case 2:
             {
-                QProcess::execute(Current_Path+"/nircmd-x64/nircmd.exe standby");
+                QProcess::execute(Current_Path+"/nircmd-x64/nircmd.exe", {QStringLiteral("standby")});
                 break;
             }
         case 3:
             {
-                QProcess::execute(Current_Path+"/nircmd-x64/nircmd.exe hibernate");
+                QProcess::execute(Current_Path+"/nircmd-x64/nircmd.exe", {QStringLiteral("hibernate")});
                 break;
             }
     }

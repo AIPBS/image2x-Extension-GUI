@@ -127,7 +127,7 @@ int MainWindow::Waifu2x_Caffe_Image(int rowNum,bool ReProcess_MissingAlphaChanne
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
         QProcess *Waifu2x = new QProcess();
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
         {
@@ -543,7 +543,7 @@ int MainWindow::Waifu2x_Caffe_GIF_scale(QMap<QString, QString> Sub_Thread_info,i
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
         {
@@ -716,12 +716,10 @@ int MainWindow::Waifu2x_Caffe_Video(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -734,7 +732,6 @@ int MainWindow::Waifu2x_Caffe_Video(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -977,7 +974,6 @@ int MainWindow::Waifu2x_Caffe_Video_BySegment(int rowNum)
     int ScaleRatio = ui->doubleSpinBox_ScaleRatio_video->value();
     int DenoiseLevel = ui->spinBox_DenoiseLevel_video->value();
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
-    bool isCacheExists = false;
     bool isVideoConfigChanged = true;
     int Sub_video_ThreadNumRunning = 0;
     int SegmentDuration = ui->spinBox_SegmentDuration->value();
@@ -1119,12 +1115,10 @@ int MainWindow::Waifu2x_Caffe_Video_BySegment(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -1138,7 +1132,6 @@ int MainWindow::Waifu2x_Caffe_Video_BySegment(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -1552,7 +1545,7 @@ int MainWindow::Waifu2x_Caffe_Video_scale(QMap<QString,QString> Sub_Thread_info,
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
         {
@@ -1794,7 +1787,7 @@ void MainWindow::DeleteErrorLog_Waifu2xCaffe()
     }
 }
 
-void MainWindow::on_checkBox_EnableMultiGPU_Waifu2xCaffe_stateChanged(int arg1)
+void MainWindow::on_checkBox_EnableMultiGPU_Waifu2xCaffe_stateChanged(int)
 {
     if(ui->checkBox_EnableMultiGPU_Waifu2xCaffe->isChecked())
     {
@@ -1820,7 +1813,7 @@ void MainWindow::on_checkBox_EnableMultiGPU_Waifu2xCaffe_stateChanged(int arg1)
     }
 }
 
-void MainWindow::on_comboBox_ProcessMode_Waifu2xCaffe_currentIndexChanged(int index)
+void MainWindow::on_comboBox_ProcessMode_Waifu2xCaffe_currentIndexChanged(int)
 {
     if(ui->comboBox_ProcessMode_Waifu2xCaffe->currentIndex()==0)
     {
@@ -2107,7 +2100,7 @@ int MainWindow::Waifu2x_Caffe_APNG_scale(QMap<QString, QString> Sub_Thread_info,
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
         {

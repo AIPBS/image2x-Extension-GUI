@@ -125,7 +125,7 @@ QMap<QString,int> MainWindow::Image_Gif_Read_Resolution(QString SourceFileFullPa
 {
     QString program = Current_Path+"/identify_waifu2xEX.exe";
     QProcess QProcess_Read_Resolution;
-    QProcess_Read_Resolution.start("\""+program+"\" -format \"%w:%h;success;\" \""+SourceFileFullPath+"\"");
+    StartProcessCommand(QProcess_Read_Resolution, "\""+program+"\" -format \"%w:%h;success;\" \""+SourceFileFullPath+"\"");
     while(!QProcess_Read_Resolution.waitForStarted(100)&&!QProcess_stop) {}
     while(!QProcess_Read_Resolution.waitForFinished(100)&&!QProcess_stop) {}
     QString QProcess_Read_Resolution_OutputStr = QProcess_Read_Resolution.readAllStandardOutput().trimmed();
@@ -246,7 +246,7 @@ QString MainWindow::SaveImageAs_FormatAndQuality(QString OriginalSourceImage_ful
     QString program = Current_Path+"/convert_waifu2xEX.exe";
     QFile::remove(FinalFile_FullPath);
     QProcess SaveImageAs_QProcess;
-    SaveImageAs_QProcess.start("\""+program+"\" \""+ScaledImage_fullPath+"\" -quality "+QString::number(ImageQualityLevel,10)+" \""+FinalFile_FullPath+"\"");
+    StartProcessCommand(SaveImageAs_QProcess, "\""+program+"\" \""+ScaledImage_fullPath+"\" -quality "+QString::number(ImageQualityLevel,10)+" \""+FinalFile_FullPath+"\"");
     while(!SaveImageAs_QProcess.waitForStarted(100)&&!QProcess_stop) {}
     while(!SaveImageAs_QProcess.waitForFinished(100)&&!QProcess_stop) {}
     //======
@@ -264,7 +264,7 @@ QString MainWindow::SaveImageAs_FormatAndQuality(QString OriginalSourceImage_ful
 /*
 根据保存的格式判断是否要启用 质量等级 调整
 */
-void MainWindow::on_comboBox_ImageSaveFormat_currentIndexChanged(int index)
+void MainWindow::on_comboBox_ImageSaveFormat_currentIndexChanged(int)
 {
     if(ui->comboBox_ImageSaveFormat->currentIndex()>2)
     {
@@ -326,7 +326,7 @@ QString MainWindow::Imgae_PreProcess(QString ImagePath,bool ReProcess_AlphaChann
         QFile::remove(OutPut_Path_FinalPNG);
         QProcess Convert2PNG;
         //先转换到质量99的webp
-        Convert2PNG.start("\""+program+"\" \""+ImagePath+"\" -quality 99 \""+OutPut_Path_WebpCache+"\"");
+        StartProcessCommand(Convert2PNG, "\""+program+"\" \""+ImagePath+"\" -quality 99 \""+OutPut_Path_WebpCache+"\"");
         while(!Convert2PNG.waitForStarted(100)&&!QProcess_stop) {}
         while(!Convert2PNG.waitForFinished(100)&&!QProcess_stop) {}
         if(QFile::exists(OutPut_Path_WebpCache)==false)
@@ -335,7 +335,7 @@ QString MainWindow::Imgae_PreProcess(QString ImagePath,bool ReProcess_AlphaChann
             return ImagePath;
         }
         //再转换回PNG
-        Convert2PNG.start("\""+program+"\" \""+OutPut_Path_WebpCache+"\" -quality 100 \""+OutPut_Path_FinalPNG+"\"");
+        StartProcessCommand(Convert2PNG, "\""+program+"\" \""+OutPut_Path_WebpCache+"\" -quality 100 \""+OutPut_Path_FinalPNG+"\"");
         while(!Convert2PNG.waitForStarted(100)&&!QProcess_stop) {}
         while(!Convert2PNG.waitForFinished(100)&&!QProcess_stop) {}
         QFile::remove(OutPut_Path_WebpCache);
@@ -370,7 +370,7 @@ QString MainWindow::Imgae_PreProcess(QString ImagePath,bool ReProcess_AlphaChann
     QString program = Current_Path+"/convert_waifu2xEX.exe";
     QFile::remove(OutPut_Path);
     QProcess Convert2PNG;
-    Convert2PNG.start("\""+program+"\" \""+ImagePath+"\" \""+OutPut_Path+"\"");
+        StartProcessCommand(Convert2PNG, "\""+program+"\" \""+ImagePath+"\" \""+OutPut_Path+"\"");
     while(!Convert2PNG.waitForStarted(100)&&!QProcess_stop) {}
     while(!Convert2PNG.waitForFinished(100)&&!QProcess_stop) {}
     //======

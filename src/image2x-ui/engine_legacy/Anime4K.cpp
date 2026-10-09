@@ -118,7 +118,7 @@ int MainWindow::Anime4k_Image(int rowNum,bool ReProcess_MissingAlphaChannel)
     //========
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Waifu2x->start(CMD);
+        StartProcessCommand(Waifu2x, CMD);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
         {
@@ -524,7 +524,7 @@ int MainWindow::Anime4k_GIF_scale(QMap<QString,QString> Sub_Thread_info,int *Sub
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Anime4k->start(CMD);
+        StartProcessCommand(Anime4k, CMD);
         while(!Anime4k->waitForStarted(100)&&!QProcess_stop) {}
         while(!Anime4k->waitForFinished(500)&&!QProcess_stop)
         {
@@ -698,12 +698,10 @@ int MainWindow::Anime4k_Video(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -716,7 +714,6 @@ int MainWindow::Anime4k_Video(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -967,7 +964,6 @@ int MainWindow::Anime4k_Video_BySegment(int rowNum)
     //============================= 读取设置 ================================
     int ScaleRatio = ui->doubleSpinBox_ScaleRatio_video->value();
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
-    bool isCacheExists = false;
     bool isVideoConfigChanged = true;
     int Sub_video_ThreadNumRunning = 0;
     int SegmentDuration = ui->spinBox_SegmentDuration->value();
@@ -1108,12 +1104,10 @@ int MainWindow::Anime4k_Video_BySegment(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -1127,7 +1121,6 @@ int MainWindow::Anime4k_Video_BySegment(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -1529,7 +1522,7 @@ int MainWindow::Anime4k_Video_scale(QMap<QString,QString> Sub_Thread_info,int *S
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Anime4k->start(CMD);
+        StartProcessCommand(Anime4k, CMD);
         while(!Anime4k->waitForStarted(100)&&!QProcess_stop) {}
         while(!Anime4k->waitForFinished(500)&&!QProcess_stop)
         {
@@ -1887,7 +1880,7 @@ void MainWindow::isForceRetryClicked_SetTrue_Block_Anime4k()
     QProcess Get_tasklist;
     do
     {
-        Get_tasklist.start("tasklist /fo csv");
+        StartProcessCommand(Get_tasklist, "tasklist /fo csv");
         while(!Get_tasklist.waitForStarted(100)) {}
         while(!Get_tasklist.waitForFinished(100)) {}
         if(Get_tasklist.readAllStandardOutput().contains("Anime4K_waifu2xEX.exe")==false)
@@ -2128,7 +2121,7 @@ int MainWindow::Anime4k_APNG_scale(QMap<QString,QString> Sub_Thread_info,int *Su
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Anime4k->start(CMD);
+        StartProcessCommand(Anime4k, CMD);
         while(!Anime4k->waitForStarted(100)&&!QProcess_stop) {}
         while(!Anime4k->waitForFinished(500)&&!QProcess_stop)
         {

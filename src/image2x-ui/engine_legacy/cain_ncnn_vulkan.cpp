@@ -29,7 +29,7 @@
 
 // ===================== CAIN Frame Interpolation =====================
 
-int MainWindow::Cain_FrameInterpolation(int rowNum) {
+int MainWindow::Cain_FrameInterpolation(int) {
     /*
     CAIN-NCNN-Vulkan frame interpolation.
     Model: cain.bin (82MB, single largest model in the bundle)

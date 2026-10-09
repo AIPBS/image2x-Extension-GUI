@@ -47,12 +47,31 @@
 #define PLATFORM_COMPAT_H
 
 #include <QString>
+#include <QStringList>
 #include <QDir>
 #include <QFile>
 #include <QProcess>
 #include <QStandardPaths>
 #include <QThread>
 #include <QCoreApplication>
+
+inline void StartProcessCommand(QProcess &process, const QString &command)
+{
+    const QStringList arguments = QProcess::splitCommand(command);
+    if (arguments.isEmpty())
+    {
+        return;
+    }
+    process.start(arguments.constFirst(), arguments.mid(1));
+}
+
+inline void StartProcessCommand(QProcess *process, const QString &command)
+{
+    if (process != nullptr)
+    {
+        StartProcessCommand(*process, command);
+    }
+}
 
 // Platform detection macros are defined in the .pro file:
 //   win32       -> PLATFORM_WINDOWS

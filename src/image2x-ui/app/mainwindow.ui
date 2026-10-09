@@ -35,9 +35,6 @@
   <property name="windowTitle">
    <string notr="true">image2x-Extension-GUI</string>
   </property>
-  <property name="windowIcon">
-     <iconset/>
-  </property>
   <property name="styleSheet">
    <string notr="true"/>
   </property>
@@ -231,9 +228,6 @@ padding:10px;
              <property name="text">
               <string notr="true"> PayPal</string>
              </property>
-             <property name="icon">
-               <iconset/>
-             </property>
              <property name="iconSize">
               <size>
                <width>38</width>
@@ -295,9 +289,6 @@ padding:10px;
              </property>
              <property name="text">
               <string> Get Premium version on Patreon</string>
-             </property>
-             <property name="icon">
-              <iconset/>
              </property>
              <property name="iconSize">
               <size>
@@ -531,9 +522,6 @@ padding:10px;
           <pointsize>9</pointsize>
          </font>
         </property>
-        <attribute name="icon">
-          <iconset/>
-        </attribute>
         <attribute name="title">
          <string>Home</string>
         </attribute>
@@ -641,9 +629,6 @@ padding:10px;
               </property>
               <property name="text">
                <string>Start</string>
-              </property>
-              <property name="icon">
-                 <iconset/>
               </property>
               <property name="iconSize">
                <size>
@@ -781,9 +766,6 @@ padding:10px;
               <property name="text">
                <string>Force retry</string>
               </property>
-              <property name="icon">
-                 <iconset/>
-              </property>
               <property name="iconSize">
                <size>
                 <width>25</width>
@@ -838,9 +820,6 @@ padding:10px;
               </property>
               <property name="text">
                <string>Pause</string>
-              </property>
-              <property name="icon">
-                 <iconset/>
               </property>
               <property name="iconSize">
                <size>
@@ -3417,9 +3396,6 @@ then the result video will be 120 fps.</string>
         </layout>
        </widget>
        <widget class="QWidget" name="tab_EngineSettings">
-        <attribute name="icon">
-           <iconset/>
-        </attribute>
         <attribute name="title">
          <string>Engine settings</string>
         </attribute>
@@ -7953,9 +7929,6 @@ padding:10px;
          </layout>
         </widget>
         <widget class="QWidget" name="tab_VideoSettings">
-        <attribute name="icon">
-           <iconset/>
-        </attribute>
         <attribute name="title">
          <string>Video settings</string>
         </attribute>
@@ -9493,9 +9466,6 @@ will increase the time required to process video.</string>
         </layout>
        </widget>
        <widget class="QWidget" name="tab_AdditionalSettings">
-        <attribute name="icon">
-           <iconset/>
-        </attribute>
         <attribute name="title">
          <string>Additional settings</string>
         </attribute>
@@ -10829,9 +10799,6 @@ the language for the language settings to fully take effect.</string>
         </layout>
         </widget>
         <widget class="QWidget" name="tab_ImageSettings">
-         <attribute name="icon">
-            <iconset/>
-         </attribute>
          <attribute name="title">
           <string>Image settings</string>
          </attribute>
@@ -10924,9 +10891,6 @@ the language for the language settings to fully take effect.</string>
          </layout>
         </widget>
         <widget class="QWidget" name="tab_CompatibilityTest">
-        <attribute name="icon">
-           <iconset/>
-        </attribute>
         <attribute name="title">
          <string>Compatibility test</string>
         </attribute>

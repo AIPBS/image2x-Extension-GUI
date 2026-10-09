@@ -576,7 +576,7 @@ bool MainWindow::file_OpenFolder(QString FolderPath)
     if(file_isDirExist(FolderPath))
     {
         FolderPath= FolderPath.replace("/","\\");
-        QProcess::execute("explorer \""+FolderPath+"\"");
+        QProcess::execute(QStringLiteral("explorer"), {FolderPath});
         return true;
     }
     else
@@ -625,5 +625,4 @@ bool MainWindow::file_generateMarkFile(QString FileFullPath,QString Msg)
     }
     return file.exists();
 }
-
 

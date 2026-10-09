@@ -1064,7 +1064,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -t 32 -m " + "\"" + model_path + "\"" + " -j 1:1:1";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        Waifu2x_vulkan->start(cmd);
+        StartProcessCommand(Waifu2x_vulkan, cmd);
         if(Waifu2x_vulkan->waitForStarted(30000))
         {
             while(!Waifu2x_vulkan->waitForFinished(100)&&!QProcess_stop) {}
@@ -1100,7 +1100,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -t 32 -m " + "\"" + model_path + "\"" + " -j 1:1:1";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        Waifu2x_vulkan_old->start(cmd);
+        StartProcessCommand(Waifu2x_vulkan_old, cmd);
         if(Waifu2x_vulkan_old->waitForStarted(30000))
         {
             while(!Waifu2x_vulkan_old->waitForFinished(100)&&!QProcess_stop) {}
@@ -1136,7 +1136,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -t 32 -m " + "\"" + model_path + "\"" + " -j 1:1:1";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        Waifu2x_vulkan_fp16p->start(cmd);
+        StartProcessCommand(Waifu2x_vulkan_fp16p, cmd);
         if(Waifu2x_vulkan_fp16p->waitForStarted(30000))
         {
             while(!Waifu2x_vulkan_fp16p->waitForFinished(100)&&!QProcess_stop) {}
@@ -1175,7 +1175,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QProcess *Waifu2x_converter = new QProcess();
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        Waifu2x_converter->start(cmd);
+        StartProcessCommand(Waifu2x_converter, cmd);
         if(Waifu2x_converter->waitForStarted(30000))
         {
             while(!Waifu2x_converter->waitForFinished(100)&&!QProcess_stop) {}
@@ -1204,7 +1204,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QProcess *Waifu2x_anime4k = new QProcess();
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        Waifu2x_anime4k->start(cmd);
+        StartProcessCommand(Waifu2x_anime4k, cmd);
         if(Waifu2x_anime4k->waitForStarted(30000))
         {
             while(!Waifu2x_anime4k->waitForFinished(100)&&!QProcess_stop) {}
@@ -1232,7 +1232,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QProcess *Waifu2x_anime4k_gpu = new QProcess();
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        Waifu2x_anime4k_gpu->start(cmd);
+        StartProcessCommand(Waifu2x_anime4k_gpu, cmd);
         if(Waifu2x_anime4k_gpu->waitForStarted(30000))
         {
             while(!Waifu2x_anime4k_gpu->waitForFinished(100)&&!QProcess_stop) {}
@@ -1261,7 +1261,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -t 32 -m " + "\"" + model_path + "\"" + " -j 1:1:1";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        SRMD_NCNN_VULKAN->start(cmd);
+        StartProcessCommand(SRMD_NCNN_VULKAN, cmd);
         if(SRMD_NCNN_VULKAN->waitForStarted(30000))
         {
             while(!SRMD_NCNN_VULKAN->waitForFinished(100)&&!QProcess_stop) {}
@@ -1299,7 +1299,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -p cpu -m noise_scale -s 2 -n 1 -c 32 -b 1 --model_dir " + "\"" + model_path + "\"";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        Waifu2x_Caffe_CPU_qprocess->start(cmd);
+        StartProcessCommand(Waifu2x_Caffe_CPU_qprocess, cmd);
         if(Waifu2x_Caffe_CPU_qprocess->waitForStarted(30000))
         {
             while(!Waifu2x_Caffe_CPU_qprocess->waitForFinished(100)&&!QProcess_stop) {}
@@ -1328,7 +1328,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -p gpu -m noise_scale -s 2 -n 1 -c 32 -b 1 --model_dir " + "\"" + model_path + "\"";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        Waifu2x_Caffe_GPU_qprocess->start(cmd);
+        StartProcessCommand(Waifu2x_Caffe_GPU_qprocess, cmd);
         if(Waifu2x_Caffe_GPU_qprocess->waitForStarted(30000))
         {
             while(!Waifu2x_Caffe_GPU_qprocess->waitForFinished(100)&&!QProcess_stop) {}
@@ -1357,7 +1357,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -p cudnn -m noise_scale -s 2 -n 1 -c 32 -b 1 --model_dir " + "\"" + model_path + "\"";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        Waifu2x_Caffe_cuDNN_qprocess->start(cmd);
+        StartProcessCommand(Waifu2x_Caffe_cuDNN_qprocess, cmd);
         if(Waifu2x_Caffe_cuDNN_qprocess->waitForStarted(30000))
         {
             Waifu2x_Caffe_cuDNN_qprocess->waitForFinished(70000);
@@ -1386,7 +1386,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 4 -t 32 -m " + "\"" + model_path + "\"";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        realsr_ncnn_vulkan_qprocess->start(cmd);
+        StartProcessCommand(realsr_ncnn_vulkan_qprocess, cmd);
         if(realsr_ncnn_vulkan_qprocess->waitForStarted(30000))
         {
             while(!realsr_ncnn_vulkan_qprocess->waitForFinished(100)&&!QProcess_stop) {}
@@ -1424,7 +1424,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -m \""+model_path+"\"";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        SRMD_CUDA->start(cmd);
+        StartProcessCommand(SRMD_CUDA, cmd);
         if(SRMD_CUDA->waitForStarted(30000))
         {
             while(!SRMD_CUDA->waitForFinished(100)&&!QProcess_stop) {}
@@ -1451,7 +1451,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX.exe";
     QFile::remove(ffmpeg_AudioPath);
     QProcess ffmpeg_QProcess;
-    ffmpeg_QProcess.start("\""+ffmpeg_path+"\" -y -i \""+ffmpeg_VideoPath+"\" \""+ffmpeg_AudioPath+"\"");
+    StartProcessCommand(ffmpeg_QProcess, "\""+ffmpeg_path+"\" -y -i \""+ffmpeg_VideoPath+"\" \""+ffmpeg_AudioPath+"\"");
     if(ffmpeg_QProcess.waitForStarted(30000))
     {
         while(!ffmpeg_QProcess.waitForFinished(100)&&!QProcess_stop) {}
@@ -1475,7 +1475,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     //========================= 调用ffprobe读取视频信息 ======================
     QProcess *FFprobe_Get_Duration_process = new QProcess();
     QString FFprobe_cmd = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+FFprobe_VideoPath+"\" -v quiet -print_format ini -show_format";
-    FFprobe_Get_Duration_process->start(FFprobe_cmd);
+        StartProcessCommand(FFprobe_Get_Duration_process, FFprobe_cmd);
     if(FFprobe_Get_Duration_process->waitForStarted(30000))
     {
         while(!FFprobe_Get_Duration_process->waitForFinished(100)&&!QProcess_stop) {}
@@ -1503,7 +1503,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QString convert_program = Current_Path+"/convert_waifu2xEX.exe";
     QFile::remove(convert_OutputPath);
     QProcess convert_QProcess;
-    convert_QProcess.start("\""+convert_program+"\" \""+convert_InputPath+"\" \""+convert_OutputPath+"\"");
+    StartProcessCommand(convert_QProcess, "\""+convert_program+"\" \""+convert_InputPath+"\" \""+convert_OutputPath+"\"");
     if(convert_QProcess.waitForStarted(30000))
     {
         while(!convert_QProcess.waitForFinished(100)&&!QProcess_stop) {}
@@ -1532,7 +1532,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QString Gifsicle_program = Current_Path+"/gifsicle_waifu2xEX.exe";
     QString Gifsicle_cmd = "\"" + Gifsicle_program + "\"" + " -O3 -i \""+Gifsicle_InputPath+"\" -o \""+Gifsicle_OutputPath+"\"";
     QProcess *Gifsicle_CompressGIF=new QProcess();
-    Gifsicle_CompressGIF->start(Gifsicle_cmd);
+        StartProcessCommand(Gifsicle_CompressGIF, Gifsicle_cmd);
     if(Gifsicle_CompressGIF->waitForStarted(30000))
     {
         while(!Gifsicle_CompressGIF->waitForFinished(100)&&!QProcess_stop) {}
@@ -1559,7 +1559,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     //===
     QString SoX_program = Current_Path+"/SoX/sox_waifu2xEX.exe";
     QProcess SoX_QProcess;
-    SoX_QProcess.start("\""+SoX_program+"\" \""+SoX_InputPath+"\" -n noiseprof \""+SoX_OutputPath+"\"");
+    StartProcessCommand(SoX_QProcess, "\""+SoX_program+"\" \""+SoX_InputPath+"\" -n noiseprof \""+SoX_OutputPath+"\"");
     if(SoX_QProcess.waitForStarted(30000))
     {
         while(!SoX_QProcess.waitForFinished(100)&&!QProcess_stop) {}
@@ -1588,7 +1588,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + rife_ncnn_vulkan_ProgramPath + "\"" + " -0 " + "\"" + InputPath_RifeNcnnVulkan_0 + "\"" + " -1 " + "\"" + InputPath_RifeNcnnVulkan_1 + "\" -o " + "\"" + OutputPath + "\"" + " -j 1:1:1 -m \""+Current_Path+"/rife-ncnn-vulkan/rife-v2.4\"";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        RifeNcnnVulkan_QProcess->start(cmd);
+        StartProcessCommand(RifeNcnnVulkan_QProcess, cmd);
         if(RifeNcnnVulkan_QProcess->waitForStarted(30000))
         {
             while(!RifeNcnnVulkan_QProcess->waitForFinished(100)&&!QProcess_stop) {}
@@ -1625,7 +1625,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + cain_ncnn_vulkan_ProgramPath + "\"" + " -0 " + "\"" + InputPath_RifeNcnnVulkan_0 + "\"" + " -1 " + "\"" + InputPath_RifeNcnnVulkan_1 + "\" -o " + "\"" + OutputPath + "\"" + " -j 1:1:1 -m \""+Current_Path+"/cain-ncnn-vulkan/cain\"";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        CainNcnnVulkan_QProcess->start(cmd);
+        StartProcessCommand(CainNcnnVulkan_QProcess, cmd);
         if(CainNcnnVulkan_QProcess->waitForStarted(30000))
         {
             while(!CainNcnnVulkan_QProcess->waitForFinished(100)&&!QProcess_stop) {}
@@ -1662,7 +1662,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
     cmd = "\"" + dain_ncnn_vulkan_ProgramPath + "\"" + " -0 " + "\"" + InputPath_RifeNcnnVulkan_0 + "\"" + " -1 " + "\"" + InputPath_RifeNcnnVulkan_1 + "\" -o " + "\"" + OutputPath + "\"" + " -j 1:1:1 -m \""+Current_Path+"/dain-ncnn-vulkan/best\" -t 128";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
     {
-        dainNcnnVulkan_QProcess->start(cmd);
+        StartProcessCommand(dainNcnnVulkan_QProcess, cmd);
         if(dainNcnnVulkan_QProcess->waitForStarted(30000))
         {
             while(!dainNcnnVulkan_QProcess->waitForFinished(100)&&!QProcess_stop) {}

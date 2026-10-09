@@ -135,8 +135,6 @@ bool MainWindow::Rife_v4_FrameInterpolation(QString SourcePath, QString OutputPa
     int FileNum_New = 0;
     int FileNum_Old = 0;
 
-    int FrameNumDigits = CalNumDigits(FileNum_MAX);
-
     int MultiFPS_MAX = ui->spinBox_MultipleOfFPS_VFI->value();
     int MultiFPS_Init = 2;
 
@@ -190,7 +188,7 @@ bool MainWindow::Rife_v4_FrameInterpolation(QString SourcePath, QString OutputPa
                           + " -o \"" + OutputPath_Curr + "\""
                           + Rife_v4_ReadConfig(isUhdInput);
 
-            rifeProcess.start(CMD);
+            StartProcessCommand(rifeProcess, CMD);
             while (!rifeProcess.waitForStarted(200) && !QProcess_stop) {}
             while (!rifeProcess.waitForFinished(200) && !QProcess_stop)
             {
@@ -542,7 +540,7 @@ bool MainWindow::Rife_v4_FrameInterpolation_MultiGPU(QString SourcePath,
                       + " -m \"" + resolveModelPath(Current_Path, engineFolderRIFE(), modelDir) + "\""
                       + " -j 1:1:1";
 
-        proc->start(CMD);
+        StartProcessCommand(proc, CMD);
     }
 
     // ========== Wait for all processes ==========
@@ -975,7 +973,7 @@ int MainWindow::Rife_v4_DetectGPU()
                       + " -j 1:1:1 "
                       + gpu_str
                       + " -m \"" + modelPath + "\"";
-        proc->start(cmd);
+        StartProcessCommand(proc, cmd);
         while (!proc->waitForStarted(100) && !QProcess_stop) {}
         while (!proc->waitForFinished(100) && !QProcess_stop) {}
 
@@ -1041,7 +1039,7 @@ bool MainWindow::Rife_v4_CompatibilityTest()
                       + " -o \"" + OutputPath + "\""
                       + " -j 1:1:1"
                       + " -m \"" + modelPath + "\"";
-        proc.start(cmd);
+        StartProcessCommand(proc, cmd);
         if (proc.waitForStarted(30000))
         {
             while (!proc.waitForFinished(100) && !QProcess_stop) {}

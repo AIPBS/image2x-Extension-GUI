@@ -248,7 +248,6 @@ int MainWindow::Waifu2xMainThread()
 {
     //在table中的状态修改完成前一直block,防止偶发的多线程错误
     QMutex_Table_ChangeAllStatusToWaiting.lock();
-    NULL;
     QMutex_Table_ChangeAllStatusToWaiting.unlock();
     //=======================
     int rowCount_image = Table_model_image->rowCount();
@@ -1163,7 +1162,7 @@ bool MainWindow::KILL_TASK_(QString TaskName,bool RequestAdmin)
     if(TaskName=="")return false;
     //===============
     QProcess Get_tasklist;
-    Get_tasklist.start("tasklist /fo csv");
+    StartProcessCommand(Get_tasklist, "tasklist /fo csv");
     while(!Get_tasklist.waitForStarted(500)) {}
     while(!Get_tasklist.waitForFinished(500)) {}
     if(Get_tasklist.readAllStandardOutput().contains(TaskName.toUtf8())==false)
@@ -1172,10 +1171,10 @@ bool MainWindow::KILL_TASK_(QString TaskName,bool RequestAdmin)
     }
     //===============
     QProcess Close;
-    Close.start("taskkill /f /t /fi \"imagename eq "+TaskName+"\"");
+    StartProcessCommand(Close, "taskkill /f /t /fi \"imagename eq "+TaskName+"\"");
     while(!Close.waitForStarted(500)) {}
     while(!Close.waitForFinished(500)) {}
-    Get_tasklist.start("tasklist /fo csv");
+    StartProcessCommand(Get_tasklist, "tasklist /fo csv");
     while(!Get_tasklist.waitForStarted(500)) {}
     while(!Get_tasklist.waitForFinished(500)) {}
     if(Get_tasklist.readAllStandardOutput().contains(TaskName.toUtf8()) && RequestAdmin==true)
@@ -1199,7 +1198,7 @@ bool MainWindow::KILL_TASK_QStringList(QStringList TaskNameList,bool RequestAdmi
     if(TaskNameList.isEmpty())return false;
     //===============
     QProcess Get_tasklist;
-    Get_tasklist.start("tasklist /fo csv");
+    StartProcessCommand(Get_tasklist, "tasklist /fo csv");
     while(!Get_tasklist.waitForStarted(500)) {}
     while(!Get_tasklist.waitForFinished(500)) {}
     QString RunningTaskList = Get_tasklist.readAllStandardOutput();

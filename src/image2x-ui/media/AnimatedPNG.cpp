@@ -269,7 +269,7 @@ void MainWindow::APNG_Split2Frames(QString sourceFileFullPath,QString splitFrame
     QString program = Current_Path+"/apngdis_waifu2xEX.exe";
     QString cmd = "\""+program+"\" \""+splitCopy+"\" \"0\"";
     QProcess *SplitAPNG=new QProcess();
-    SplitAPNG->start(cmd);
+    StartProcessCommand(SplitAPNG, cmd);
     while(!SplitAPNG->waitForStarted(100)&&!QProcess_stop) {}
     while(!SplitAPNG->waitForFinished(100)&&!QProcess_stop)
     {
@@ -320,7 +320,7 @@ void MainWindow::APNG_Frames2APNG(QString sourceFileFullPath,QString scaledFrame
     //========================= 调用ffprobe读取APNG信息 ======================
     QProcess *Get_APNGAvgFPS_process = new QProcess();
     QString cmd_Get_APNGAvgFPS_process = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+sourceFileFullPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
-    Get_APNGAvgFPS_process->start(cmd_Get_APNGAvgFPS_process);
+    StartProcessCommand(Get_APNGAvgFPS_process, cmd_Get_APNGAvgFPS_process);
     while(!Get_APNGAvgFPS_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_APNGAvgFPS_process->waitForFinished(100)&&!QProcess_stop) {}
     //============= 保存ffprobe输出的ini格式文本 =============
@@ -382,7 +382,7 @@ void MainWindow::APNG_Frames2APNG(QString sourceFileFullPath,QString scaledFrame
     QString program = Current_Path+"/apngasm_waifu2xEX.exe";
     QString cmd ="\""+program+"\" \""+resultFileFullPath+"\" \""+scaledFramesFolder.replace("%","%%")+"/*.png\" -kp -kc -z1 1 "+QString::number(fps,10)+" -l0";
     QProcess *AssembleAPNG=new QProcess();
-    AssembleAPNG->start(cmd);
+    StartProcessCommand(AssembleAPNG, cmd);
     while(!AssembleAPNG->waitForStarted(100)&&!QProcess_stop) {}
     while(!AssembleAPNG->waitForFinished(100)&&!QProcess_stop)
     {
@@ -410,7 +410,7 @@ bool MainWindow::APNG_isAnimatedPNG(int rowNum)
     //========================= 调用ffprobe读取APNG信息 ======================
     QProcess *Get_APNGAvgFPS_process = new QProcess();
     QString cmd_Get_APNGAvgFPS_process = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+sourceFileFullPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
-    Get_APNGAvgFPS_process->start(cmd_Get_APNGAvgFPS_process);
+    StartProcessCommand(Get_APNGAvgFPS_process, cmd_Get_APNGAvgFPS_process);
     while(!Get_APNGAvgFPS_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_APNGAvgFPS_process->waitForFinished(100)&&!QProcess_stop) {}
     //============= 保存ffprobe输出的ini格式文本 =============

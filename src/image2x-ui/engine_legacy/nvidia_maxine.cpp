@@ -219,7 +219,7 @@ int MainWindow::NvidiaMaxine_Image(int rowNum, bool ReProcess_MissingAlphaChanne
                       + " --super-res"
                       + NvidiaMaxine_ReadSettings();
 
-        maxineProc->start(cmd);
+        StartProcessCommand(maxineProc, cmd);
         while (!maxineProc->waitForStarted(100) && !QProcess_stop) {}
         while (!maxineProc->waitForFinished(500) && !QProcess_stop)
         {
@@ -473,7 +473,7 @@ int MainWindow::NvidiaMaxine_Video(int rowNum)
                       + " --super-res"
                       + maxineSettings;
 
-        maxineProc->start(cmd);
+        StartProcessCommand(maxineProc, cmd);
         while (!maxineProc->waitForStarted(100) && !QProcess_stop) {}
         while (!maxineProc->waitForFinished(650) && !QProcess_stop)
         {
@@ -693,7 +693,7 @@ bool MainWindow::NvidiaMaxine_CompatibilityTest()
 
     for (int retry = 0; retry < 3; retry++)
     {
-        proc.start(cmd);
+        StartProcessCommand(proc, cmd);
         if (proc.waitForStarted(30000))
         {
             while (!proc.waitForFinished(100) && !QProcess_stop) {}

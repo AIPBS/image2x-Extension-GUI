@@ -425,7 +425,7 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_GIF(int rowNum)
             //==========
             waifu2x_qprocess_failed = false;
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " -s " + QString("%1").arg(Initial_ScaleRatio) + " -n " + QString::number(DenoiseLevel_tmp, 10) + RealESRGAN_NCNN_Vulkan_Settings_str;
-            Waifu2x->start(cmd);
+            StartProcessCommand(Waifu2x, cmd);
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
             {
@@ -692,12 +692,10 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -710,7 +708,6 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -830,7 +827,7 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video(int rowNum)
             //==========
             waifu2x_qprocess_failed = false;
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " -s " + QString("%1").arg(Initial_ScaleRatio) + " -n " + QString::number(DenoiseLevel_tmp, 10) + RealESRGAN_NCNN_Vulkan_Settings_str;
-            Waifu2x->start(cmd);
+            StartProcessCommand(Waifu2x, cmd);
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
             {
@@ -999,7 +996,6 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video_BySegment(int rowNum)
     int ScaleRatio = ui->doubleSpinBox_ScaleRatio_video->value();
     int DenoiseLevel = ui->spinBox_DenoiseLevel_video->value();
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
-    bool isCacheExists = false;
     bool isVideoConfigChanged = true;
     int SegmentDuration = ui->spinBox_SegmentDuration->value();
     //========================= 拆解map得到参数 =============================
@@ -1068,8 +1064,6 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video_BySegment(int rowNum)
         int CustRes_width_old = configIniRead->value("/VideoConfiguration/CustRes_width").toInt();
         QString EngineName_old = configIniRead->value("/VideoConfiguration/EngineName").toString();
         bool isProcessBySegment_old = configIniRead->value("/VideoConfiguration/isProcessBySegment").toBool();
-        bool isVideoFrameInterpolationEnabled_old = configIniRead->value("/VideoConfiguration/isVideoFrameInterpolationEnabled").toBool();
-        int MultipleOfFPS_old = configIniRead->value("/VideoConfiguration/MultipleOfFPS").toInt();
         //=================== 比对信息 ================================
         if(EngineName_old=="realesrgan-ncnn-vulkan")
         {
@@ -1123,12 +1117,10 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video_BySegment(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -1142,7 +1134,6 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video_BySegment(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -1315,7 +1306,7 @@ int MainWindow::RealESRGAN_NCNN_Vulkan_Video_BySegment(int rowNum)
                     //==========
                     waifu2x_qprocess_failed = false;
                     QString cmd = "\"" + program + "\"" + " -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " -s " + QString("%1").arg(Initial_ScaleRatio) + " -n " + QString::number(DenoiseLevel_tmp, 10) + RealESRGAN_NCNN_Vulkan_Settings_str;
-                    Waifu2x->start(cmd);
+                    StartProcessCommand(Waifu2x, cmd);
                     while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
                     while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
                     {
@@ -1646,7 +1637,7 @@ int MainWindow::RealESRGAN_ncnn_vulkan_DetectGPU()
         QFile::remove(OutputPath);
         QProcess *Waifu2x = new QProcess();
         QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 4 -n -1 -t 32 -m " + "\"" + model_path + "\" -g "+QString::number(GPU_ID,10);
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(100)&&!QProcess_stop) {}
         if(QFile::exists(OutputPath) && (Waifu2x->readAllStandardError().toLower().contains("failed")||Waifu2x->readAllStandardOutput().toLower().contains("failed"))==false)
@@ -1766,7 +1757,7 @@ void MainWindow::AddGPU_MultiGPU_RealESRGAN(QString GPUID)
     ui->comboBox_GPUID_RealESRGAN->setCurrentIndex(0);
 }
 
-void MainWindow::on_checkBox_MultiGPU_RealESRGAN_stateChanged(int arg1)
+void MainWindow::on_checkBox_MultiGPU_RealESRGAN_stateChanged(int)
 {
     if(ui->checkBox_TTA_RealESRGAN->isChecked())
     {
@@ -1807,7 +1798,7 @@ void MainWindow::on_checkBox_MultiGPU_RealESRGAN_clicked()
     }
 }
 
-void MainWindow::on_comboBox_GPUIDs_MultiGPU_RealESRGAN_currentIndexChanged(int index)
+void MainWindow::on_comboBox_GPUIDs_MultiGPU_RealESRGAN_currentIndexChanged(int)
 {
     if(ui->comboBox_GPUID_RealESRGAN->count()==0)
     {
@@ -2197,7 +2188,7 @@ bool MainWindow::APNG_RealESRGAN_NCNNVulkan(QString splitFramesFolder,QString sc
             //==========
             waifu2x_qprocess_failed = false;
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + splitFramesFolder + "\"" + " -o " + "\"" + scaledFramesFolder + "\"" + " -s " + QString("%1").arg(Initial_ScaleRatio) + " -n " + QString::number(DenoiseLevel_tmp, 10) + RealESRGAN_NCNN_Vulkan_Settings_str;
-            Waifu2x->start(cmd);
+            StartProcessCommand(Waifu2x, cmd);
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
             {
@@ -2279,6 +2270,6 @@ void MainWindow::on_checkBox_TTA_RealESRGAN_clicked()
 {
 }
 
-void MainWindow::on_checkBox_TTA_RealESRGAN_stateChanged(int arg1)
+void MainWindow::on_checkBox_TTA_RealESRGAN_stateChanged(int)
 {
 }

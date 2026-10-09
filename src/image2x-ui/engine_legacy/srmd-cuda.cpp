@@ -127,7 +127,7 @@ int MainWindow::SRMD_CUDA_Image(int rowNum,bool ReProcess_MissingAlphaChannel)
             //==========
             OutputPath_tmp = file_path + "/" + file_name + "_waifu2x_"+QString::number(i, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath_tmp + "\"" + " -o " + "\"" + OutputPath_tmp + "\"" + " -s " + QString::number(Initial_ScaleRatio, 10) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " -m \""+modelPath+"\"";
-            Waifu2x->start(cmd);
+            StartProcessCommand(Waifu2x, cmd);
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
             {
@@ -406,7 +406,7 @@ int MainWindow::SRMD_CUDA_GIF(int rowNum)
             //==========
             waifu2x_qprocess_failed = false;
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " -s " + QString("%1").arg(Initial_ScaleRatio) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " -m \""+modelPath+"\"";
-            Waifu2x->start(cmd);
+            StartProcessCommand(Waifu2x, cmd);
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
             {
@@ -652,12 +652,10 @@ int MainWindow::SRMD_CUDA_Video(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -670,7 +668,6 @@ int MainWindow::SRMD_CUDA_Video(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -793,7 +790,7 @@ int MainWindow::SRMD_CUDA_Video(int rowNum)
             //==========
             waifu2x_qprocess_failed = false;
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " -s " + QString("%1").arg(Initial_ScaleRatio) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " -m \""+modelPath+"\"";
-            Waifu2x->start(cmd);
+            StartProcessCommand(Waifu2x, cmd);
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
             {
@@ -945,7 +942,6 @@ int MainWindow::SRMD_CUDA_Video_BySegment(int rowNum)
     int ScaleRatio = ui->doubleSpinBox_ScaleRatio_video->value();
     int DenoiseLevel = ui->spinBox_DenoiseLevel_video->value();
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
-    bool isCacheExists = false;
     bool isVideoConfigChanged = true;
     int SegmentDuration = ui->spinBox_SegmentDuration->value();
     //========================= 拆解map得到参数 =============================
@@ -1086,12 +1082,10 @@ int MainWindow::SRMD_CUDA_Video_BySegment(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -1105,7 +1099,6 @@ int MainWindow::SRMD_CUDA_Video_BySegment(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -1325,7 +1318,7 @@ int MainWindow::SRMD_CUDA_Video_BySegment(int rowNum)
                     //==========
                     waifu2x_qprocess_failed = false;
                     QString cmd = "\"" + program + "\"" + " -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " -s " + QString("%1").arg(Initial_ScaleRatio) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " -m \""+modelPath+"\"";
-                    Waifu2x->start(cmd);
+                    StartProcessCommand(Waifu2x, cmd);
                     while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
                     while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
                     {
@@ -1568,7 +1561,7 @@ bool MainWindow::APNG_SrmdCUDA(QString splitFramesFolder,QString scaledFramesFol
         {
             waifu2x_qprocess_failed = false;
             QString cmd = "\"" + program + "\"" + " -i " + "\"" + splitFramesFolder + "\"" + " -o " + "\"" + scaledFramesFolder + "\"" + " -s " + QString("%1").arg(Initial_ScaleRatio) + " -n " + QString::number(DenoiseLevel_tmp, 10) + " -m \""+modelPath+"\"";
-            Waifu2x->start(cmd);
+            StartProcessCommand(Waifu2x, cmd);
             while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
             while(!Waifu2x->waitForFinished(650)&&!QProcess_stop)
             {

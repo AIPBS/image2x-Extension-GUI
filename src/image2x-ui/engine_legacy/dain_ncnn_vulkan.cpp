@@ -29,7 +29,7 @@
 
 // ===================== DAIN Frame Interpolation =====================
 
-int MainWindow::Dain_FrameInterpolation(int rowNum) {
+int MainWindow::Dain_FrameInterpolation(int) {
     /*
     DAIN-NCNN-Vulkan frame interpolation.
     Models: best/flownet.bin (22MB) + best/interpolation.bin (18MB)

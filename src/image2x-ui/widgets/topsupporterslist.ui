@@ -68,9 +68,6 @@ padding:10px;
      <property name="text">
       <string> Become a patron</string>
      </property>
-     <property name="icon">
-       <iconset/>
-     </property>
     </widget>
    </item>
    <item row="1" column="0">

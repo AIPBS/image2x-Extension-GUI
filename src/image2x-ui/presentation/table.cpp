@@ -817,25 +817,25 @@ int MainWindow::Table_Read_Saved_Table_Filelist_Finished(QString Table_FileList_
     //===
     return 0;
 }
-void MainWindow::on_tableView_image_doubleClicked(const QModelIndex &index)
+void MainWindow::on_tableView_image_doubleClicked(const QModelIndex &)
 {
     if(curRow_image==-1)return;
     QModelIndex a;
     on_tableView_image_pressed(a);
 }
-void MainWindow::on_tableView_gif_doubleClicked(const QModelIndex &index)
+void MainWindow::on_tableView_gif_doubleClicked(const QModelIndex &)
 {
     if(curRow_gif==-1)return;
     QModelIndex a;
     on_tableView_gif_pressed(a);
 }
-void MainWindow::on_tableView_video_doubleClicked(const QModelIndex &index)
+void MainWindow::on_tableView_video_doubleClicked(const QModelIndex &)
 {
     if(curRow_video==-1)return;
     QModelIndex a;
     on_tableView_video_pressed(a);
 }
-void MainWindow::on_tableView_image_pressed(const QModelIndex &index)
+void MainWindow::on_tableView_image_pressed(const QModelIndex &)
 {
     curRow_image = ui->tableView_image->currentIndex().row();
     curRow_gif = -1;
@@ -843,7 +843,7 @@ void MainWindow::on_tableView_image_pressed(const QModelIndex &index)
     ui->tableView_gif->clearSelection();
     ui->tableView_video->clearSelection();
 }
-void MainWindow::on_tableView_gif_pressed(const QModelIndex &index)
+void MainWindow::on_tableView_gif_pressed(const QModelIndex &)
 {
     curRow_gif = ui->tableView_gif->currentIndex().row();
     curRow_image = -1;
@@ -851,7 +851,7 @@ void MainWindow::on_tableView_gif_pressed(const QModelIndex &index)
     ui->tableView_image->clearSelection();
     ui->tableView_video->clearSelection();
 }
-void MainWindow::on_tableView_video_pressed(const QModelIndex &index)
+void MainWindow::on_tableView_video_pressed(const QModelIndex &)
 {
     curRow_video = ui->tableView_video->currentIndex().row();
     curRow_image = -1;

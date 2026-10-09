@@ -107,7 +107,7 @@ int MainWindow::Waifu2x_Converter_Image(int rowNum,bool ReProcess_MissingAlphaCh
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
         QProcess *Waifu2x = new QProcess();
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
         {
@@ -507,7 +507,7 @@ int MainWindow::Waifu2x_Converter_GIF_scale(QMap<QString, QString> Sub_Thread_in
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
         {
@@ -680,12 +680,10 @@ int MainWindow::Waifu2x_Converter_Video(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -698,7 +696,6 @@ int MainWindow::Waifu2x_Converter_Video(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -950,7 +947,6 @@ int MainWindow::Waifu2x_Converter_Video_BySegment(int rowNum)
     int ScaleRatio = ui->doubleSpinBox_ScaleRatio_video->value();
     int DenoiseLevel = ui->spinBox_DenoiseLevel_video->value();
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
-    bool isCacheExists = false;
     bool isVideoConfigChanged = true;
     int Sub_video_ThreadNumRunning = 0;
     int SegmentDuration = ui->spinBox_SegmentDuration->value();
@@ -1092,12 +1088,10 @@ int MainWindow::Waifu2x_Converter_Video_BySegment(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -1111,7 +1105,6 @@ int MainWindow::Waifu2x_Converter_Video_BySegment(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -1510,7 +1503,7 @@ int MainWindow::Waifu2x_Converter_Video_scale(QMap<QString,QString> Sub_Thread_i
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
         {
@@ -1613,7 +1606,7 @@ int MainWindow::Waifu2x_DumpProcessorList_converter()
     QString program = Waifu2x_folder_path + "/waifu2x-converter-cpp_waifu2xEX.exe";
     QProcess *Waifu2x = new QProcess();
     QString cmd = "\"" + program + "\"" + " -l ";
-    Waifu2x->start(cmd);
+    StartProcessCommand(Waifu2x, cmd);
     while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
     while(!Waifu2x->waitForFinished(100)&&!QProcess_stop) {}
     QString waifu2x_stdOut = Waifu2x->readAllStandardOutput();
@@ -1640,7 +1633,7 @@ int MainWindow::Waifu2x_DumpProcessorList_converter()
         QProcess *Waifu2x = new QProcess();
         QString Processor_str = " -p "+QString::number(Processor_ID,10)+" ";
         QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " --scale-ratio 2 --noise-level 1 --model-dir " + "\"" + model_path + "\""+Processor_str;
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(100)&&!QProcess_stop) {}
         if(QFile::exists(OutputPath))
@@ -1685,7 +1678,7 @@ int MainWindow::Waifu2x_DumpProcessorList_converter_finished()
     return 0;
 }
 
-void MainWindow::on_comboBox_TargetProcessor_converter_currentIndexChanged(int index)
+void MainWindow::on_comboBox_TargetProcessor_converter_currentIndexChanged(int)
 {
     if(ui->comboBox_TargetProcessor_converter->currentText()!="auto")
     {
@@ -1806,7 +1799,7 @@ void MainWindow::AddGPU_MultiGPU_Waifu2xConverter(QString GPUID)
     ui->comboBox_GPUIDs_MultiGPU_Waifu2xConverter->setCurrentIndex(0);
 }
 
-void MainWindow::on_checkBox_MultiGPU_Waifu2xConverter_stateChanged(int arg1)
+void MainWindow::on_checkBox_MultiGPU_Waifu2xConverter_stateChanged(int)
 {
     if(ui->checkBox_MultiGPU_Waifu2xConverter->isChecked())
     {
@@ -1851,7 +1844,7 @@ void MainWindow::on_checkBox_MultiGPU_Waifu2xConverter_clicked()
     }
 }
 
-void MainWindow::on_comboBox_GPUIDs_MultiGPU_Waifu2xConverter_currentIndexChanged(int index)
+void MainWindow::on_comboBox_GPUIDs_MultiGPU_Waifu2xConverter_currentIndexChanged(int)
 {
     if(ui->comboBox_GPUIDs_MultiGPU_Waifu2xConverter->count()==0)
     {
@@ -1898,7 +1891,7 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_Waifu2xConverter_click
     }
 }
 
-void MainWindow::on_spinBox_TileSize_CurrentGPU_MultiGPU_Waifu2xConverter_valueChanged(int arg1)
+void MainWindow::on_spinBox_TileSize_CurrentGPU_MultiGPU_Waifu2xConverter_valueChanged(int)
 {
     QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_Waifu2xConverter.at(ui->comboBox_GPUIDs_MultiGPU_Waifu2xConverter->currentIndex());
     GPUInfo["TileSize"] = QString::number(ui->spinBox_TileSize_CurrentGPU_MultiGPU_Waifu2xConverter->value(),10);
@@ -2093,7 +2086,7 @@ int MainWindow::Waifu2x_Converter_APNG_scale(QMap<QString, QString> Sub_Thread_i
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(500)&&!QProcess_stop)
         {

@@ -33,6 +33,9 @@ https://www.jianshu.com/p/a000044f1f4a
 void MainWindow::Init_SystemTrayIcon()
 {
     //初始化图标
+    const QIcon applicationIcon(QStringLiteral(":/new/prefix1/icon/github_black.svg"));
+    setWindowIcon(applicationIcon);
+    systemTray->setIcon(applicationIcon);
     systemTray->setToolTip(tr("Waifu2x-Extension-GUI\nRight-click to show the menu."));
     //初始化点击动作
     connect(systemTray,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason)),Qt::UniqueConnection);

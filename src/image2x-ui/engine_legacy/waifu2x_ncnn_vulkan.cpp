@@ -639,12 +639,10 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -657,7 +655,6 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -948,7 +945,6 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video_BySegment(int rowNum)
     int ScaleRatio = ui->doubleSpinBox_ScaleRatio_video->value();
     int DenoiseLevel = ui->spinBox_DenoiseLevel_video->value();
     bool DelOriginal = (ui->checkBox_DelOriginal->isChecked()||ui->checkBox_ReplaceOriginalFile->isChecked());
-    bool isCacheExists = false;
     bool isVideoConfigChanged = true;
     int SegmentDuration = ui->spinBox_SegmentDuration->value();
     //========================= 拆解map得到参数 =============================
@@ -1089,12 +1085,10 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video_BySegment(int rowNum)
     {
         if(!isVideoConfigChanged)
         {
-            isCacheExists=true;
             emit Send_TextBrowser_NewMessage(tr("The previous video cache file is detected and processing of the previous video cache will continue. If you want to restart processing of the current video:[")+SourceFile_fullPath+tr("], delete the cache manually."));
         }
         else
         {
-            isCacheExists=false;
             //========
             QFile::remove(VideoConfiguration_fullPath);
             file_DelDir(SplitFramesFolderPath);
@@ -1108,7 +1102,6 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video_BySegment(int rowNum)
     }
     else
     {
-        isCacheExists=false;
         //========
         QFile::remove(VideoConfiguration_fullPath);
         file_DelDir(SplitFramesFolderPath);
@@ -1802,7 +1795,7 @@ void MainWindow::AddGPU_MultiGPU_Waifu2xNCNNVulkan(QString GPUID)
     ui->comboBox_GPUIDs_MultiGPU_Waifu2xNCNNVulkan->setCurrentIndex(0);
 }
 
-void MainWindow::on_comboBox_GPUIDs_MultiGPU_Waifu2xNCNNVulkan_currentIndexChanged(int index)
+void MainWindow::on_comboBox_GPUIDs_MultiGPU_Waifu2xNCNNVulkan_currentIndexChanged(int)
 {
     if(ui->comboBox_GPUIDs_MultiGPU_Waifu2xNCNNVulkan->count()==0)
     {
@@ -1813,7 +1806,7 @@ void MainWindow::on_comboBox_GPUIDs_MultiGPU_Waifu2xNCNNVulkan_currentIndexChang
     ui->spinBox_TileSize_CurrentGPU_MultiGPU_Waifu2xNCNNVulkan->setValue(GPUInfo["TileSize"].toInt());
 }
 
-void MainWindow::on_spinBox_TileSize_CurrentGPU_MultiGPU_Waifu2xNCNNVulkan_valueChanged(int arg1)
+void MainWindow::on_spinBox_TileSize_CurrentGPU_MultiGPU_Waifu2xNCNNVulkan_valueChanged(int)
 {
     QMap<QString,QString> GPUInfo=GPUIDs_List_MultiGPU_Waifu2xNCNNVulkan.at(ui->comboBox_GPUIDs_MultiGPU_Waifu2xNCNNVulkan->currentIndex());
     GPUInfo["TileSize"] = QString::number(ui->spinBox_TileSize_CurrentGPU_MultiGPU_Waifu2xNCNNVulkan->value(),10);
@@ -1856,7 +1849,7 @@ void MainWindow::on_checkBox_isEnable_CurrentGPU_MultiGPU_Waifu2xNCNNVulkan_clic
     }
 }
 
-void MainWindow::on_checkBox_MultiGPU_Waifu2xNCNNVulkan_stateChanged(int arg1)
+void MainWindow::on_checkBox_MultiGPU_Waifu2xNCNNVulkan_stateChanged(int)
 {
     if(ui->checkBox_MultiGPU_Waifu2xNCNNVulkan->isChecked())
     {

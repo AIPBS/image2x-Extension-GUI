@@ -146,7 +146,7 @@ bool MainWindow::IFRNet_FrameInterpolation(QString SourcePath,QString OutputPath
             //=====
             QProcess FrameInterpolation_QProcess;
             CMD ="\""+FrameInterpolation_ProgramPath+"\" -i \""+SourcePath_Curr+"\" -o \""+OutputPath_Curr+"\" -f %0"+QString("%1").arg(FrameNumDigits)+"d.png"+IFRNet_ReadConfig(isUhdInput,FileNum_MAX);
-            FrameInterpolation_QProcess.start(CMD);
+            StartProcessCommand(FrameInterpolation_QProcess, CMD);
             while(!FrameInterpolation_QProcess.waitForStarted(200)&&!QProcess_stop) {}
             while(!FrameInterpolation_QProcess.waitForFinished(200)&&!QProcess_stop)
             {
@@ -263,7 +263,7 @@ bool MainWindow::IFRNet_FrameInterpolation(QString SourcePath,QString OutputPath
     return false;
 }
 
-QString MainWindow::IFRNet_ReadConfig(bool isUhdInput,int NumOfFrames)
+QString MainWindow::IFRNet_ReadConfig(bool isUhdInput,int)
 {
     QString VFI_Config = " ";
     //TTA
@@ -388,7 +388,7 @@ int MainWindow::IFRNet_DetectGPU()
         QProcess *Waifu2x = new QProcess();
         QString gpu_str = " -g "+QString::number(GPU_ID,10)+" ";
         QString cmd = "\"" + program + "\"" + " -0 " + "\"" + InputPath + "\"" + " -1 " + "\"" + InputPath_1 + "\" -o " + "\"" + OutputPath + "\"" + " -j 1:1:1 " + gpu_str + " -m \""+model_path+"\"";
-        Waifu2x->start(cmd);
+        StartProcessCommand(Waifu2x, cmd);
         while(!Waifu2x->waitForStarted(100)&&!QProcess_stop) {}
         while(!Waifu2x->waitForFinished(100)&&!QProcess_stop) {}
         if(QFile::exists(OutputPath) && (Waifu2x->readAllStandardError().toLower().contains("failed")||Waifu2x->readAllStandardOutput().toLower().contains("failed"))==false)

@@ -150,10 +150,9 @@ fn cain_dain_inventory_reports_directory_executable_and_model_availability_only(
         };
         let result = image2x_core::frame_job::run_frame_job(&fixture.root, &job);
         assert!(!result.process.started);
-        assert!(result
-            .process
-            .diagnostic
-            .contains("unsupported frame engine"));
+        // These engines now support folder jobs, but the removed runtime still
+        // prevents execution. Inventory alone never manufactures processing.
+        assert!(result.process.diagnostic.contains("runtime is unavailable"));
     }
 }
 

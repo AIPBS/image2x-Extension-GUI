@@ -11,6 +11,13 @@
 
 namespace FrameRequest
 {
+inline QString modelForEngine(int engineIndex, const QString &selectedModel)
+{
+    if (engineIndex == 1) return QStringLiteral("cain");
+    if (engineIndex == 2) return QStringLiteral("best");
+    return selectedModel;
+}
+
 struct JobSettings
 {
     const int engineIndex;
@@ -21,6 +28,29 @@ struct JobSettings
     const bool showProgress;
 
     bool usesRifeBackend() const { return engineIndex == 0; }
+    QString engine() const
+    {
+        switch (engineIndex)
+        {
+            case 0: return QStringLiteral("rife-ncnn-vulkan");
+            case 1: return QStringLiteral("cain-ncnn-vulkan");
+            case 2: return QStringLiteral("dain-ncnn-vulkan");
+            case 3: return QStringLiteral("ifrnet-ncnn-vulkan");
+            default: return QString();
+        }
+    }
+    int initialMultiplier() const { return engineIndex == 2 ? fpsMultiple : 2; }
+    int expectedFrames(int sourceFrames) const { return sourceFrames * initialMultiplier(); }
+    QStringList roundArguments(const QString &input, const QString &output,
+                               int frameDigits, bool automaticUhd) const
+    {
+        QStringList arguments{QStringLiteral("-i"), input, QStringLiteral("-o"), output,
+                              QStringLiteral("-f"), QStringLiteral("%0%1d.png").arg(frameDigits)};
+        arguments.append(options);
+        if (usesRifeBackend() && automaticUhd && !arguments.contains(QStringLiteral("-u")))
+            arguments.append(QStringLiteral("-u"));
+        return arguments;
+    }
 };
 
 inline QString newId()

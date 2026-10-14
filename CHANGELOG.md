@@ -1,5 +1,13 @@
 # Change log
 
+## v1.6.0 (2026-10-14)
+
+### Changed
+- Route the existing Linux CAIN and DAIN frame-processing paths through Rust
+  model validation, bounded execution, retries, and Stop cancellation. Preserve
+  CAIN's repeated 2x passes and DAIN's requested-multiplier single pass, with Qt
+  progress reporting and final frame decoding.
+
 ## v1.5.0 (2026-10-14)
 
 ### Changed

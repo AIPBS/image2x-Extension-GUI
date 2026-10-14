@@ -25,8 +25,8 @@ struct RuntimeDefinition {
 }
 
 const RUNTIMES: &[RuntimeDefinition] = &[
-    // Discovery for pair-input detection only. These entries do not grant
-    // typed folder-job support, which frame_job explicitly restricts.
+    // Directory sentinels shared by pair-input probes and typed folder jobs.
+    // Inventory is filesystem availability, not proof of runtime compatibility.
     RuntimeDefinition {
         engine: "cain-ncnn-vulkan",
         executable: "cain-ncnn-vulkan",

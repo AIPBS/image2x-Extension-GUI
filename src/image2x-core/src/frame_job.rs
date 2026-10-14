@@ -1,6 +1,7 @@
-//! One bounded IFRNet or RIFE folder pass, with clean retries and PNG checks.
+//! One bounded frame-engine folder pass, with clean retries and PNG checks.
 //!
-//! Qt owns successive 2x passes and progress polling. Explicit cancel_frames
+//! Qt owns pass sequencing and progress polling, including DAIN's single -n pass.
+//! Explicit cancel_frames
 //! requests stop active passes; disconnect alone does not cancel a job.
 
 use std::collections::HashSet;
@@ -71,7 +72,7 @@ struct Prepared {
 fn prepare(application: &Path, job: &FrameJob) -> Result<Prepared, String> {
     if !matches!(
         job.engine.as_str(),
-        "ifrnet-ncnn-vulkan" | "rife-ncnn-vulkan"
+        "ifrnet-ncnn-vulkan" | "rife-ncnn-vulkan" | "cain-ncnn-vulkan" | "dain-ncnn-vulkan"
     ) {
         return Err(format!("unsupported frame engine: {}", job.engine));
     }
@@ -174,11 +175,17 @@ fn prepare(application: &Path, job: &FrameJob) -> Result<Prepared, String> {
 fn validate_model_files(engine: &str, name: &str, model: &Path) -> Result<(), String> {
     // Keep IFRNet's established nonempty-directory policy. RIFE v4 models use
     // only flownet; older named models also need contextnet and fusionnet.
+    // CAIN and DAIN use fixed model directories and distinct NCNN networks.
     // These filesystem checks cannot prove compatibility with an installed
     // executable: unsupported NCNN layers still fail through the real process.
     let networks: &[&str] = match engine {
         "rife-ncnn-vulkan" if name.starts_with("rife-v4") => &["flownet"],
         "rife-ncnn-vulkan" => &["flownet", "contextnet", "fusionnet"],
+        "cain-ncnn-vulkan" if name == "cain" => &["cain"],
+        "dain-ncnn-vulkan" if name == "best" => &["ctxnet", "depthnet", "flownet", "interpolation"],
+        "cain-ncnn-vulkan" | "dain-ncnn-vulkan" => {
+            return Err(format!("unsupported model directory for {engine}: {name}"));
+        }
         _ => &[],
     };
     for network in networks {

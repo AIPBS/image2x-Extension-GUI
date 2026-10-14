@@ -453,9 +453,9 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
 {
 #ifdef PLATFORM_LINUX
     const int selectedEngineIndex = ui->comboBox_Engine_VFI->currentIndex();
-    if (selectedEngineIndex == 0 && QThread::currentThread() == qApp->thread())
+    if (QThread::currentThread() == qApp->thread() || selectedEngineIndex < 0 || selectedEngineIndex > 3)
     {
-        emit Send_TextBrowser_NewMessage(tr("RIFE frame processing must run off the UI thread."));
+        emit Send_TextBrowser_NewMessage(tr("Frame processing requires a supported engine and a worker thread."));
         return false;
     }
 #endif
@@ -487,10 +487,12 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
 #ifdef PLATFORM_LINUX
     // Capture values once. Later widget edits must not change an active job's
     // backend route, model, CLI settings, frame multiplier, or retry budget.
+    const int selectedFpsMultiple = ui->spinBox_MultipleOfFPS_VFI->value();
+    const int targetFrames = file_getFileNames_in_Folder_nofilter(SourcePath).size() * selectedFpsMultiple;
     const FrameRequest::JobSettings frameSettings{
-        selectedEngineIndex, ui->comboBox_Model_VFI->currentText().trimmed(),
-        selectedEngineIndex == 0 ? QProcess::splitCommand(FrameInterpolation_ReadConfig(false, 0)) : QStringList(),
-        ui->spinBox_MultipleOfFPS_VFI->value(),
+        selectedEngineIndex, FrameRequest::modelForEngine(selectedEngineIndex, ui->comboBox_Model_VFI->currentText().trimmed()),
+        QProcess::splitCommand(FrameInterpolation_ReadConfig(false, targetFrames)),
+        selectedFpsMultiple,
         qMax(0, ui->spinBox_retry->value() + retry_add - 1),
         ui->checkBox_ShowInterPro->isChecked()};
 #endif
@@ -534,18 +536,13 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
     int FileNum_New = 0;
     int FileNum_Old = 0;
     //========
+#ifndef PLATFORM_LINUX
     QString FrameInterpolation_ProgramPath="";
-#ifdef PLATFORM_LINUX
-    switch (frameSettings.engineIndex)
-#else
     switch (ui->comboBox_Engine_VFI->currentIndex())
-#endif
     {
         case 0:
             {
-#ifndef PLATFORM_LINUX
                 FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "rife-ncnn-vulkan", "rife-ncnn-vulkan");
-#endif
                 break;
             }
         case 1:
@@ -569,6 +566,7 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
     bool FrameInterpolation_QProcess_failed = false;
     QString ErrorMSG="";
     QString StanderMSG="";
+#endif
     int FrameNumDigits = CalNumDigits(FileNum_MAX);
     //========
 #ifdef PLATFORM_LINUX
@@ -576,10 +574,10 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
 #else
     int MultiFPS_MAX = ui->spinBox_MultipleOfFPS_VFI->value();
 #endif
-    int MultiFPS_Init = 2;
 #ifdef PLATFORM_LINUX
-    if(frameSettings.engineIndex==2)MultiFPS_Init=MultiFPS_MAX;
+    int MultiFPS_Init = frameSettings.initialMultiplier();
 #else
+    int MultiFPS_Init = 2;
     if(ui->comboBox_Engine_VFI->currentIndex()==2)MultiFPS_Init=MultiFPS_MAX;
 #endif
     //初始化进度讯息
@@ -619,25 +617,22 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
         file_mkDir(OutputPath_Curr);
         //=======
 #ifdef PLATFORM_LINUX
-        if (frameSettings.usesRifeBackend())
         {
-            const int expectedFrames = file_getFileNames_in_Folder_nofilter(SourcePath_Curr).size() * MultiFPS_Init;
+            const int expectedFrames = frameSettings.expectedFrames(file_getFileNames_in_Folder_nofilter(SourcePath_Curr).size());
             if (backendClient && !waifu2x_STOP && !QProcess_stop)
             {
                 const QString model = frameSettings.model;
-                QStringList arguments{QStringLiteral("-i"), SourcePath_Curr,
-                                      QStringLiteral("-o"), OutputPath_Curr,
-                                      QStringLiteral("-f"), QStringLiteral("%0%1d.png").arg(FrameNumDigits)};
-                arguments.append(frameSettings.options);
-                if (isUhdInput && !arguments.contains(QStringLiteral("-u"))) arguments.append(QStringLiteral("-u"));
+                const QString engine = frameSettings.engine();
+                const QStringList arguments = frameSettings.roundArguments(SourcePath_Curr, OutputPath_Curr,
+                    FrameNumDigits, isUhdInput);
                 const int retryCount = frameSettings.retryCount;
                 const QString requestId = FrameRequest::newId();
                 std::atomic_bool stopRequested{false};
                 // A dedicated request task avoids blocking Qt's shared worker pool.
                 std::future<BackendProcessResult> future = std::async(std::launch::async,
-                    [this, model, SourcePath_Curr, OutputPath_Curr, arguments, expectedFrames,
+                    [this, engine, model, SourcePath_Curr, OutputPath_Curr, arguments, expectedFrames,
                      retryCount, requestId, &stopRequested] {
-                        return backendClient->runFramesBlocking(QStringLiteral("rife-ncnn-vulkan"),
+                        return backendClient->runFramesBlocking(engine,
                             model, SourcePath_Curr, OutputPath_Curr, arguments, 600000,
                             expectedFrames, retryCount, requestId, &stopRequested);
                     });
@@ -646,7 +641,7 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
                     if ((waifu2x_STOP || QProcess_stop) && !stopRequested.exchange(true))
                     {
                         if (!backendClient->cancelFramesBlocking(requestId))
-                            emit Send_TextBrowser_NewMessage(tr("RIFE cancellation was not acknowledged; waiting for bounded cleanup."));
+                            emit Send_TextBrowser_NewMessage(tr("Frame-engine cancellation was not acknowledged; waiting for bounded cleanup."));
                     }
                     if (frameSettings.showProgress)
                     {
@@ -669,7 +664,7 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
                 if (!isThisRoundSucceed)
                 {
                     emit Send_TextBrowser_NewMessage(result.diagnostic.isEmpty()
-                        ? tr("RIFE did not produce a complete set of decodable frames.") : result.diagnostic);
+                        ? tr("Frame engine did not produce a complete set of decodable frames.") : result.diagnostic);
                     // Keep output if the backend has not confirmed process cleanup.
                     if (result.finished)
                     {
@@ -681,11 +676,10 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
             }
             else if (!backendClient)
             {
-                emit Send_TextBrowser_NewMessage(tr("Rust backend is unavailable for RIFE frame processing."));
+                emit Send_TextBrowser_NewMessage(tr("Rust backend is unavailable for frame processing."));
             }
         }
-        else
-#endif
+#else
         for(int retry=0; retry<(ui->spinBox_retry->value()+retry_add); retry++)
         {
             FrameInterpolation_QProcess_failed = false;
@@ -772,6 +766,7 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
                 Delay_sec_sleep(5);
             }
         }
+#endif
         if(isThisRoundSucceed==true)
         {
             if(MultiFPS_curr == MultiFPS_MAX)
@@ -937,12 +932,20 @@ QString MainWindow::FrameInterpolation_ReadConfig(bool isUhdInput,int NumOfFrame
             }
         case 1://cain
             {
+#ifdef PLATFORM_LINUX
+                VFI_Config.append("-m cain ");
+#else
                 VFI_Config.append("-m \""+resolveModelPath(Current_Path, "cain-ncnn-vulkan", "cain")+"\" ");
+#endif
                 break;
             }
         case 2://dain
             {
+#ifdef PLATFORM_LINUX
+                VFI_Config.append("-m best ");
+#else
                 VFI_Config.append("-m \""+resolveModelPath(Current_Path, "dain-ncnn-vulkan", "best")+"\" ");
+#endif
                 //顺便把帧数倍率塞进去
                 VFI_Config.append("-n "+QString("%1").arg(NumOfFrames)+" ");
                 break;

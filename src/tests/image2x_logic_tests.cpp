@@ -33,6 +33,71 @@ class Image2xLogicTests : public QObject
     Q_OBJECT
 
 private slots:
+    void cainDainFrameRounds_data()
+    {
+        QTest::addColumn<int>("engineIndex");
+        QTest::addColumn<int>("fpsMultiple");
+        QTest::addColumn<QString>("engine");
+        QTest::addColumn<QString>("model");
+        QTest::addColumn<QList<int>>("rounds");
+        QTest::newRow("cain-8x") << 1 << 8 << QStringLiteral("cain-ncnn-vulkan")
+            << QStringLiteral("cain") << QList<int>{2, 4, 8};
+        QTest::newRow("dain-8x") << 2 << 8 << QStringLiteral("dain-ncnn-vulkan")
+            << QStringLiteral("best") << QList<int>{8};
+        QTest::newRow("dain-3x") << 2 << 3 << QStringLiteral("dain-ncnn-vulkan")
+            << QStringLiteral("best") << QList<int>{3};
+    }
+
+    void cainDainFrameRounds()
+    {
+        QFETCH(int, engineIndex);
+        QFETCH(int, fpsMultiple);
+        QFETCH(QString, engine);
+        QFETCH(QString, model);
+        QFETCH(QList<int>, rounds);
+        QStringList options{QStringLiteral("-g"), QStringLiteral("0"), QStringLiteral("-j"),
+                            QStringLiteral("3:3:3"), QStringLiteral("-m"), model};
+        if (engineIndex == 2)
+            options.append({QStringLiteral("-t"), QStringLiteral("128"), QStringLiteral("-n"),
+                            QString::number(3 * fpsMultiple)});
+        const FrameRequest::JobSettings settings{engineIndex,
+            FrameRequest::modelForEngine(engineIndex, QStringLiteral("unrelated UI model")),
+            options, fpsMultiple, 2, true};
+        QCOMPARE(settings.engine(), engine);
+        QCOMPARE(settings.model, model);
+        QList<int> actualRounds;
+        for (int multiplier = settings.initialMultiplier(); multiplier <= settings.fpsMultiple; multiplier *= 2)
+            actualRounds.append(multiplier);
+        QCOMPARE(actualRounds, rounds);
+        QCOMPARE(settings.expectedFrames(3), engineIndex == 2 ? 3 * fpsMultiple : 6);
+        options[1] = QStringLiteral("1");
+        const QStringList arguments = settings.roundArguments(QStringLiteral("/source frames"),
+            QStringLiteral("/output"), 8, true);
+        QCOMPARE(arguments.mid(6), settings.options);
+        QCOMPARE(arguments.at(5), QStringLiteral("%08d.png"));
+        QVERIFY(!arguments.contains(QStringLiteral("-u")));
+        QCOMPARE(arguments.at(arguments.indexOf(QStringLiteral("-g")) + 1), QStringLiteral("0"));
+        if (engineIndex == 2)
+        {
+            QCOMPARE(arguments.at(arguments.indexOf(QStringLiteral("-t")) + 1), QStringLiteral("128"));
+            QCOMPARE(arguments.at(arguments.indexOf(QStringLiteral("-n")) + 1), QString::number(3 * fpsMultiple));
+        }
+        const QJsonObject request = FrameRequest::make(QStringLiteral("frame-round"), settings.engine(),
+            settings.model, QStringLiteral("/source frames"), QStringLiteral("/output"), arguments,
+            600000, settings.expectedFrames(3), settings.retryCount);
+        QCOMPARE(request.value("engine").toString(), engine);
+        QCOMPARE(request.value("model").toString(), model);
+        QCOMPARE(request.value("expected_frames").toInt(), settings.expectedFrames(3));
+        QCOMPARE(request.value("args").toArray(), QJsonArray::fromStringList(arguments));
+        QCOMPARE(FrameRequest::cancel(QStringLiteral("cancel-round"), request.value("id").toString())
+                     .value("target_id").toString(), QStringLiteral("frame-round"));
+        const BackendProcessResult result = FrameRequest::result(QJsonObject{
+            {"ok", true}, {"event", "process_frames"}, {"data", QJsonObject{
+                {"started", true}, {"finished", true}, {"exit_code", 0},
+                {"timed_out", false}, {"output_valid", true}}}});
+        QVERIFY(result.succeeded());
+    }
+
     void frameGpuProbeInputsAreDistinctWritableAndTemporary()
     {
         QTemporaryDir parent;

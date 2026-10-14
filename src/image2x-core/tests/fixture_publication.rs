@@ -4,6 +4,7 @@
 #[path = "support/fake_engine.rs"]
 mod fake_engine;
 
+use std::ffi::c_void;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::os::fd::AsRawFd;
@@ -16,8 +17,8 @@ use image2x_core::process::run_engine_test;
 
 extern "C" {
     fn fork() -> i32;
-    fn read(fd: i32, buffer: *mut u8, count: usize) -> isize;
-    fn write(fd: i32, buffer: *const u8, count: usize) -> isize;
+    fn read(fd: i32, buffer: *mut c_void, count: usize) -> isize;
+    fn write(fd: i32, buffer: *const c_void, count: usize) -> isize;
     fn waitpid(pid: i32, status: *mut i32, options: i32) -> i32;
     fn kill(pid: i32, signal: i32) -> i32;
     fn _exit(status: i32) -> !;
@@ -45,14 +46,14 @@ impl InheritedWriter {
         }
         if pid == 0 {
             let ready = b'R';
-            let mut release = 0;
+            let mut release = 0u8;
             // SAFETY: fd is a live socket; both byte pointers reference valid
             // stack storage. _exit deliberately skips inherited Rust state.
             unsafe {
-                if write(fd, &ready, 1) != 1 {
+                if write(fd, (&ready as *const u8).cast(), 1) != 1 {
                     _exit(2);
                 }
-                read(fd, &mut release, 1);
+                read(fd, (&mut release as *mut u8).cast(), 1);
                 _exit(0);
             }
         }

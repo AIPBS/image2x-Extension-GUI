@@ -1,5 +1,11 @@
 # Change log
 
+## v1.6.1 (2026-10-14)
+
+### Fixed
+- Generate the Qt build file in the directory used by the Flatpak build and
+  install commands.
+
 ## v1.6.0 (2026-10-14)
 
 ### Changed

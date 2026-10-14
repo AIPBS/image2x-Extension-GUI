@@ -23,7 +23,7 @@ modules:
       build-args:
         - --share=network
     build-commands:
-      - qmake src/image2x-ui/Waifu2x-Extension-QT.pro CONFIG+=release
+      - cd src/image2x-ui && qmake Waifu2x-Extension-QT.pro CONFIG+=release
       - make -C src/image2x-ui -j${FLATPAK_BUILDER_N_JOBS}
       - rm -f src/image2x-ui/language_*.qm
       - for ts in src/image2x-ui/translations/language_*.ts; do qm="$(basename "${ts%.ts}.qm")"; lrelease "$ts" -qm "src/image2x-ui/$qm"; done

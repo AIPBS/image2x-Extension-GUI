@@ -98,7 +98,7 @@ public:
         NonFree,
     };
     //=======================
-    QString VERSION = "v1.6.0";
+    QString VERSION = "v1.6.1";
     bool isBetaVer = false;
     QString LastStableVer = "v3.31.13";
     QString LastBetaVer = "v3.41.02-beta";

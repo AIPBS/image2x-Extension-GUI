@@ -104,11 +104,11 @@ jobs:
       GPU_HELPER_REPOSITORY: AIPEACM/gpu-driver-helper
       GH_TOKEN: ${{ secrets.GPU_HELPER_TOKEN || github.token }}
     steps:
-      - name: Checkout tagged source
+      - name: Checkout tested source
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ needs.gate.outputs.tag }}
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Install packaging and runtime tools
         run: |
@@ -135,6 +135,7 @@ jobs:
       - name: Download tested binaries
         env:
           CI_RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
@@ -143,9 +144,13 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --name image2x-tested-binaries \
             --dir tested
+          [[ "$(cat tested/source-sha.txt)" == "$SOURCE_SHA" ]] || {
+            echo 'Tested binaries do not match the successful Test source SHA.' >&2
+            exit 1
+          }
 
       - name: Restore executable permissions
-        run: chmod +x tested/image2x-Extension-GUI tested/image2x-model-tests
+        run: chmod 755 tested/image2x-Extension-GUI tested/image2x-core tested/image2x-model-tests
 
       - name: Resolve latest GPU helper release
         id: gpu-helper-release
@@ -178,9 +183,11 @@ jobs:
           set -euo pipefail
           mkdir -p bundle/lib bundle/plugins bundle/tools
           cp tested/image2x-Extension-GUI bundle/
+          cp tested/image2x-core bundle/
+          cp tested/source-sha.txt bundle/
           cp tested/language_*.qm bundle/
           cp "$RUNNER_TEMP/gpu-driver-helper/gpu-driver-helper-linux-x86_64" bundle/tools/gpu-driver-helper
-          chmod 755 bundle/image2x-Extension-GUI
+          chmod 755 bundle/image2x-Extension-GUI bundle/image2x-core
           chmod 755 bundle/tools/gpu-driver-helper
 
           copy_libs() {
@@ -188,7 +195,7 @@ jobs:
           }
           exclude='^(libc\.so\.6|libm\.so\.6|libpthread\.so\.0|libdl\.so\.2|libresolv\.so\.2|libnsl\.so\.1|libstdc\+\+\.so\.6|libgcc_s\.so\.1|linux-vdso\.so\.1|ld-linux.*\.so\.2)$'
 
-          libraries="$(copy_libs bundle/image2x-Extension-GUI)"
+          libraries="$( { copy_libs bundle/image2x-Extension-GUI; copy_libs bundle/image2x-core; } | sort -u)"
           for library in $libraries; do
             name="$(basename "$library")"
             [[ "$name" =~ $exclude ]] && continue
@@ -209,6 +216,7 @@ jobs:
           printf '%s\n' '[Paths]' 'Prefix = .' 'Libraries = lib' 'Plugins = plugins' > bundle/qt.conf
           patchelf --set-rpath '$ORIGIN' bundle/lib/*.so* 2>/dev/null || true
           patchelf --set-rpath '$ORIGIN/lib' bundle/image2x-Extension-GUI
+          patchelf --set-rpath '$ORIGIN/lib' bundle/image2x-core
           for plugin in bundle/plugins/*/*.so*; do
             [[ -f "$plugin" ]] && patchelf --set-rpath '$ORIGIN/../../lib' "$plugin" 2>/dev/null || true
           done
@@ -283,6 +291,8 @@ jobs:
             exit 1
           }
            tar -czf image2x-Extension-GUI-linux.tar.gz -C bundle .
+           tar -tzf image2x-Extension-GUI-linux.tar.gz | grep -Fx './image2x-core'
+           tar -tzf image2x-Extension-GUI-linux.tar.gz | grep -Fx './source-sha.txt'
            gh release create "$RELEASE_TAG" image2x-Extension-GUI-linux.tar.gz \
              --repo "$GITHUB_REPOSITORY" \
             --title "image2x-Extension-GUI $RELEASE_TAG" \

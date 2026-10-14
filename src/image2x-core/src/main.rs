@@ -9,7 +9,7 @@ use std::fs;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::os::unix::net::{UnixListener, UnixStream};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::thread;
 
 use anyhow::Result;
@@ -46,7 +46,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn handle_connection(stream: UnixStream, application_directory: &PathBuf) {
+fn handle_connection(stream: UnixStream, application_directory: &Path) {
     let reader = BufReader::new(match stream.try_clone() {
         Ok(stream) => stream,
         Err(error) => {

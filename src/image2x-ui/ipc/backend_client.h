@@ -23,6 +23,7 @@
 #include <QProcess>
 #include <QString>
 #include <QStringList>
+#include <atomic>
 
 struct BackendProcessResult
 {
@@ -68,7 +69,8 @@ public:
     QStringList runtimeMissing(const QString &engine) const;
     bool hasModelRecords() const;
     bool modelAvailable(const QString &model) const;
-    QJsonObject runRequestBlocking(const QJsonObject &request, int timeoutMs) const;
+    QJsonObject runRequestBlocking(const QJsonObject &request, int timeoutMs,
+                                  const std::atomic_bool *stopRequested = nullptr) const;
     BackendProcessResult runCommandBlocking(const QString &program,
                                             const QStringList &arguments,
                                             const QString &workingDirectory,
@@ -85,6 +87,16 @@ public:
                                                 const QList<BackendImageStage> &stages,
                                                 int timeoutMs,
                                                 int retryCount) const;
+    BackendProcessResult runFramesBlocking(const QString &model,
+                                          const QString &inputPath,
+                                          const QString &outputPath,
+                                          const QStringList &arguments,
+                                          int timeoutMs,
+                                          int expectedFrames,
+                                          int retryCount,
+                                          const QString &requestId = QString(),
+                                          const std::atomic_bool *stopRequested = nullptr) const;
+    bool cancelFramesBlocking(const QString &targetId) const;
 
 signals:
     void ready();

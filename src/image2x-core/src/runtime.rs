@@ -26,6 +26,11 @@ struct RuntimeDefinition {
 
 const RUNTIMES: &[RuntimeDefinition] = &[
     RuntimeDefinition {
+        engine: "ifrnet-ncnn-vulkan",
+        executable: "ifrnet-ncnn-vulkan",
+        models: &["IFRNet_Vimeo90K"],
+    },
+    RuntimeDefinition {
         engine: "waifu2x-ncnn-vulkan",
         executable: "waifu2x-ncnn-vulkan",
         models: &[
@@ -101,7 +106,7 @@ pub fn runtime_records(application_directory: &Path) -> Vec<RuntimeRecord> {
 }
 
 #[cfg(unix)]
-fn is_executable(path: &Path) -> bool {
+pub(crate) fn is_executable(path: &Path) -> bool {
     use std::os::unix::fs::PermissionsExt;
 
     std::fs::metadata(path)
@@ -110,7 +115,7 @@ fn is_executable(path: &Path) -> bool {
 }
 
 #[cfg(not(unix))]
-fn is_executable(path: &Path) -> bool {
+pub(crate) fn is_executable(path: &Path) -> bool {
     path.is_file()
 }
 
@@ -122,7 +127,7 @@ mod tests {
     #[test]
     fn missing_application_reports_all_public_runtimes() {
         let records = runtime_records(Path::new("/does/not/exist/image2x"));
-        assert_eq!(records.len(), 5);
+        assert_eq!(records.len(), 6);
         assert!(records.iter().all(|record| !record.available));
     }
 }

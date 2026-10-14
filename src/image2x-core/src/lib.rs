@@ -5,6 +5,9 @@
 // by the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+mod frame_cancel;
+pub mod frame_job;
+mod frame_process;
 pub mod manifest;
 pub mod process;
 pub mod protocol;
@@ -38,10 +41,19 @@ pub fn handle_line(line: &str, application_directory: &Path) -> Result<String, C
             "hello",
             serde_json::json!({
                 "protocol": protocol::PROTOCOL_VERSION,
-            "capabilities": ["hello", "ping", "list_models", "validate_runtime", "run", "process_image"],
+            "capabilities": ["hello", "ping", "list_models", "validate_runtime", "run", "process_image", "process_frames", "cancel_frames"],
             }),
         ),
         Request::Ping { id } => Response::ok(id, "pong", serde_json::json!({})),
+        Request::CancelFrames { id, target_id } => Response::ok(
+            id,
+            "cancel_frames",
+            serde_json::json!({"cancelled": frame_cancel::cancel(&target_id)}),
+        ),
+        Request::ProcessFrames { id, job } => {
+            let result = frame_job::run_frame_request(application_directory, &id, &job);
+            Response::ok(id, "process_frames", serde_json::to_value(result)?)
+        }
         Request::ListModels { id } => {
             let models: Vec<ModelRecord> = model_records(application_directory);
             Response::ok(id, "models", serde_json::json!({ "models": models }))

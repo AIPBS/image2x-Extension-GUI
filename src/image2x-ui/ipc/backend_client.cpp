@@ -13,6 +13,7 @@
 */
 
 #include "backend_client.h"
+#include "frame_request.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -23,6 +24,8 @@
 #include <QElapsedTimer>
 #include <QRandomGenerator>
 #include <QStandardPaths>
+#include <QThread>
+#include <limits>
 
 BackendClient::BackendClient(QObject *parent)
     : QObject(parent)
@@ -142,7 +145,8 @@ bool BackendClient::modelAvailable(const QString &model) const
     return modelRecords.value(model).value(QStringLiteral("available")).toBool();
 }
 
-QJsonObject BackendClient::runRequestBlocking(const QJsonObject &request, int timeoutMs) const
+QJsonObject BackendClient::runRequestBlocking(const QJsonObject &request, int timeoutMs,
+                                             const std::atomic_bool *stopRequested) const
 {
     if (socketPath.isEmpty())
     {
@@ -178,11 +182,21 @@ QJsonObject BackendClient::runRequestBlocking(const QJsonObject &request, int ti
     QByteArray pendingData;
     QElapsedTimer timer;
     timer.start();
-    while (timer.elapsed() < timeoutMs)
+    qint64 deadlineMs = timeoutMs;
+    bool cancellationObserved = false;
+    while (timer.elapsed() < deadlineMs)
     {
-        if (!requestSocket.bytesAvailable()
-            && !requestSocket.waitForReadyRead(qMax(1, timeoutMs - int(timer.elapsed()))))
+        if (stopRequested && stopRequested->load() && !cancellationObserved)
         {
+            cancellationObserved = true;
+            deadlineMs = qMin(deadlineMs, timer.elapsed() + 5000);
+        }
+        const int remainingMs = qMax(1, int(deadlineMs - timer.elapsed()));
+        if (!requestSocket.bytesAvailable()
+            && !requestSocket.waitForReadyRead(stopRequested ? qMin(200, remainingMs) : remainingMs))
+        {
+            if (stopRequested && requestSocket.state() == QLocalSocket::ConnectedState)
+                continue;
             break;
         }
         pendingData.append(requestSocket.readAll());
@@ -209,7 +223,9 @@ QJsonObject BackendClient::runRequestBlocking(const QJsonObject &request, int ti
                        {QStringLiteral("event"), QStringLiteral("error")},
                        {QStringLiteral("data"),
                         QJsonObject{{QStringLiteral("message"),
-                                     QStringLiteral("Rust backend request timed out.")}}}};
+                                      cancellationObserved
+                                          ? QStringLiteral("Rust frame cancellation cleanup was not confirmed; output was retained.")
+                                          : QStringLiteral("Rust backend request timed out.")}}}};
 }
 
 BackendProcessResult BackendClient::runCommandBlocking(const QString &program,
@@ -351,6 +367,36 @@ BackendProcessResult BackendClient::runImageStagesBlocking(
                                 .toString();
     }
     return result;
+}
+
+BackendProcessResult BackendClient::runFramesBlocking(
+    const QString &model, const QString &inputPath, const QString &outputPath,
+    const QStringList &arguments, int timeoutMs, int expectedFrames, int retryCount,
+    const QString &requestId, const std::atomic_bool *stopRequested) const
+{
+    if (QCoreApplication::instance()
+        && QThread::currentThread() == QCoreApplication::instance()->thread())
+    {
+        BackendProcessResult result;
+        result.diagnostic = QStringLiteral("Frame processing must run off the UI thread.");
+        return result;
+    }
+    const QJsonObject request = FrameRequest::make(
+        requestId.isEmpty() ? FrameRequest::newId() : requestId,
+        model, inputPath, outputPath, arguments, timeoutMs, expectedFrames, retryCount);
+    const qint64 waitMs = qint64(qMax(1, timeoutMs)) + 5000;
+    return FrameRequest::result(runRequestBlocking(
+        request, int(qMin(waitMs, qint64(std::numeric_limits<int>::max()))), stopRequested));
+}
+
+bool BackendClient::cancelFramesBlocking(const QString &targetId) const
+{
+    if (targetId.isEmpty() || (QCoreApplication::instance()
+        && QThread::currentThread() == QCoreApplication::instance()->thread())) return false;
+    // runRequestBlocking creates an independent private socket, so cancellation
+    // can be delivered while the original process_frames response is pending.
+    return FrameRequest::cancellationAccepted(runRequestBlocking(
+        FrameRequest::cancel(FrameRequest::newId(), targetId), 3000));
 }
 
 void BackendClient::validateRuntime()

@@ -41,12 +41,24 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#ifdef PLATFORM_LINUX
+#include "../ipc/frame_request.h"
+#include <chrono>
+#include <future>
+#endif
 
 /*
 视频补帧 (IFRNet)
 */
 bool MainWindow::IFRNet_FrameInterpolation(QString SourcePath,QString OutputPath)
 {
+#ifdef PLATFORM_LINUX
+    if (QThread::currentThread() == qApp->thread())
+    {
+        emit Send_TextBrowser_NewMessage(tr("IFRNet frame processing must run off the UI thread."));
+        return false;
+    }
+#endif
     if(SourcePath.right(1)=="/")
     {
         SourcePath = SourcePath.left(SourcePath.length() - 1);
@@ -96,12 +108,14 @@ bool MainWindow::IFRNet_FrameInterpolation(QString SourcePath,QString OutputPath
     int FileNum_New = 0;
     int FileNum_Old = 0;
     //========
+#ifndef PLATFORM_LINUX
     QString FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "ifrnet-ncnn-vulkan", "ifrnet-ncnn-vulkan");
     QString CMD ="";
     //========
     bool FrameInterpolation_QProcess_failed = false;
     QString ErrorMSG="";
     QString StanderMSG="";
+#endif
     int FrameNumDigits = CalNumDigits(FileNum_MAX);
     //========
     int MultiFPS_MAX = ui->spinBox_MultipleOfFPS_VFI->value();
@@ -138,6 +152,70 @@ bool MainWindow::IFRNet_FrameInterpolation(QString SourcePath,QString OutputPath
         file_DelDir(OutputPath_Curr);
         file_mkDir(OutputPath_Curr);
         //=======
+#ifdef PLATFORM_LINUX
+        const int expectedFrames = file_getFileNames_in_Folder_nofilter(SourcePath_Curr).size() * MultiFPS_Init;
+        if (backendClient && !waifu2x_STOP && !QProcess_stop)
+        {
+            const QString model = ui->comboBox_Model_VFI->currentText().trimmed();
+            QStringList arguments{QStringLiteral("-i"), SourcePath_Curr,
+                                  QStringLiteral("-o"), OutputPath_Curr,
+                                  QStringLiteral("-f"), QStringLiteral("%0%1d.png").arg(FrameNumDigits)};
+            arguments.append(QProcess::splitCommand(IFRNet_ReadConfig(isUhdInput, FileNum_MAX)));
+            // The backend owns retries and runtime/model resolution. One bounded
+            // request per FPS round leaves Qt responsible for progress and decoding.
+            const int retryCount = qMax(0, ui->spinBox_retry->value() + retry_add - 1);
+            const QString requestId = FrameRequest::newId();
+            std::atomic_bool stopRequested{false};
+            std::future<BackendProcessResult> future = std::async(std::launch::async,
+                [this, model, SourcePath_Curr, OutputPath_Curr, arguments, expectedFrames,
+                 retryCount, requestId, &stopRequested] {
+                    return backendClient->runFramesBlocking(model, SourcePath_Curr, OutputPath_Curr,
+                        arguments, 600000, expectedFrames, retryCount, requestId, &stopRequested);
+                });
+            while (future.wait_for(std::chrono::milliseconds(200)) != std::future_status::ready)
+            {
+                if ((waifu2x_STOP || QProcess_stop) && !stopRequested.exchange(true))
+                {
+                    if (!backendClient->cancelFramesBlocking(requestId))
+                        emit Send_TextBrowser_NewMessage(tr("IFRNet cancellation was not acknowledged; waiting for bounded cleanup."));
+                }
+                if (ui->checkBox_ShowInterPro->isChecked())
+                {
+                    FileNum_New = file_getFileNames_in_Folder_nofilter(OutputPath_Curr).size();
+                    if (FileNum_New != FileNum_Old)
+                    {
+                        if (is_progressBar_CurrentFile_available)
+                            emit Send_CurrentFileProgress_progressbar_SetFinishedValue(FileNum_New);
+                        else
+                            emit Send_TextBrowser_NewMessage(tr("Interpolating frames (IFRNet) in:[")
+                                + SourcePath_Curr + tr("] Progress:[") + QString::number(FileNum_New)
+                                + "/" + QString::number(FileNum_MAX) + "]");
+                        FileNum_Old = FileNum_New;
+                    }
+                }
+            }
+            const BackendProcessResult result = future.get();
+            isThisRoundSucceed = !waifu2x_STOP && !QProcess_stop && result.succeeded()
+                && FrameRequest::validOutput(OutputPath_Curr, expectedFrames);
+            if (!isThisRoundSucceed)
+            {
+                emit Send_TextBrowser_NewMessage(result.diagnostic.isEmpty()
+                    ? tr("IFRNet did not produce a complete set of decodable frames.")
+                    : result.diagnostic);
+                // Do not delete an output directory while Rust is still writing it.
+                if (result.finished)
+                {
+                    file_DelDir(OutputPath_Curr);
+                    if (stopRequested.load() && SourcePath_Curr != SourcePath)
+                        file_DelDir(SourcePath_Curr);
+                }
+            }
+        }
+        else if (!backendClient)
+        {
+            emit Send_TextBrowser_NewMessage(tr("Rust backend is unavailable for IFRNet frame processing."));
+        }
+#else
         for(int retry=0; retry<(ui->spinBox_retry->value()+retry_add); retry++)
         {
             FrameInterpolation_QProcess_failed = false;
@@ -224,6 +302,7 @@ bool MainWindow::IFRNet_FrameInterpolation(QString SourcePath,QString OutputPath
                 Delay_sec_sleep(5);
             }
         }
+#endif
         if(isThisRoundSucceed==true)
         {
             if(MultiFPS_curr == MultiFPS_MAX)
@@ -344,8 +423,12 @@ QString MainWindow::IFRNet_ReadConfig(bool isUhdInput,int)
         }
     }
     //Model
+#ifdef PLATFORM_LINUX
+    VFI_Config.append("-m \""+ui->comboBox_Model_VFI->currentText().trimmed()+"\" ");
+#else
     QString engine_folder = resolveEngineDirectory(Current_Path, "ifrnet-ncnn-vulkan");
     VFI_Config.append("-m \""+engine_folder+"/"+ui->comboBox_Model_VFI->currentText().trimmed()+"\" ");
+#endif
     //========================
     return VFI_Config;
 }
@@ -377,6 +460,46 @@ int MainWindow::IFRNet_DetectGPU()
     QString OutputPath = Current_Path + "/Compatibility_Test/res.png";
     QFile::remove(OutputPath);
     //==============
+#ifdef PLATFORM_LINUX
+    if (backendClient == nullptr || QThread::currentThread() == qApp->thread())
+    {
+        emit Send_TextBrowser_NewMessage(tr("Rust backend worker is unavailable for IFRNet GPU detection."));
+        emit Send_IFRNet_DetectGPU_finished();
+        return 0;
+    }
+    const QString program = backendClient->runtimeExecutable(QStringLiteral("ifrnet-ncnn-vulkan"));
+    if (program.isEmpty())
+    {
+        emit Send_TextBrowser_NewMessage(tr("Rust backend has no available IFRNet runtime."));
+        emit Send_IFRNet_DetectGPU_finished();
+        return 0;
+    }
+    for (int GPU_ID = -1; !QProcess_stop && !waifu2x_STOP; ++GPU_ID)
+    {
+        QFile::remove(OutputPath);
+        const QStringList arguments{
+            QStringLiteral("-0"), InputPath, QStringLiteral("-1"), InputPath_1,
+            QStringLiteral("-o"), OutputPath, QStringLiteral("-j"), QStringLiteral("1:1:1"),
+            QStringLiteral("-g"), QString::number(GPU_ID),
+            QStringLiteral("-m"), QStringLiteral("IFRNet_Vimeo90K")};
+        const BackendProcessResult result = backendClient->runCommandBlocking(
+            program, arguments, QFileInfo(program).absolutePath(), OutputPath, 60000);
+        const bool valid = result.succeeded() && QFileInfo(OutputPath).size() > 0
+            && !QImage(OutputPath).isNull()
+            && !result.standardError.toLower().contains("failed")
+            && !result.standardOutput.toLower().contains("failed");
+        if (valid)
+        {
+            Available_GPUID_IFRNet.append(QString::number(GPU_ID));
+        }
+        else
+        {
+            if (!result.diagnostic.isEmpty()) emit Send_TextBrowser_NewMessage(result.diagnostic);
+            // Missing runtimes/socket failures are not GPU IDs to probe again.
+            if (!result.started || result.timedOut || GPU_ID >= 0) break;
+        }
+    }
+#else
     QString program = resolveEnginePath(Current_Path, "ifrnet-ncnn-vulkan", "ifrnet-ncnn-vulkan");
     QString model_path = resolveModelPath(Current_Path, "ifrnet-ncnn-vulkan", "IFRNet_Vimeo90K");
     //=========
@@ -409,6 +532,7 @@ int MainWindow::IFRNet_DetectGPU()
             }
         }
     }
+#endif
     QFile::remove(OutputPath);
     //===============
     emit Send_TextBrowser_NewMessage(tr("Detection is complete!"));

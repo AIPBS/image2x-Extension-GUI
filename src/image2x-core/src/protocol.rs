@@ -10,6 +10,21 @@ use serde_json::Value;
 
 pub const PROTOCOL_VERSION: u32 = 1;
 
+/// One IFRNet folder pass. Core-owned paths override matching argv options.
+#[derive(Debug, Deserialize)]
+pub struct FrameJob {
+    pub engine: String,
+    pub model: String,
+    pub input_path: String,
+    pub output_path: String,
+    #[serde(default)]
+    pub args: Vec<String>,
+    pub timeout_ms: u64,
+    pub expected_frames: u32,
+    #[serde(default)]
+    pub retry_count: u32,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct ImageJobStage {
     pub input_path: String,
@@ -21,6 +36,15 @@ pub struct ImageJobStage {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Request {
+    CancelFrames {
+        id: String,
+        target_id: String,
+    },
+    ProcessFrames {
+        id: String,
+        #[serde(flatten)]
+        job: FrameJob,
+    },
     Hello {
         id: String,
     },

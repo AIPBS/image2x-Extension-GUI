@@ -15,6 +15,7 @@
 #include "model_test_matrix.h"
 #include "runtime_dependencies.h"
 #include "ui_routing.h"
+#include "../image2x-ui/ipc/frame_request.h"
 
 #include <QDir>
 #include <QFile>
@@ -28,6 +29,95 @@ class Image2xLogicTests : public QObject
     Q_OBJECT
 
 private slots:
+    void frameCancellationTranslation()
+    {
+        const QString targetId = FrameRequest::newId();
+        const QString cancelId = FrameRequest::newId();
+        QVERIFY(targetId != cancelId);
+        const QJsonObject request = FrameRequest::cancel(cancelId, targetId);
+        QCOMPARE(request.value("type").toString(), QStringLiteral("cancel_frames"));
+        QCOMPARE(request.value("id").toString(), cancelId);
+        QCOMPARE(request.value("target_id").toString(), targetId);
+        QJsonObject response{{"ok", true}, {"event", "cancel_frames"},
+                             {"data", QJsonObject{{"cancelled", true}}}};
+        QVERIFY(FrameRequest::cancellationAccepted(response));
+        response.insert("data", QJsonObject{{"cancelled", false}});
+        QVERIFY(!FrameRequest::cancellationAccepted(response));
+        response.insert("data", QJsonObject{{"cancelled", true}});
+        response.insert("ok", false);
+        QVERIFY(!FrameRequest::cancellationAccepted(response));
+        response.insert("ok", true);
+        response.insert("event", "process_frames");
+        QVERIFY(!FrameRequest::cancellationAccepted(response));
+    }
+
+    void frameRequestTranslation()
+    {
+        const QStringList arguments{QStringLiteral("-i"), QStringLiteral("/input with spaces"),
+                                    QStringLiteral("-o"), QStringLiteral("/output"),
+                                    QStringLiteral("-f"), QStringLiteral("%08d.png"),
+                                    QStringLiteral("-m"), QStringLiteral("IFRNet_Vimeo90K"),
+                                    QStringLiteral("-g"), QStringLiteral("0,1"),
+                                    QStringLiteral("-j"), QStringLiteral("4:2,2:4")};
+        const QJsonObject request = FrameRequest::make(QStringLiteral("frames-test"),
+            QStringLiteral("IFRNet_Vimeo90K"), QStringLiteral("/input with spaces"),
+            QStringLiteral("/output"), arguments, 600000, 24, 2);
+        QCOMPARE(request.value("type").toString(), QStringLiteral("process_frames"));
+        QCOMPARE(request.value("id").toString(), QStringLiteral("frames-test"));
+        QCOMPARE(request.value("engine").toString(), QStringLiteral("ifrnet-ncnn-vulkan"));
+        QCOMPARE(request.value("model").toString(), QStringLiteral("IFRNet_Vimeo90K"));
+        QCOMPARE(request.value("input_path").toString(), QStringLiteral("/input with spaces"));
+        QCOMPARE(request.value("output_path").toString(), QStringLiteral("/output"));
+        QCOMPARE(request.value("args").toArray(), QJsonArray::fromStringList(arguments));
+        QCOMPARE(request.value("timeout_ms").toInt(), 600000);
+        QCOMPARE(request.value("expected_frames").toInt(), 24);
+        QCOMPARE(request.value("retry_count").toInt(), 2);
+    }
+
+    void frameResultTranslation()
+    {
+        QJsonObject data{{"started", true}, {"finished", true}, {"exit_code", 0},
+                         {"timed_out", false}, {"output_valid", true},
+                         {"stdout", "frames complete"}, {"stderr", "device report"},
+                         {"diagnostic", "complete"}};
+        QJsonObject response{{"ok", true}, {"event", "process_frames"}, {"data", data}};
+        BackendProcessResult result = FrameRequest::result(response);
+        QVERIFY(result.succeeded());
+        QCOMPARE(result.standardOutput, QByteArray("frames complete"));
+        QCOMPARE(result.standardError, QByteArray("device report"));
+        QCOMPARE(result.diagnostic, QStringLiteral("complete"));
+        data.insert("timed_out", true);
+        response.insert("data", data);
+        QVERIFY(!FrameRequest::result(response).succeeded());
+        data.insert("diagnostic", "runtime missing");
+        response.insert("data", data);
+        response.insert("ok", false);
+        QCOMPARE(FrameRequest::result(response).diagnostic, QStringLiteral("runtime missing"));
+        response = QJsonObject{{"ok", false}, {"event", "error"},
+                               {"data", QJsonObject{{"message", "socket unavailable"}}}};
+        result = FrameRequest::result(response);
+        QVERIFY(!result.succeeded());
+        QCOMPARE(result.diagnostic, QStringLiteral("socket unavailable"));
+    }
+
+    void frameOutputRequiresDecoding()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const QString path = directory.filePath(QStringLiteral("00000001.png"));
+        QImage image(4, 4, QImage::Format_RGB32);
+        image.fill(Qt::white);
+        QVERIFY(image.save(path));
+        QVERIFY(FrameRequest::validOutput(directory.path(), 1));
+        QVERIFY(!FrameRequest::validOutput(directory.path(), 2));
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::ReadWrite));
+        QVERIFY(file.resize(24)); // A PNG header is not a decodable frame.
+        file.close();
+        QVERIFY(!FrameRequest::validOutput(directory.path(), 1));
+        QVERIFY(!FrameRequest::validOutput(directory.path(), 0));
+    }
+
     void deviceClassification()
     {
         QVERIFY(EngineTestRunner::isSoftwareDevice(QStringLiteral("llvmpipe (LLVM 15.0.7)")));

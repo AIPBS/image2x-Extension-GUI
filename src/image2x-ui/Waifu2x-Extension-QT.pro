@@ -105,6 +105,7 @@ SOURCES += \
 HEADERS += \
     app/mainwindow.h \
     ipc/backend_client.h \
+    ipc/frame_request.h \
     presentation/compatibility_presentation.h \
     presentation/ui_routing.h \
     widgets/topsupporterslist.h \

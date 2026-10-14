@@ -1,6 +1,18 @@
 # Change log
 
-## [Unreleased]
+## v1.3.0 (2026-10-14)
+
+### Changed
+- Route Linux IFRNet frame-interpolation passes through the Rust backend for
+  runtime and model validation, bounded execution, retries, and numbered-frame
+  output checks. Qt retains progress presentation and final image decoding.
+- Route Linux IFRNet GPU-detection probes through Rust process supervision.
+
+### Fixed
+- Forward Stop requests to active Linux IFRNet frame jobs, terminate supervised
+  engine processes, and wait for cleanup before removing output frames.
+- Include the required Rust backend beside the GUI in Linux release bundles,
+  and run its checks before uploading the tested release binaries.
 
 ## v1.2.0 (2026-10-09)
 

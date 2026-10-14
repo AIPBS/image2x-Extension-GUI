@@ -159,7 +159,7 @@ bool MainWindow::IFRNet_FrameInterpolation(QString SourcePath,QString OutputPath
             const QString model = ui->comboBox_Model_VFI->currentText().trimmed();
             QStringList arguments{QStringLiteral("-i"), SourcePath_Curr,
                                   QStringLiteral("-o"), OutputPath_Curr,
-                                  QStringLiteral("-f"), QStringLiteral("%0%1d.png").arg(FrameNumDigits)};
+                                  QStringLiteral("-f"), QStringLiteral("%0") + QString::number(FrameNumDigits) + QStringLiteral("d.png")};
             arguments.append(QProcess::splitCommand(IFRNet_ReadConfig(isUhdInput, FileNum_MAX)));
             // The backend owns retries and runtime/model resolution. One bounded
             // request per FPS round leaves Qt responsible for progress and decoding.

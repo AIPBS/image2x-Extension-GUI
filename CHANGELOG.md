@@ -8,6 +8,10 @@
   CAIN's repeated 2x passes and DAIN's requested-multiplier single pass, with Qt
   progress reporting and final frame decoding.
 
+### Fixed
+- Preserve the zero-padded frame filename pattern when passing Linux frame
+  jobs to RIFE, IFRNet, CAIN, and DAIN.
+
 ## v1.5.0 (2026-10-14)
 
 ### Changed

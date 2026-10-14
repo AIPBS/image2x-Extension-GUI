@@ -45,7 +45,7 @@ struct JobSettings
                                int frameDigits, bool automaticUhd) const
     {
         QStringList arguments{QStringLiteral("-i"), input, QStringLiteral("-o"), output,
-                              QStringLiteral("-f"), QStringLiteral("%0%1d.png").arg(frameDigits)};
+                              QStringLiteral("-f"), QStringLiteral("%0") + QString::number(frameDigits) + QStringLiteral("d.png")};
         arguments.append(options);
         if (usesRifeBackend() && automaticUhd && !arguments.contains(QStringLiteral("-u")))
             arguments.append(QStringLiteral("-u"));

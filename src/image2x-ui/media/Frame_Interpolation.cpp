@@ -18,6 +18,11 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#ifdef PLATFORM_LINUX
+#include "../ipc/frame_request.h"
+#include <chrono>
+#include <future>
+#endif
 /*
 对视频进行仅插帧(分段)
 */
@@ -445,6 +450,14 @@ int MainWindow::FrameInterpolation_Video(int rowNum)
 */
 bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
 {
+#ifdef PLATFORM_LINUX
+    const int selectedEngineIndex = ui->comboBox_Engine_VFI->currentIndex();
+    if (selectedEngineIndex == 0 && QThread::currentThread() == qApp->thread())
+    {
+        emit Send_TextBrowser_NewMessage(tr("RIFE frame processing must run off the UI thread."));
+        return false;
+    }
+#endif
     if(SourcePath.right(1)=="/")
     {
         SourcePath = SourcePath.left(SourcePath.length() - 1);
@@ -454,7 +467,11 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
         OutputPath = OutputPath.left(OutputPath.length() - 1);
     }
     if(file_isDirExist(SourcePath)==false)return false;
+#ifdef PLATFORM_LINUX
+    if(selectedEngineIndex==3)
+#else
     if(ui->comboBox_Engine_VFI->currentIndex()==3)
+#endif
     {
         return IFRNet_FrameInterpolation(SourcePath, OutputPath);
     }
@@ -466,9 +483,23 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
     {
         retry_add = 6-ui->spinBox_retry->value();
     }
+#ifdef PLATFORM_LINUX
+    // Capture values once. Later widget edits must not change an active job's
+    // backend route, model, CLI settings, frame multiplier, or retry budget.
+    const FrameRequest::JobSettings frameSettings{
+        selectedEngineIndex, ui->comboBox_Model_VFI->currentText().trimmed(),
+        selectedEngineIndex == 0 ? QProcess::splitCommand(FrameInterpolation_ReadConfig(false, 0)) : QStringList(),
+        ui->spinBox_MultipleOfFPS_VFI->value(),
+        qMax(0, ui->spinBox_retry->value() + retry_add - 1),
+        ui->checkBox_ShowInterPro->isChecked()};
+#endif
     //==== 检查是否正在使用rife,若使用则检测是否需要启用uhd模式 ====
     bool isUhdInput=false;
+#ifdef PLATFORM_LINUX
+    if(frameSettings.usesRifeBackend() && !frameSettings.options.contains(QStringLiteral("-u")))
+#else
     if(ui->comboBox_Engine_VFI->currentIndex()==0 && ui->checkBox_UHD_VFI->isChecked()==false)
+#endif
     {
         QStringList SourceImagesNames = file_getFileNames_in_Folder_nofilter(SourcePath);
         QString ImgName_tmp;
@@ -494,16 +525,26 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
     }
     if(isUhdInput==true)Send_TextBrowser_NewMessage(tr("UHD input detected, UHD Mode is automatically enabled."));
     //====================
+#ifdef PLATFORM_LINUX
+    int FileNum_MAX = file_getFileNames_in_Folder_nofilter(SourcePath).size() * frameSettings.fpsMultiple;
+#else
     int FileNum_MAX = file_getFileNames_in_Folder_nofilter(SourcePath).size() * ui->spinBox_MultipleOfFPS_VFI->value();
+#endif
     int FileNum_New = 0;
     int FileNum_Old = 0;
     //========
     QString FrameInterpolation_ProgramPath="";
+#ifdef PLATFORM_LINUX
+    switch (frameSettings.engineIndex)
+#else
     switch (ui->comboBox_Engine_VFI->currentIndex())
+#endif
     {
         case 0:
             {
+#ifndef PLATFORM_LINUX
                 FrameInterpolation_ProgramPath = resolveEnginePath(Current_Path, "rife-ncnn-vulkan", "rife-ncnn-vulkan");
+#endif
                 break;
             }
         case 1:
@@ -529,12 +570,24 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
     QString StanderMSG="";
     int FrameNumDigits = CalNumDigits(FileNum_MAX);
     //========
+#ifdef PLATFORM_LINUX
+    int MultiFPS_MAX = frameSettings.fpsMultiple;
+#else
     int MultiFPS_MAX = ui->spinBox_MultipleOfFPS_VFI->value();
+#endif
     int MultiFPS_Init = 2;
+#ifdef PLATFORM_LINUX
+    if(frameSettings.engineIndex==2)MultiFPS_Init=MultiFPS_MAX;
+#else
     if(ui->comboBox_Engine_VFI->currentIndex()==2)MultiFPS_Init=MultiFPS_MAX;
+#endif
     //初始化进度讯息
     bool is_progressBar_CurrentFile_available = false;
+#ifdef PLATFORM_LINUX
+    if(frameSettings.showProgress && ui->progressBar_CurrentFile->isVisible()==false)
+#else
     if(ui->checkBox_ShowInterPro->isChecked()==true && ui->progressBar_CurrentFile->isVisible()==false)
+#endif
     {
         is_progressBar_CurrentFile_available=true;
         emit Send_CurrentFileProgress_Start(SourcePath.split("/").last(),FileNum_MAX);
@@ -564,6 +617,74 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
         file_DelDir(OutputPath_Curr);
         file_mkDir(OutputPath_Curr);
         //=======
+#ifdef PLATFORM_LINUX
+        if (frameSettings.usesRifeBackend())
+        {
+            const int expectedFrames = file_getFileNames_in_Folder_nofilter(SourcePath_Curr).size() * MultiFPS_Init;
+            if (backendClient && !waifu2x_STOP && !QProcess_stop)
+            {
+                const QString model = frameSettings.model;
+                QStringList arguments{QStringLiteral("-i"), SourcePath_Curr,
+                                      QStringLiteral("-o"), OutputPath_Curr,
+                                      QStringLiteral("-f"), QStringLiteral("%0%1d.png").arg(FrameNumDigits)};
+                arguments.append(frameSettings.options);
+                if (isUhdInput && !arguments.contains(QStringLiteral("-u"))) arguments.append(QStringLiteral("-u"));
+                const int retryCount = frameSettings.retryCount;
+                const QString requestId = FrameRequest::newId();
+                std::atomic_bool stopRequested{false};
+                // A dedicated request task avoids blocking Qt's shared worker pool.
+                std::future<BackendProcessResult> future = std::async(std::launch::async,
+                    [this, model, SourcePath_Curr, OutputPath_Curr, arguments, expectedFrames,
+                     retryCount, requestId, &stopRequested] {
+                        return backendClient->runFramesBlocking(QStringLiteral("rife-ncnn-vulkan"),
+                            model, SourcePath_Curr, OutputPath_Curr, arguments, 600000,
+                            expectedFrames, retryCount, requestId, &stopRequested);
+                    });
+                while (future.wait_for(std::chrono::milliseconds(200)) != std::future_status::ready)
+                {
+                    if ((waifu2x_STOP || QProcess_stop) && !stopRequested.exchange(true))
+                    {
+                        if (!backendClient->cancelFramesBlocking(requestId))
+                            emit Send_TextBrowser_NewMessage(tr("RIFE cancellation was not acknowledged; waiting for bounded cleanup."));
+                    }
+                    if (frameSettings.showProgress)
+                    {
+                        FileNum_New = file_getFileNames_in_Folder_nofilter(OutputPath_Curr).size();
+                        if (FileNum_New != FileNum_Old)
+                        {
+                            if (is_progressBar_CurrentFile_available)
+                                emit Send_CurrentFileProgress_progressbar_SetFinishedValue(FileNum_New);
+                            else
+                                emit Send_TextBrowser_NewMessage(tr("Interpolating frames in:[")
+                                    + SourcePath_Curr + tr("] Progress:[") + QString::number(FileNum_New)
+                                    + "/" + QString::number(FileNum_MAX) + "]");
+                            FileNum_Old = FileNum_New;
+                        }
+                    }
+                }
+                const BackendProcessResult result = future.get();
+                isThisRoundSucceed = !waifu2x_STOP && !QProcess_stop && result.succeeded()
+                    && FrameRequest::validOutput(OutputPath_Curr, expectedFrames);
+                if (!isThisRoundSucceed)
+                {
+                    emit Send_TextBrowser_NewMessage(result.diagnostic.isEmpty()
+                        ? tr("RIFE did not produce a complete set of decodable frames.") : result.diagnostic);
+                    // Keep output if the backend has not confirmed process cleanup.
+                    if (result.finished)
+                    {
+                        file_DelDir(OutputPath_Curr);
+                        if (stopRequested.load() && SourcePath_Curr != SourcePath)
+                            file_DelDir(SourcePath_Curr);
+                    }
+                }
+            }
+            else if (!backendClient)
+            {
+                emit Send_TextBrowser_NewMessage(tr("Rust backend is unavailable for RIFE frame processing."));
+            }
+        }
+        else
+#endif
         for(int retry=0; retry<(ui->spinBox_retry->value()+retry_add); retry++)
         {
             FrameInterpolation_QProcess_failed = false;
@@ -806,7 +927,11 @@ QString MainWindow::FrameInterpolation_ReadConfig(bool isUhdInput,int NumOfFrame
     {
         case 0://rife
             {
+#ifdef PLATFORM_LINUX
+                VFI_Config.append("-m \""+ui->comboBox_Model_VFI->currentText().trimmed()+"\" ");
+#else
                 VFI_Config.append("-m \""+resolveModelPath(Current_Path, "rife-ncnn-vulkan", ui->comboBox_Model_VFI->currentText().trimmed())+"\" ");
+#endif
                 break;
             }
         case 1://cain

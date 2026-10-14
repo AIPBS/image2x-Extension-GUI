@@ -1,5 +1,17 @@
 # Change log
 
+## v1.4.0 (2026-10-14)
+
+### Changed
+- Route the Linux RIFE frame-interpolation path used by video processing through
+  Rust runtime validation, bounded execution, retries, and Stop cancellation.
+  Preserve Qt progress reporting, successive interpolation passes, and final
+  frame decoding.
+
+### Fixed
+- Keep the selected RIFE engine, model, and settings fixed for all passes of an
+  active job so later UI changes cannot switch its execution route.
+
 ## v1.3.0 (2026-10-14)
 
 ### Changed

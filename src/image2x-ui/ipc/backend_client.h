@@ -97,6 +97,16 @@ public:
                                           const QString &requestId = QString(),
                                           const std::atomic_bool *stopRequested = nullptr) const;
     bool cancelFramesBlocking(const QString &targetId) const;
+    BackendProcessResult runFramesBlocking(const QString &engine,
+                                          const QString &model,
+                                          const QString &inputPath,
+                                          const QString &outputPath,
+                                          const QStringList &arguments,
+                                          int timeoutMs,
+                                          int expectedFrames,
+                                          int retryCount,
+                                          const QString &requestId = QString(),
+                                          const std::atomic_bool *stopRequested = nullptr) const;
 
 signals:
     void ready();

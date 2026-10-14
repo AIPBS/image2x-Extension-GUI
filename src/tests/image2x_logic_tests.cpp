@@ -18,6 +18,9 @@
 #include "../image2x-ui/ipc/frame_request.h"
 
 #include <QDir>
+#include <QComboBox>
+#include <QSpinBox>
+#include <QCheckBox>
 #include <QFile>
 #include <QImage>
 #include <QSignalSpy>
@@ -29,6 +32,52 @@ class Image2xLogicTests : public QObject
     Q_OBJECT
 
 private slots:
+    void frameJobSettingsStayStableAfterWidgetChanges()
+    {
+        QComboBox engine;
+        engine.addItems({QStringLiteral("RIFE"), QStringLiteral("CAIN"),
+                         QStringLiteral("DAIN"), QStringLiteral("IFRNet")});
+        QComboBox model;
+        model.addItems({QStringLiteral("rife-v2.4"), QStringLiteral("IFRNet_Vimeo90K")});
+        QSpinBox fps;
+        fps.setValue(4);
+        QSpinBox retries;
+        retries.setValue(2);
+        QCheckBox progress;
+        progress.setChecked(true);
+        QStringList options{QStringLiteral("-x"), QStringLiteral("-j"), QStringLiteral("2:2:2"),
+                            QStringLiteral("-m"), model.currentText()};
+        const FrameRequest::JobSettings settings{engine.currentIndex(), model.currentText(),
+            options, fps.value(), retries.value(), progress.isChecked()};
+
+        engine.setCurrentIndex(3);
+        model.setCurrentIndex(1);
+        fps.setValue(8);
+        retries.setValue(6);
+        progress.setChecked(false);
+        options[2] = QStringLiteral("8:8:8");
+        options[4] = model.currentText();
+
+        QVERIFY(settings.usesRifeBackend());
+        QCOMPARE(settings.engineIndex, 0);
+        QCOMPARE(settings.model, QStringLiteral("rife-v2.4"));
+        QCOMPARE(settings.fpsMultiple, 4);
+        QCOMPARE(settings.retryCount, 2);
+        QVERIFY(settings.showProgress);
+        QCOMPARE(settings.options.at(2), QStringLiteral("2:2:2"));
+        QCOMPARE(settings.options.at(4), QStringLiteral("rife-v2.4"));
+        const QJsonObject laterPass = FrameRequest::make(QStringLiteral("round-4"),
+            QStringLiteral("rife-ncnn-vulkan"), settings.model, QStringLiteral("/output_2"),
+            QStringLiteral("/output"), settings.options, 600000, 24, settings.retryCount);
+        QCOMPARE(laterPass.value("engine").toString(), QStringLiteral("rife-ncnn-vulkan"));
+        QCOMPARE(laterPass.value("model").toString(), QStringLiteral("rife-v2.4"));
+        QCOMPARE(laterPass.value("args").toArray(), QJsonArray::fromStringList(settings.options));
+        const FrameRequest::JobSettings ifrnet{engine.currentIndex(), model.currentText(),
+            options, fps.value(), retries.value(), progress.isChecked()};
+        QVERIFY(!ifrnet.usesRifeBackend());
+        QCOMPARE(ifrnet.engineIndex, 3);
+    }
+
     void frameCancellationTranslation()
     {
         const QString targetId = FrameRequest::newId();
@@ -72,6 +121,37 @@ private slots:
         QCOMPARE(request.value("timeout_ms").toInt(), 600000);
         QCOMPARE(request.value("expected_frames").toInt(), 24);
         QCOMPARE(request.value("retry_count").toInt(), 2);
+        const QJsonObject explicitRequest = FrameRequest::make(QStringLiteral("frames-test"),
+            QStringLiteral("ifrnet-ncnn-vulkan"), QStringLiteral("IFRNet_Vimeo90K"),
+            QStringLiteral("/input with spaces"), QStringLiteral("/output"), arguments, 600000, 24, 2);
+        QCOMPARE(explicitRequest, request);
+    }
+
+    void rifeFrameRequestTranslation()
+    {
+        const QStringList arguments{QStringLiteral("-i"), QStringLiteral("/input frames"),
+                                    QStringLiteral("-o"), QStringLiteral("/output_2"),
+                                    QStringLiteral("-f"), QStringLiteral("%08d.png"),
+                                    QStringLiteral("-x"), QStringLiteral("-u"),
+                                    QStringLiteral("-g"), QStringLiteral("0"),
+                                    QStringLiteral("-j"), QStringLiteral("2:2:2"),
+                                    QStringLiteral("-m"), QStringLiteral("rife-v2.4")};
+        const QJsonObject request = FrameRequest::make(QStringLiteral("rife-round-2"),
+            QStringLiteral("rife-ncnn-vulkan"), QStringLiteral("rife-v2.4"),
+            QStringLiteral("/input frames"), QStringLiteral("/output_2"), arguments, 600000, 12, 5);
+        QCOMPARE(request.value("type").toString(), QStringLiteral("process_frames"));
+        QCOMPARE(request.value("id").toString(), QStringLiteral("rife-round-2"));
+        QCOMPARE(request.value("engine").toString(), QStringLiteral("rife-ncnn-vulkan"));
+        QCOMPARE(request.value("model").toString(), QStringLiteral("rife-v2.4"));
+        QCOMPARE(request.value("input_path").toString(), QStringLiteral("/input frames"));
+        QCOMPARE(request.value("output_path").toString(), QStringLiteral("/output_2"));
+        QCOMPARE(request.value("args").toArray(), QJsonArray::fromStringList(arguments));
+        QCOMPARE(request.value("timeout_ms").toInt(), 600000);
+        QCOMPARE(request.value("expected_frames").toInt(), 12);
+        QCOMPARE(request.value("retry_count").toInt(), 5);
+        const QJsonObject cancellation = FrameRequest::cancel(QStringLiteral("cancel-rife"),
+            request.value("id").toString());
+        QCOMPARE(cancellation.value("target_id").toString(), QStringLiteral("rife-round-2"));
     }
 
     void frameResultTranslation()

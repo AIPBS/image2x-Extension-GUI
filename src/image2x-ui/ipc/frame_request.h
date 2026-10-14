@@ -11,6 +11,18 @@
 
 namespace FrameRequest
 {
+struct JobSettings
+{
+    const int engineIndex;
+    const QString model;
+    const QStringList options;
+    const int fpsMultiple;
+    const int retryCount;
+    const bool showProgress;
+
+    bool usesRifeBackend() const { return engineIndex == 0; }
+};
+
 inline QString newId()
 {
     return QStringLiteral("frames-%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
@@ -31,7 +43,7 @@ inline bool cancellationAccepted(const QJsonObject &response)
                .value(QStringLiteral("cancelled")).toBool();
 }
 
-inline QJsonObject make(const QString &id, const QString &model,
+inline QJsonObject make(const QString &id, const QString &engine, const QString &model,
                         const QString &inputPath, const QString &outputPath,
                         const QStringList &arguments, int timeoutMs,
                         int expectedFrames, int retryCount)
@@ -39,7 +51,7 @@ inline QJsonObject make(const QString &id, const QString &model,
     return QJsonObject{
         {QStringLiteral("type"), QStringLiteral("process_frames")},
         {QStringLiteral("id"), id},
-        {QStringLiteral("engine"), QStringLiteral("ifrnet-ncnn-vulkan")},
+        {QStringLiteral("engine"), engine},
         {QStringLiteral("model"), model},
         {QStringLiteral("input_path"), inputPath},
         {QStringLiteral("output_path"), outputPath},
@@ -48,6 +60,15 @@ inline QJsonObject make(const QString &id, const QString &model,
         {QStringLiteral("expected_frames"), expectedFrames},
         {QStringLiteral("retry_count"), retryCount},
     };
+}
+
+inline QJsonObject make(const QString &id, const QString &model,
+                        const QString &inputPath, const QString &outputPath,
+                        const QStringList &arguments, int timeoutMs,
+                        int expectedFrames, int retryCount)
+{
+    return make(id, QStringLiteral("ifrnet-ncnn-vulkan"), model, inputPath,
+                outputPath, arguments, timeoutMs, expectedFrames, retryCount);
 }
 
 inline BackendProcessResult result(const QJsonObject &response)

@@ -26,6 +26,11 @@ struct RuntimeDefinition {
 
 const RUNTIMES: &[RuntimeDefinition] = &[
     RuntimeDefinition {
+        engine: "rife-ncnn-vulkan",
+        executable: "rife-ncnn-vulkan",
+        models: &["rife-v4.6"],
+    },
+    RuntimeDefinition {
         engine: "ifrnet-ncnn-vulkan",
         executable: "ifrnet-ncnn-vulkan",
         models: &["IFRNet_Vimeo90K"],
@@ -127,7 +132,7 @@ mod tests {
     #[test]
     fn missing_application_reports_all_public_runtimes() {
         let records = runtime_records(Path::new("/does/not/exist/image2x"));
-        assert_eq!(records.len(), 6);
+        assert_eq!(records.len(), 7);
         assert!(records.iter().all(|record| !record.available));
     }
 }

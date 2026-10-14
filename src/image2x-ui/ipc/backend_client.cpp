@@ -374,6 +374,17 @@ BackendProcessResult BackendClient::runFramesBlocking(
     const QStringList &arguments, int timeoutMs, int expectedFrames, int retryCount,
     const QString &requestId, const std::atomic_bool *stopRequested) const
 {
+    return runFramesBlocking(QStringLiteral("ifrnet-ncnn-vulkan"), model,
+        inputPath, outputPath, arguments, timeoutMs, expectedFrames, retryCount,
+        requestId, stopRequested);
+}
+
+BackendProcessResult BackendClient::runFramesBlocking(
+    const QString &engine, const QString &model, const QString &inputPath,
+    const QString &outputPath, const QStringList &arguments, int timeoutMs,
+    int expectedFrames, int retryCount, const QString &requestId,
+    const std::atomic_bool *stopRequested) const
+{
     if (QCoreApplication::instance()
         && QThread::currentThread() == QCoreApplication::instance()->thread())
     {
@@ -383,7 +394,7 @@ BackendProcessResult BackendClient::runFramesBlocking(
     }
     const QJsonObject request = FrameRequest::make(
         requestId.isEmpty() ? FrameRequest::newId() : requestId,
-        model, inputPath, outputPath, arguments, timeoutMs, expectedFrames, retryCount);
+        engine, model, inputPath, outputPath, arguments, timeoutMs, expectedFrames, retryCount);
     const qint64 waitMs = qint64(qMax(1, timeoutMs)) + 5000;
     return FrameRequest::result(runRequestBlocking(
         request, int(qMin(waitMs, qint64(std::numeric_limits<int>::max()))), stopRequested));

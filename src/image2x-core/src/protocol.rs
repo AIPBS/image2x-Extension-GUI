@@ -10,7 +10,7 @@ use serde_json::Value;
 
 pub const PROTOCOL_VERSION: u32 = 1;
 
-/// One IFRNet folder pass. Core-owned paths override matching argv options.
+/// One IFRNet or RIFE folder pass. Core paths override matching argv options.
 #[derive(Debug, Deserialize)]
 pub struct FrameJob {
     pub engine: String,

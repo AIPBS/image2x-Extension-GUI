@@ -1,4 +1,4 @@
-//! One bounded IFRNet folder pass, with clean retries and numbered PNG checks.
+//! One bounded IFRNet or RIFE folder pass, with clean retries and PNG checks.
 //!
 //! Qt owns successive 2x passes and progress polling. Explicit cancel_frames
 //! requests stop active passes; disconnect alone does not cancel a job.
@@ -69,7 +69,10 @@ struct Prepared {
 }
 
 fn prepare(application: &Path, job: &FrameJob) -> Result<Prepared, String> {
-    if job.engine != "ifrnet-ncnn-vulkan" {
+    if !matches!(
+        job.engine.as_str(),
+        "ifrnet-ncnn-vulkan" | "rife-ncnn-vulkan"
+    ) {
         return Err(format!("unsupported frame engine: {}", job.engine));
     }
     let mut components = Path::new(&job.model).components();
@@ -101,6 +104,7 @@ fn prepare(application: &Path, job: &FrameJob) -> Result<Prepared, String> {
     {
         return Err("model directory is empty or outside the runtime".into());
     }
+    validate_model_files(&job.engine, &job.model, &model)?;
     let input = fs::canonicalize(&job.input_path)
         .map_err(|error| format!("input folder is unavailable: {error}"))?;
     if !input.is_dir()
@@ -165,6 +169,34 @@ fn prepare(application: &Path, job: &FrameJob) -> Result<Prepared, String> {
         width,
         _lease: lease,
     })
+}
+
+fn validate_model_files(engine: &str, name: &str, model: &Path) -> Result<(), String> {
+    // Keep IFRNet's established nonempty-directory policy. RIFE v4 models use
+    // only flownet; older named models also need contextnet and fusionnet.
+    // These filesystem checks cannot prove compatibility with an installed
+    // executable: unsupported NCNN layers still fail through the real process.
+    let networks: &[&str] = match engine {
+        "rife-ncnn-vulkan" if name.starts_with("rife-v4") => &["flownet"],
+        "rife-ncnn-vulkan" => &["flownet", "contextnet", "fusionnet"],
+        _ => &[],
+    };
+    for network in networks {
+        for extension in ["param", "bin"] {
+            let file = model.join(format!("{network}.{extension}"));
+            let canonical = fs::canonicalize(&file).map_err(|error| {
+                format!("model file is unavailable: {}: {error}", file.display())
+            })?;
+            let metadata = fs::metadata(&canonical).map_err(|error| error.to_string())?;
+            if !canonical.starts_with(model) || !metadata.is_file() || metadata.len() == 0 {
+                return Err(format!(
+                    "model file is empty or outside model: {}",
+                    file.display()
+                ));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn validate_output(folder: &Path, expected: u32, width: usize) -> Result<u32, String> {

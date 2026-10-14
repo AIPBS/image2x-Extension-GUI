@@ -10,6 +10,7 @@ set -euo pipefail
 APPLICATION_DIRECTORY="$(realpath "$1")"
 INPUT_IMAGE="$(realpath "$2")"
 ENGINE_DIRECTORY="${APPLICATION_DIRECTORY}/dependencies/distributable"
+SCRIPT_DIRECTORY="$(dirname "$(realpath "$0")")"
 OUTPUT_DIRECTORY="$(mktemp -d)"
 RESULTS_FILE="${OUTPUT_DIRECTORY}/matrix.tsv"
 FAILED=0
@@ -53,14 +54,22 @@ run_case() {
     local output="$3"
     shift 3
     local status=0
+    local runtime_log="${OUTPUT_DIRECTORY}/${name}.log"
     rm -f "$output"
-    if timeout --kill-after=5s 180s "$executable" "$@" -i "$INPUT_IMAGE" -o "$output" -g 0; then
+    if timeout --kill-after=5s 180s "$executable" "$@" -i "$INPUT_IMAGE" -o "$output" -g 0 2>&1 | tee "$runtime_log"; then
         status=0
     else
-        status=$?
+        status="${PIPESTATUS[0]}"
     fi
     local result="FAIL"
-    if [[ "$status" -eq 0 && -s "$output" ]] && valid_png "$output"; then
+    local device_ok=0
+    if [[ "${IMAGE2X_REQUIRE_HARDWARE_VULKAN:-0}" == 1 ]] && bash "$SCRIPT_DIRECTORY/check_vulkan_hardware_device.sh" "$runtime_log"; then
+        device_ok=0
+    elif [[ "${IMAGE2X_REQUIRE_HARDWARE_VULKAN:-0}" == 1 ]]; then
+        printf 'Stopping matrix after GPU acceptance failure in %s. Runtime output is above.\n' "$name" >&2
+        exit 1
+    fi
+    if [[ "$status" -eq 0 && "$device_ok" -eq 0 && -s "$output" ]] && valid_png "$output"; then
         result="PASS"
     fi
     printf '%s\t%s\t%s\t%s\n' "$result" "$name" "$status" "$output" | tee -a "$RESULTS_FILE"

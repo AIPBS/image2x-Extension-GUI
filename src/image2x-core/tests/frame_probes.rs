@@ -1,6 +1,9 @@
 //! Pair-input probe and discovery tests. All engines/devices are synthetic.
 #![cfg(unix)]
 
+#[path = "support/fake_engine.rs"]
+mod fake_engine;
+
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
@@ -42,8 +45,7 @@ impl Fixture {
             fs::write(fixture.root.join(name), &png).unwrap();
         }
         let script = format!("#!/bin/sh\nprintf '%s\\n' \"$@\" > argv\nwhile [ \"$#\" -gt 0 ]; do\n case \"$1\" in -0) first=$2; shift;; -1) second=$2; shift;; -o) output=$2; shift;; -m) model=$2; shift;; esac\n shift\ndone\n[ \"$first\" != \"$second\" ] && [ -f \"$first\" ] && [ -f \"$second\" ] && [ -d \"$model\" ] || exit 4\n{DEVICES}\n{suffix}\n");
-        fs::write(fixture.program(), script).unwrap();
-        fs::set_permissions(fixture.program(), fs::Permissions::from_mode(0o755)).unwrap();
+        fake_engine::install(&fixture.program(), &script).unwrap();
         fixture
     }
 
@@ -113,6 +115,10 @@ fn cain_dain_inventory_reports_directory_executable_and_model_availability_only(
         };
         assert!(record().available);
         assert_eq!(record().executable, fixture.program());
+        // Replace only this fixture's symlink. Chmod on it would mutate the
+        // shared immutable launcher and interfere with other parallel tests.
+        fs::remove_file(fixture.program()).unwrap();
+        fs::write(fixture.program(), b"not executable").unwrap();
         fs::set_permissions(fixture.program(), fs::Permissions::from_mode(0o644)).unwrap();
         assert_eq!(record().missing, [fixture.program()]);
         fs::remove_file(fixture.program()).unwrap();
@@ -220,8 +226,8 @@ fn pair_probe_timeout_kills_pipe_owning_helpers_within_budget() {
         &fixture.output(),
         "hardware_gpu",
     );
-    assert!(result.started);
-    assert!(result.finished);
+    assert!(result.started, "probe did not start: {result:?}");
+    assert!(result.finished, "probe did not finish: {result:?}");
     assert!(!result.passed);
     assert!(result.diagnostic.contains("deadline"));
     assert!(start.elapsed() < Duration::from_secs(1));

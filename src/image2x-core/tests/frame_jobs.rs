@@ -1,8 +1,10 @@
 //! Deterministic folder-job tests. Fake engines need no GPU or installed runtime.
 #![cfg(unix)]
 
+#[path = "support/fake_engine.rs"]
+mod fake_engine;
+
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
@@ -35,8 +37,7 @@ impl Fixture {
         let program = runtime.join("ifrnet-ncnn-vulkan");
         // This shell is only a deterministic OS test leaf. Production always
         // launches the selected executable with an argv array, never a shell.
-        fs::write(&program, format!("#!/bin/sh\nwhile [ \"$#\" -gt 0 ]; do\n case \"$1\" in -i) input=$2; shift;; -o) output=$2; shift;; esac\n shift\ndone\n{script}\n")).unwrap();
-        fs::set_permissions(program, fs::Permissions::from_mode(0o755)).unwrap();
+        fake_engine::install(&program, &format!("#!/bin/sh\nwhile [ \"$#\" -gt 0 ]; do\n case \"$1\" in -i) input=$2; shift;; -o) output=$2; shift;; esac\n shift\ndone\n{script}\n")).unwrap();
         Self(root)
     }
 

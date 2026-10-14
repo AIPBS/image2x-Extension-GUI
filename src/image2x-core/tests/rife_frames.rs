@@ -1,8 +1,10 @@
 //! Fake RIFE runtimes exercise the shared frame API without installed engines.
 #![cfg(unix)]
 
+#[path = "support/fake_engine.rs"]
+mod fake_engine;
+
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
@@ -61,8 +63,7 @@ impl Fixture {
         let path = self.runtime().join(ENGINE);
         // A deterministic shell test leaf records the actual argv received by
         // the fake runtime. Production launches engines directly, not a shell.
-        fs::write(&path, format!("#!/bin/sh\nprintf '%s\\n' \"$@\" > argv\nwhile [ \"$#\" -gt 0 ]; do\n case \"$1\" in -i) input=$2; shift;; -o) output=$2; shift;; -m) model=$2; shift;; esac\n shift\ndone\n{script}\n")).unwrap();
-        fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+        fake_engine::install(&path, &format!("#!/bin/sh\nprintf '%s\\n' \"$@\" > argv\nwhile [ \"$#\" -gt 0 ]; do\n case \"$1\" in -i) input=$2; shift;; -o) output=$2; shift;; -m) model=$2; shift;; esac\n shift\ndone\n{script}\n")).unwrap();
     }
 
     fn job(&self, model: &str) -> FrameJob {

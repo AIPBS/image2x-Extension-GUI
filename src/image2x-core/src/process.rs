@@ -12,6 +12,7 @@ use std::time::{Duration, Instant};
 
 use serde::Serialize;
 
+pub use crate::engine_probe::run_engine_test;
 use crate::protocol::ImageJobStage;
 
 #[derive(Debug, Serialize)]
@@ -212,106 +213,6 @@ fn run_command_with_environment(
     }
 }
 
-pub fn run_engine_test(
-    program: &str,
-    args: &[String],
-    cwd: &Path,
-    timeout_ms: u64,
-    output_path: &Path,
-    device: &str,
-) -> EngineTestResult {
-    let _ = std::fs::remove_file(output_path);
-    let environment = software_vulkan_environment(device);
-    let process = run_command_with_environment(
-        program,
-        args,
-        cwd,
-        timeout_ms,
-        Some(output_path),
-        &environment,
-    );
-    let device_name = reported_device(&process.stdout, &process.stderr);
-    let software_device = is_software_device(&device_name);
-    let device_accepted = match device {
-        "hardware_gpu" => !device_name.is_empty() && !software_device,
-        "software_cpu" => !device_name.is_empty() && software_device,
-        _ => false,
-    };
-    let mut diagnostic = process.diagnostic.clone();
-    if diagnostic.is_empty() && device_name.is_empty() {
-        diagnostic = "the engine did not report a Vulkan device".to_owned();
-    } else if diagnostic.is_empty() && !device_accepted {
-        diagnostic = format!("unexpected Vulkan device: {device_name}");
-    }
-    EngineTestResult {
-        started: process.started,
-        finished: process.finished,
-        output_valid: process.output_valid,
-        device_accepted,
-        passed: process.started
-            && process.finished
-            && process.exit_code == Some(0)
-            && process.output_valid
-            && device_accepted,
-        exit_code: process.exit_code,
-        device_name,
-        diagnostic,
-        stdout: process.stdout,
-        stderr: process.stderr,
-    }
-}
-
-fn software_vulkan_environment(device: &str) -> Vec<(String, String)> {
-    if device != "software_cpu" {
-        return Vec::new();
-    }
-
-    if let Ok(icd) = std::env::var("IMAGE2X_SOFTWARE_VULKAN_ICD") {
-        if !icd.is_empty() {
-            return vec![("VK_ICD_FILENAMES".to_owned(), icd)];
-        }
-    }
-
-    [
-        "/usr/share/vulkan/icd.d/lvp_icd.json",
-        "/etc/vulkan/icd.d/lvp_icd.json",
-    ]
-    .iter()
-    .find(|path| Path::new(path).is_file())
-    .map(|path| vec![("VK_ICD_FILENAMES".to_owned(), (*path).to_owned())])
-    .unwrap_or_default()
-}
-
-fn reported_device(stdout: &str, stderr: &str) -> String {
-    for line in stdout.lines().chain(stderr.lines()) {
-        let Some(start) = line.find('[') else {
-            continue;
-        };
-        let Some(queue_start) = line.find("queueC=") else {
-            continue;
-        };
-        let before_queue = &line[..queue_start];
-        let Some(end) = before_queue.rfind(']') else {
-            continue;
-        };
-        let device_fields = &line[start + 1..end];
-        let mut fields = device_fields.splitn(2, char::is_whitespace);
-        let _index = fields.next();
-        let device = fields.next().map(str::trim).unwrap_or("");
-        if !device.is_empty() {
-            return device.to_owned();
-        }
-    }
-    String::new()
-}
-
-fn is_software_device(device_name: &str) -> bool {
-    let normalized = device_name.to_ascii_lowercase();
-    ["llvmpipe", "lavapipe", "softpipe", "swiftshader"]
-        .iter()
-        .any(|name| normalized.contains(name))
-}
-
 fn is_nonempty_file(path: &Path) -> bool {
     std::fs::metadata(path)
         .map(|metadata| metadata.is_file() && metadata.len() > 0)
@@ -320,9 +221,19 @@ fn is_nonempty_file(path: &Path) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{reported_device, run_command, run_engine_test, run_image_job};
+    use super::{run_command, run_engine_test, run_image_job};
+    use crate::engine_probe::reported_device;
     use crate::protocol::ImageJobStage;
     use std::path::Path;
+
+    fn test_directory(name: &str) -> std::path::PathBuf {
+        let path = std::path::PathBuf::from(format!(
+            "/tmp/opencode/i2/process-test-{}-{name}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&path).expect("test directory should be created");
+        path
+    }
 
     #[test]
     fn missing_program_is_reported_without_panic() {
@@ -339,7 +250,7 @@ mod tests {
 
     #[test]
     fn parses_vulkan_device_from_engine_output() {
-        let device = reported_device("[0 llvmpipe (LLVM 18.1.3)] queueC=0", "");
+        let device = reported_device("[0 llvmpipe (LLVM 18.1.3)] queueC=0", "", &[]).unwrap();
         assert_eq!(device, "llvmpipe (LLVM 18.1.3)");
     }
 
@@ -348,45 +259,51 @@ mod tests {
         let device = reported_device(
             "[0 llvmpipe (LLVM 21.1.8, 256 bits)]  queueC=0[1]  queueG=0",
             "",
-        );
+            &[],
+        )
+        .unwrap();
         assert_eq!(device, "llvmpipe (LLVM 21.1.8, 256 bits)");
     }
 
     #[test]
     fn engine_test_requires_the_requested_device_class() {
+        let directory = test_directory("software-device");
         let result = run_engine_test(
             "/bin/sh",
             &[
                 "-c".to_owned(),
                 "printf '[0 llvmpipe] queueC=0\\n'; printf x > output.png".to_owned(),
             ],
-            Path::new("/tmp"),
+            &directory,
             1000,
-            Path::new("/tmp/output.png"),
+            &directory.join("output.png"),
             "software_cpu",
         );
         assert!(result.passed);
-        let _ = std::fs::remove_file("/tmp/output.png");
+        std::fs::remove_dir_all(directory).expect("test directory should be removed");
     }
 
     #[test]
     fn image_job_retries_stages_and_validates_outputs() {
-        std::fs::write("/tmp/image2x-job-input.png", b"input")
-            .expect("job input should be created");
+        let directory = test_directory("image-job");
+        let input = directory.join("input.png");
+        let output = directory.join("output.png");
+        std::fs::write(&input, b"input").expect("job input should be created");
         let stage = ImageJobStage {
-            input_path: "/tmp/image2x-job-input.png".to_owned(),
-            output_path: "/tmp/image2x-job-output.png".to_owned(),
+            input_path: input.to_string_lossy().into_owned(),
+            output_path: output.to_string_lossy().into_owned(),
             args: vec![
                 "-c".to_owned(),
-                "printf output > /tmp/image2x-job-output.png".to_owned(),
+                "printf output > \"$1\"".to_owned(),
+                "fake-engine".to_owned(),
+                output.to_string_lossy().into_owned(),
             ],
         };
-        let result = run_image_job("/bin/sh", Path::new("/tmp"), &[stage], 1000, 1);
+        let result = run_image_job("/bin/sh", &directory, &[stage], 1000, 1);
         assert!(result.started);
         assert!(result.finished);
         assert_eq!(result.exit_code, Some(0));
         assert!(result.output_valid);
-        let _ = std::fs::remove_file("/tmp/image2x-job-input.png");
-        let _ = std::fs::remove_file("/tmp/image2x-job-output.png");
+        std::fs::remove_dir_all(directory).expect("test directory should be removed");
     }
 }

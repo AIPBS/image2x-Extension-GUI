@@ -25,6 +25,18 @@ struct RuntimeDefinition {
 }
 
 const RUNTIMES: &[RuntimeDefinition] = &[
+    // Discovery for pair-input detection only. These entries do not grant
+    // typed folder-job support, which frame_job explicitly restricts.
+    RuntimeDefinition {
+        engine: "cain-ncnn-vulkan",
+        executable: "cain-ncnn-vulkan",
+        models: &["cain"],
+    },
+    RuntimeDefinition {
+        engine: "dain-ncnn-vulkan",
+        executable: "dain-ncnn-vulkan",
+        models: &["best"],
+    },
     RuntimeDefinition {
         engine: "rife-ncnn-vulkan",
         executable: "rife-ncnn-vulkan",
@@ -93,8 +105,12 @@ pub fn runtime_records(application_directory: &Path) -> Vec<RuntimeRecord> {
             }
             for model in definition.models {
                 let model_path = directory.join(model);
-                let model_pair = directory.join(format!("{model}.param")).is_file()
-                    && directory.join(format!("{model}.bin")).is_file();
+                // CAIN/DAIN detection passes -m to these sentinel directories,
+                // not to a flat param/bin basename used by some still engines.
+                let model_pair =
+                    !matches!(definition.engine, "cain-ncnn-vulkan" | "dain-ncnn-vulkan")
+                        && directory.join(format!("{model}.param")).is_file()
+                        && directory.join(format!("{model}.bin")).is_file();
                 if !model_path.is_dir() && !model_pair {
                     missing.push(model_path);
                 }
@@ -132,7 +148,7 @@ mod tests {
     #[test]
     fn missing_application_reports_all_public_runtimes() {
         let records = runtime_records(Path::new("/does/not/exist/image2x"));
-        assert_eq!(records.len(), 7);
+        assert_eq!(records.len(), 9);
         assert!(records.iter().all(|record| !record.available));
     }
 }

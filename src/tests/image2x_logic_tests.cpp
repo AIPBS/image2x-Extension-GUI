@@ -12,6 +12,7 @@
 
 #include "compatibility_presentation.h"
 #include "engine_test_runner.h"
+#include "frame_gpu_probe.h"
 #include "model_test_matrix.h"
 #include "runtime_dependencies.h"
 #include "ui_routing.h"
@@ -32,6 +33,139 @@ class Image2xLogicTests : public QObject
     Q_OBJECT
 
 private slots:
+    void frameGpuProbeInputsAreDistinctWritableAndTemporary()
+    {
+        QTemporaryDir parent;
+        QVERIFY(parent.isValid());
+        QString scanDirectory;
+        {
+            FrameGpuProbe::Inputs inputs(parent.filePath(QStringLiteral("scan-XXXXXX")));
+            QVERIFY2(inputs.prepare(), qPrintable(inputs.diagnostic()));
+            QVERIFY(inputs.diagnostic().isEmpty());
+            QVERIFY(inputs.input0() != inputs.input1());
+            const QImage first(inputs.input0());
+            const QImage second(inputs.input1());
+            QVERIFY(!first.isNull());
+            QVERIFY(!second.isNull());
+            QVERIFY(first != second);
+            QImageReader reader(inputs.input0());
+            QCOMPARE(reader.format(), QByteArray("png"));
+            QImageReader secondReader(inputs.input1());
+            QCOMPARE(secondReader.format(), QByteArray("png"));
+            scanDirectory = QFileInfo(inputs.input0()).absolutePath();
+            QCOMPARE(QFileInfo(inputs.input1()).absolutePath(), scanDirectory);
+            QCOMPARE(QFileInfo(inputs.output()).absolutePath(), scanDirectory);
+            QVERIFY(first.save(inputs.output(), "PNG"));
+            QVERIFY(EngineTestRunner::isValidImage(inputs.output()));
+            FrameGpuProbe::Inputs another(parent.filePath(QStringLiteral("scan-XXXXXX")));
+            QVERIFY(another.prepare());
+            QVERIFY(another.input0() != inputs.input0());
+        }
+        QVERIFY(!QDir(scanDirectory).exists());
+        QVERIFY(QDir(parent.path()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot).isEmpty());
+    }
+
+    void frameGpuProbeInputPreparationFailureIsReported()
+    {
+        QTemporaryDir parent;
+        QVERIFY(parent.isValid());
+        FrameGpuProbe::Inputs inputs(parent.filePath(QStringLiteral("missing/scan-XXXXXX")));
+        QVERIFY(!inputs.prepare());
+        QVERIFY(!inputs.diagnostic().isEmpty());
+    }
+
+    void frameGpuProbeMapping_data()
+    {
+        QTest::addColumn<int>("index");
+        QTest::addColumn<QString>("engine");
+        QTest::addColumn<QString>("model");
+        QTest::addColumn<int>("tile");
+        QTest::newRow("rife") << 0 << QStringLiteral("rife-ncnn-vulkan") << QStringLiteral("rife-v2.4") << 0;
+        QTest::newRow("cain") << 1 << QStringLiteral("cain-ncnn-vulkan") << QStringLiteral("cain") << 0;
+        QTest::newRow("dain") << 2 << QStringLiteral("dain-ncnn-vulkan") << QStringLiteral("best") << 128;
+        QTest::newRow("ifrnet") << 3 << QStringLiteral("ifrnet-ncnn-vulkan") << QStringLiteral("IFRNet_Vimeo90K") << 0;
+    }
+
+    void frameGpuProbeMapping()
+    {
+        QFETCH(int, index);
+        QFETCH(QString, engine);
+        QFETCH(QString, model);
+        QFETCH(int, tile);
+        const FrameGpuProbe::Mapping mapping = FrameGpuProbe::mapping(index);
+        QCOMPARE(mapping.engine, engine);
+        QCOMPARE(mapping.model, model);
+        QCOMPARE(mapping.tileSize, tile);
+        const EngineTestRequest request = FrameGpuProbe::request(mapping, QStringLiteral("/runtime/engine"),
+            QStringLiteral("/runtime"), QStringLiteral("/input zero.png"), QStringLiteral("/input one.png"),
+            QStringLiteral("/output.png"), 1);
+        QStringList expected{QStringLiteral("-0"), QStringLiteral("/input zero.png"),
+                             QStringLiteral("-1"), QStringLiteral("/input one.png"),
+                             QStringLiteral("-o"), QStringLiteral("/output.png"),
+                             QStringLiteral("-g"), QStringLiteral("1"),
+                             QStringLiteral("-j"), QStringLiteral("1:1:1"),
+                             QStringLiteral("-m"), model};
+        if (tile > 0) expected.append({QStringLiteral("-t"), QString::number(tile)});
+        QCOMPARE(request.arguments, expected);
+        QCOMPARE(request.executable, QStringLiteral("/runtime/engine"));
+        QCOMPARE(request.workingDirectory, QStringLiteral("/runtime"));
+        QCOMPARE(request.outputPath, QStringLiteral("/output.png"));
+        QCOMPARE(request.timeoutMs, 60000);
+        QCOMPARE(request.device, EngineTestDevice::HardwareGpu);
+    }
+
+    void frameGpuProbeMappingIsStable()
+    {
+        QComboBox engine;
+        engine.addItems({QStringLiteral("RIFE"), QStringLiteral("CAIN"),
+                         QStringLiteral("DAIN"), QStringLiteral("IFRNet")});
+        const FrameGpuProbe::Mapping captured = FrameGpuProbe::mapping(engine.currentIndex());
+        engine.setCurrentIndex(2);
+        const EngineTestRequest request = FrameGpuProbe::request(captured, QStringLiteral("/rife"),
+            QStringLiteral("/runtime"), QStringLiteral("/zero.png"), QStringLiteral("/one.png"),
+            QStringLiteral("/result.png"), 2);
+        QCOMPARE(captured.engine, QStringLiteral("rife-ncnn-vulkan"));
+        QCOMPARE(request.arguments.last(), QStringLiteral("rife-v2.4"));
+        QVERIFY(!request.arguments.contains(QStringLiteral("-t")));
+        QVERIFY(FrameGpuProbe::mapping(-1).engine.isEmpty());
+        QVERIFY(FrameGpuProbe::mapping(4).engine.isEmpty());
+    }
+
+    void frameGpuProbeRejectsSoftwareAndInvalidOutput()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const QString output = directory.filePath(QStringLiteral("result.png"));
+        QImage image(4, 4, QImage::Format_RGB32);
+        image.fill(Qt::white);
+        QVERIFY(image.save(output));
+        EngineTestResult result;
+        result.passed = result.started = result.finished = result.outputValid = result.deviceAccepted = true;
+        result.exitCode = 0;
+        result.deviceName = QStringLiteral("Example hardware device");
+        QVERIFY(FrameGpuProbe::accepted(0, result, output));
+        QVERIFY(!FrameGpuProbe::accepted(-1, result, output));
+        result.deviceName = QStringLiteral("llvmpipe");
+        QVERIFY(!FrameGpuProbe::accepted(0, result, output));
+        result.deviceName = QStringLiteral("lavapipe");
+        QVERIFY(!FrameGpuProbe::accepted(0, result, output));
+        result.deviceName = QStringLiteral("Example hardware device");
+        result.passed = false;
+        QVERIFY(!FrameGpuProbe::accepted(0, result, output));
+        result.passed = true;
+        result.deviceAccepted = false;
+        QVERIFY(!FrameGpuProbe::accepted(0, result, output));
+        result.deviceAccepted = true;
+        result.started = false;
+        QVERIFY(!FrameGpuProbe::accepted(0, result, output));
+        result.started = true;
+        QFile file(output);
+        QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+        QCOMPARE(file.write("not an image"), qint64(12));
+        file.close();
+        QVERIFY(!FrameGpuProbe::accepted(0, result, output));
+    }
+
     void frameJobSettingsStayStableAfterWidgetChanges()
     {
         QComboBox engine;

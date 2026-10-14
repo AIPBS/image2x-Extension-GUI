@@ -20,6 +20,7 @@ HEADERS += \
     ../image2x-ui/ipc/backend_client.h \
     ../image2x-ui/ipc/frame_request.h \
     ../image2x-ui/test_support/engine_test_runner.h \
+    ../image2x-ui/test_support/frame_gpu_probe.h \
     ../image2x-ui/test_support/model_test_matrix.h \
     ../image2x-ui/services/runtime_dependencies.h \
     ../image2x-ui/presentation/compatibility_presentation.h \

@@ -20,6 +20,7 @@
 #include "ui_mainwindow.h"
 #ifdef PLATFORM_LINUX
 #include "../ipc/frame_request.h"
+#include "../test_support/frame_gpu_probe.h"
 #include <chrono>
 #include <future>
 #endif
@@ -971,13 +972,55 @@ void MainWindow::on_pushButton_DetectGPU_VFI_clicked()
 
 int MainWindow::FrameInterpolation_DetectGPU()
 {
+#ifdef PLATFORM_LINUX
+    const FrameGpuProbe::Mapping probeMapping = FrameGpuProbe::mapping(ui->comboBox_Engine_VFI->currentIndex());
+#endif
     emit Send_TextBrowser_NewMessage(tr("Detecting available GPU, please wait."));
     //===============
+#ifndef PLATFORM_LINUX
     QString InputPath = Current_Path + "/Compatibility_Test/Compatibility_Test.jpg";
     QString InputPath_1 = Current_Path + "/Compatibility_Test/Compatibility_Test_1.jpg";
     QString OutputPath = Current_Path + "/Compatibility_Test/res.png";
     QFile::remove(OutputPath);
+#endif
     //==============
+#ifdef PLATFORM_LINUX
+    const QString executable = backendClient ? backendClient->runtimeExecutable(probeMapping.engine) : QString();
+    const QString directory = backendClient ? backendClient->runtimeDirectory(probeMapping.engine) : QString();
+    if (!backendClient || QThread::currentThread() == qApp->thread()
+        || probeMapping.engine.isEmpty() || executable.isEmpty() || directory.isEmpty()
+        || !backendClient->runtimeAvailable(probeMapping.engine))
+    {
+        emit Send_TextBrowser_NewMessage(tr("Rust backend runtime is unavailable for frame-engine GPU detection."));
+        emit Send_FrameInterpolation_DetectGPU_finished();
+        return 0;
+    }
+    FrameGpuProbe::Inputs probeInputs;
+    if (!probeInputs.prepare())
+    {
+        emit Send_TextBrowser_NewMessage(probeInputs.diagnostic());
+        emit Send_FrameInterpolation_DetectGPU_finished();
+        return 0;
+    }
+    const QString InputPath = probeInputs.input0();
+    const QString InputPath_1 = probeInputs.input1();
+    const QString OutputPath = probeInputs.output();
+    for (int gpuId = 0; !QProcess_stop && !waifu2x_STOP; ++gpuId)
+    {
+        const EngineTestRequest request = FrameGpuProbe::request(probeMapping, executable,
+            directory, InputPath, InputPath_1, OutputPath, gpuId);
+        const EngineTestResult result = EngineTestRunner::run(request, backendClient);
+        if (QProcess_stop || waifu2x_STOP) break;
+        if (!FrameGpuProbe::accepted(gpuId, result, OutputPath))
+        {
+            emit Send_TextBrowser_NewMessage(result.diagnostic.isEmpty()
+                ? tr("Frame-engine GPU probe did not produce a valid hardware-GPU result.") : result.diagnostic);
+            break;
+        }
+        Available_GPUID_FrameInterpolation.append(QString::number(gpuId));
+        QFile::remove(OutputPath);
+    }
+#else
     QString FrameInterpolation_ProgramPath = "";
     QString FrameInterpolation_ModelPath = "";
     QString TileSize_qstr = "";
@@ -1039,6 +1082,7 @@ int MainWindow::FrameInterpolation_DetectGPU()
             }
         }
     }
+#endif
     QFile::remove(OutputPath);
     //===============
     emit Send_TextBrowser_NewMessage(tr("Detection is complete!"));

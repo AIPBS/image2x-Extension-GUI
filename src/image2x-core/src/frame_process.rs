@@ -1,4 +1,4 @@
-//! Bounded frame-engine supervision with continuously drained output pipes.
+//! Bounded frame/probe supervision with continuously drained output pipes.
 
 use std::io::{self, Read};
 use std::path::Path;
@@ -118,6 +118,17 @@ pub(crate) fn run(
     deadline: Instant,
     cancellation: &Cancellation,
 ) -> ProcessResult {
+    run_with_environment(program, args, cwd, deadline, cancellation, &[])
+}
+
+pub(crate) fn run_with_environment(
+    program: &Path,
+    args: &[String],
+    cwd: &Path,
+    deadline: Instant,
+    cancellation: &Cancellation,
+    environment: &[(String, String)],
+) -> ProcessResult {
     if cancellation.is_cancelled() {
         return failure("frame job cancelled");
     }
@@ -128,6 +139,7 @@ pub(crate) fn run(
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    command.envs(environment.iter().map(|(name, value)| (name, value)));
     #[cfg(unix)]
     {
         use std::os::unix::process::CommandExt;
@@ -197,7 +209,7 @@ pub(crate) fn run(
             result => {
                 timed_out = matches!(result, Ok(None));
                 diagnostic = if timed_out {
-                    "frame job exceeded its deadline".to_owned()
+                    "process exceeded its deadline".to_owned()
                 } else {
                     result
                         .err()
@@ -233,7 +245,7 @@ pub(crate) fn run(
     let (stderr, stderr_failed) = join_reader(stderr);
     let exit_code = status.and_then(|status| status.code());
     if diagnostic.is_empty() && (exit_code != Some(0) || stdout_failed || stderr_failed) {
-        diagnostic = format!("frame engine failed (exit code {exit_code:?})");
+        diagnostic = format!("process failed (exit code {exit_code:?})");
     }
     ProcessResult {
         started: true,

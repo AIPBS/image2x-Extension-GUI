@@ -1,5 +1,19 @@
 # Change log
 
+## v1.5.0 (2026-10-14)
+
+### Changed
+- Run Linux frame-engine GPU-detection probes through Rust supervision using
+  structured arguments and discovered runtimes instead of direct Qt launches.
+
+### Fixed
+- Reject CPU selections and software Vulkan rendering as frame-engine GPU
+  detection results; require a successfully decoded output image.
+- Match probe results to the requested GPU ID rather than the first reported
+  device, and drain engine logs during execution to prevent pipe-buffer hangs.
+- Prepare distinct temporary PNG inputs for GPU detection instead of relying
+  on missing JPEG files beside the installed application.
+
 ## v1.4.0 (2026-10-14)
 
 ### Changed

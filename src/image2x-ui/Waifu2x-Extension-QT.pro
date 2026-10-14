@@ -113,6 +113,7 @@ HEADERS += \
     engine_legacy/engine_registry.h \
     engine_legacy/platform_compat.h \
     test_support/engine_test_runner.h \
+    test_support/frame_gpu_probe.h \
     test_support/model_test_matrix.h
 
 FORMS += \

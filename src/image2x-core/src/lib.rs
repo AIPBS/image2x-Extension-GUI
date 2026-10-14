@@ -5,6 +5,7 @@
 // by the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+mod engine_probe;
 mod frame_cancel;
 pub mod frame_job;
 mod frame_process;
